@@ -1,11 +1,8 @@
 #Community Detection Related
 ##Possible Research Points
 1. Evaluation of Prior Detection Methods on Metric and Scalability  
-
 2. Fast Local Community Search/Query  
-
 2. Sampling Large Scale Graph, Using Sample for Approximation Structure  
-
 4. Implementing userful algorithms on GraphX, PowerGraph, Giraph, estimate efficiency  
 
 ##Influential Researcher
@@ -84,23 +81,14 @@
 
 ## Interesting Published Papers(With Codes)
 1. [GossipMap: a distributed community detection algorithm for billion-edge directed graphs](http://dl.acm.org/citation.cfm?id=2807668) (SC15)  
-
-2. [High quality, scalable and parallel community detection for large real graphs](http://www.dama.upc.edu/publications/fp546prat.pdf) (WWW 2014)
-
+2. [High quality, scalable and parallel community detection for large real graphs](http://www.dama.upc.edu/publications/fp546prat.pdf) (WWW 2014)  
 2. [Community detection: effective evaluation on large social networks](http://comnet.oxfordjournals.org/content/2/1/19.full.pdf+html) (Journal of Complex Networks 2014)  
-
 3. [General optimization technique for high-quality community detection in complex networks](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.90.012811) (Physics Review 2014)  
-
 9. [High Quality, Scalable and Parallel Community Detection for Large Real Graphs](http://delivery.acm.org/10.1145/2570000/2568010/p225-prat.pdf) (WWW 2014)  
-
 4. [Fast Multi-Scale Detection of Relevant Communities in Large-Scale Networks](http://comjnl.oxfordjournals.org/content/early/2013/01/22/comjnl.bxt002.full.pdf+html)(The Computer Journal 2013)  
-
 5. [Towards Linear Time Overlapping Community Detection in Social Networks](http://arxiv.org/pdf/1202.2465.pdf) (Advances in Knowledge Discovery and Data Mining 2012)  
-
 6. [Benchmarks for testing community detection algorithms on directed and weighted graphs with overlapping communities](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.80.016118) (Physics Review 2009)  
-
 7. [Finding community structure in very large networks](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.70.066111) (Physics Review 2004)  
-
 8. [Dense Subgraph Extraction with Applicationto Community Detection](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5677532) (TKDE 2012)  
 
 
