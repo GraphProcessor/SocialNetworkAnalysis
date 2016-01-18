@@ -49,6 +49,8 @@
 
 11. [SCD](https://github.com/DAMA-UPC/SCD) (Scalable Community Detection)  
 
+12. [k-clique Percolation](https://sites.google.com/site/cliqueperccomp/) (k-clqiue Percolation 2012)  
+
 ###C:
 1. [iGraph](https://github.com/igraph/igraph/tree/master/src) (Pop Repo, Detail Summary:http://www.r-bloggers.com/summary-of-community-detection-algorithms-in-igraph-0-6/)  
 
@@ -83,6 +85,6 @@
 
 7. [Finding community structure in very large networks](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.70.066111) (Physics Review 2004)  
 
-8. [Dense Subgraph Extraction with Applicationto Community Detection](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5677532) (TKDE 2012)
+8. [Dense Subgraph Extraction with Applicationto Community Detection](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5677532) (TKDE 2012)  
 
 
