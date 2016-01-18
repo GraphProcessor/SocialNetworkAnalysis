@@ -1,4 +1,4 @@
-#Community Detection Related 
+#Community Detection Related
 ##Possible Research Points
 1. Evaluation of Prior Detection Methods on Metric and Scalability  
 
@@ -15,13 +15,23 @@
 1. **[Overall Survey](http://lab41.github.io/survey-community-detection/)** (Home Page : http://lab41.github.io/Circulo/)  
 
 ## Tools
-1. **Networkx** has implemented **[many graph algorithms](http://networkx.github.io/documentation/networkx-1.10/reference/algorithms.html)**  
+- General
+    1. **[Some Recommendations From CppReference](http://en.cppreference.com/w/cpp/links/libs)** (Boost.Graph, LEMON, OGDF, NGraph)  
 
-2. **[Snap](https://github.com/snap-stanford/snap)** (Infomap, Fast Newman, BIGCLAM, CESNA, CoDA, RoIX)  
+    1. **Networkx** has implemented **[many graph algorithms](http://networkx.github.io/documentation/networkx-1.10/reference/algorithms.html)**  
 
-3. **[igraph](https://github.com/igraph/igraph)** (Infomap, WalkTrap, Leading Eginvector)  
+    2. **[Snap](https://github.com/snap-stanford/snap)** (Infomap, Fast Newman, BIGCLAM, CESNA, CoDA, RoIX)  
 
-2. **[Egien](http://eigen.tuxfamily.org/index.php?title=Main_Page)** (Cpp template library for linear algebra related algorithms)  
+    3. **[igraph](https://github.com/igraph/igraph)** (Infomap, WalkTrap, Leading Eginvector)  
+
+- BLAS
+
+    2. **[Egien](http://eigen.tuxfamily.org/index.php?title=Main_Page)** (Cpp template library for linear algebra related algorithms)  
+
+    5. **[Boost BLAS](http://www.boost.org/doc/libs/1_60_0/libs/numeric/ublas/doc/index.html)** (Boost Library)  
+
+    6. **[ArmAdillo](http://arma.sourceforge.net/)**(Primarily developed at Data61 (Australia) by Conrad Sanderson)  
+
 
 ## Codes
 ###C++:
