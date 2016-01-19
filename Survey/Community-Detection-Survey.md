@@ -66,16 +66,16 @@
 
 ## Tools
 - General Library
-    1. **[Some Recommendations From CppReference](http://en.cppreference.com/w/cpp/links/libs)** (Boost.Graph, LEMON, OGDF, NGraph)  
-    1. **Networkx** has implemented **[many graph algorithms](http://networkx.github.io/documentation/networkx-1.10/reference/algorithms.html)**  
-    2. **[Snap](https://github.com/snap-stanford/snap)** (Infomap, Fast Newman, BIGCLAM, CESNA, CoDA, RoIX)  
-    3. **[igraph](https://github.com/igraph/igraph)** (Infomap, WalkTrap, Leading Eginvector)  
+    - **[Some Recommendations From CppReference](http://en.cppreference.com/w/cpp/links/libs)** (Boost.Graph, LEMON, OGDF, NGraph)  
+    - **Networkx** has implemented **[many graph algorithms](http://networkx.github.io/documentation/networkx-1.10/reference/algorithms.html)**  
+    - **[Snap](https://github.com/snap-stanford/snap)** (Infomap, Fast Newman, BIGCLAM, CESNA, CoDA, RoIX)  
+    - **[igraph](https://github.com/igraph/igraph)** (Infomap, WalkTrap, Leading Eginvector)  
 		- **Implementations**: edge_betweenness, leading_eigenvector, spinglass, fastgreedy , leading_eigenvector_naive, walktrap, infomap, multilevel, label_propagation, optimal_modularity  
 		- **Usage Explaination**: https://github.com/rabbanyk/CommunityEvaluation/blob/master/src/algorithms/communityMining/external_methods/iGraph/communityMinerInterface.py  
 - BLAS
-	5. **[Boost BLAS](http://www.boost.org/doc/libs/1_60_0/libs/numeric/ublas/doc/index.html)** (Boost Library)  
-    2. **[Egien](http://eigen.tuxfamily.org/index.php?title=Main_Page)** (Cpp template library for linear algebra related algorithms)  
-    6. **[ArmAdillo](http://arma.sourceforge.net/)**(Primarily developed at Data61 (Australia) by Conrad Sanderson)  
+	- **[Boost BLAS](http://www.boost.org/doc/libs/1_60_0/libs/numeric/ublas/doc/index.html)** (Boost Library)  
+    - **[Egien](http://eigen.tuxfamily.org/index.php?title=Main_Page)** (Cpp template library for linear algebra related algorithms)  
+    - **[ArmAdillo](http://arma.sourceforge.net/)**(Primarily developed at Data61 (Australia) by Conrad Sanderson)  
 
 
 ## Codes
@@ -91,22 +91,24 @@
     	- [2011 Dense Subgraph Extraction](https://github.com/sranshous/Graph-Community-Detection) (from Github)  
     	- [2011 Marvelot](http://www.elemartelot.org/index.php/programming/cd-code) (from Website)  
     	- [2012 Combo](http://senseable.mit.edu/community_detection/combo.zip) (from Martelot's Homepage), [Combo And Others](https://github.com/sina-khorami/AI-community-detection) (from Github)  
+    	- [2012 k-clique Percolation](https://sites.google.com/site/cliqueperccomp/) (from GoogleSite)  
     	- [2014 SCD](https://github.com/DAMA-UPC/SCD) (from Github), [SCD GPU implementation](https://github.com/Het-SCD/Het-SCD) (from Github)  
     	- [2015 GossipMap](https://github.com/uwescience/GossipMap) (from Github), [2013 RelaxMap](https://github.com/uwescience/RelaxMap) (from Github)  
 
-    6. [Community-Detection-Betweenness](https://github.com/sidrakesh/Community-Detection-Betweenness) ( modified version of Brandes algorithm(BC))  
-    9. [Par-CD](https://github.com/stijnh/Par-CD) (Multi-core CPU and GPU implementation)  
-    10. [paco](https://github.com/CarloNicolini/paco) (Benchmark Refer to Physics Review 2009)  
-    12. [k-clique Percolation](https://sites.google.com/site/cliqueperccomp/) (k-clqiue Percolation 2012)  
+	- Unkown
+    	- [Community-Detection-Betweenness](https://github.com/sidrakesh/Community-Detection-Betweenness) ( modified version of Brandes algorithm(BC))  
+    	- [Par-CD](https://github.com/stijnh/Par-CD) (Multi-core CPU and GPU implementation)  
+    	- [paco](https://github.com/CarloNicolini/paco) (Benchmark Refer to Physics Review 2009)  
+    
 
 - Java:
-    1. [distributed-graph-analytics](https://github.com/Sotera/distributed-graph-analytics) (BSP impl,e.g., High Betweenness Set Extraction, Weakly Connected Components, Page Rank, Leaf Compression, and Louvain Modularity)  
-    2. [Reihaneh Rabbany](https://github.com/rabbanyk/CommunityEvaluation) (5th-year Phd Student, Give integration of many sequential implementations)  
-    3. [noesis](https://github.com/sisusisu/noesis)(Some Impls)  
+    - [distributed-graph-analytics](https://github.com/Sotera/distributed-graph-analytics) (BSP impl,e.g., High Betweenness Set Extraction, Weakly Connected Components, Page Rank, Leaf Compression, and Louvain Modularity)  
+    - [Reihaneh Rabbany](https://github.com/rabbanyk/CommunityEvaluation) (5th-year Phd Student, Give integration of many sequential implementations)  
+    - [noesis](https://github.com/sisusisu/noesis) (Some Impls)  
 
 - Python:
-    1. [Label-Propagation](https://github.com/liyanghua/Label-Propagation) (Refer to Pyshics 2007)  
-    2. [Circulo](https://github.com/Lab41/Circulo) (With Some Implementations and Refer to SNAP)  
+    - [Label-Propagation](https://github.com/liyanghua/Label-Propagation) (Refer to Pyshics 2007)  
+    - [Circulo](https://github.com/Lab41/Circulo) (With Some Implementations and Refer to SNAP)  
 
 ## Recent Interesting Published Papers(With Codes)
 - Algorithms
