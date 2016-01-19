@@ -1,9 +1,11 @@
 #Community Detection Related
 ##Possible Research Points
-1. Evaluation of Prior Detection Methods on Metric and Scalability  
-2. Fast Local Community Search/Query  
-2. Sampling Large Scale Graph, Using Sample for Approximation Structure  
-4. Implementing userful algorithms on GraphX, PowerGraph, Giraph, estimate efficiency  
+1. Evaluation of prior detection methods on metric and scalability  
+2. Implementing userful algorithms on GraphX, PowerGraph, Giraph, estimate efficiency and analyze hwo to transparent sequential one into parallel environment  
+2. Fast local community search/query  
+3. Index to help combine several algorithms for social network analysis  
+2. Sampling large scale graph for approximated structure  
+
 
 ##Influential Researcher
 1. **[Andrea Lancichinetti](https://sites.google.com/site/andrealancichinetti/) (Umeå University)**  
@@ -13,30 +15,35 @@
 ## Good Survey
 1. **[Overall Survey](http://lab41.github.io/survey-community-detection/)** (Home Page : http://lab41.github.io/Circulo/)  
 
-##Prior Famous Algorithms
+##Prior Famous Algorithms & Evaluation Metrics
 - Reference  
 	- (Refer to [Reihaneh Rabbany](https://scholar.google.com.hk/citations?user=Foh_c-QAAAAJ&hl=zh-CN&oi=ao)'s Github: https://github.com/rabbanyk/CommunityEvaluation)  
 	- (Refer to [Andrea Lancichinetti](https://sites.google.com/site/andrealancichinetti/)'s Implementation)  
 
 - Algorithms  
-	1. 2004, **Fast Modularity**, *[Aaron Clauset]*, Finding community structure in very large networks(PHYSICAL REVIEW E 70, 066111 (2004))  
-	2. 2005, **Walker Trap**, *[Pascal Pons]*, Computing Communities in Large Networks Using Random Walks  
-	3. 2005, **Spectral Algorithm**, *[Luca Donetti]*, Improved spectral algorithm for the detection of network communities  
-	4. 2007, **Label Propogation**, *[Usha Nandini Raghavan]*, Near linear time algorithm to detect community structures in large-scale networks  
-	5. 2007, **Modularity Opt(Simulated Annealing)**, *[Marta Sales-Pardo]*, Extracting the hierarchical organization of complex systems  
-	7. 2008, **Louvain**, *[Vincent D Blondel]*, Fast unfolding of communities in large networks  
-	6. 2008, **Infomap**, *[Martin Rosvall]*, Maps of random walks on complex networks reveal community structure  
-	7. 2009, **Potts model**, *[Peter Ronhovde]*, Multiresolution community detection for megascale networks by information-based replica correlations  
-	8. 2010, **Link-Plus**, *[Yong-Yeol Ahn]*, Link communities reveal multiscale complexity in networks  
-	9. 2010, **MOSES**, *[Aaron McDaid]*, Detecting higly overlapping communities with Model-based Overlapping Seed Expectation  
-	10. 2010, **Potts Model**, *[Peter Ronhovde]*, Local resolution-limit-free Potts model for community detection  
-	11. 2011, **OSOLOM**, *[Andrea Lancichinetti]*, Finding Statistically Significant Communities in Networks  
-	12. 2011, **Multi-Level-Infomap**, *[Martin Rosvall]*, Multilevel Compression of Random Walks on Networks Reveals Hierarchical Organization in Large Integrated Systems  
-	13. 2012, **Consensus Clustering**, *[Andrea Lancichinetti]*, Consensus clustering in complex networks  
-	14. 2012, **Community-Affiliation Graph Model**, *[Jaewon Yang]*, Community-Affiliation Graph Model for Overlapping Network Community Detection  
-	15. 2013, **Large Scale CAG**, *[Jaewon Yang]*, Overlapping Community Detection at Scale: A Nonnegative Matrix Factorization Approach  
+	- 2004, **Fast Modularity**, *[Aaron Clauset]*, Finding community structure in very large networks  
+	- 2005, **Walker Trap**, *[Pascal Pons]*, Computing Communities in Large Networks Using Random Walks  
+	- 2005, **Spectral Algorithm**, *[Luca Donetti]*, Improved spectral algorithm for the detection of network communities  
+	- 2007, **Label Propogation**, *[Usha Nandini Raghavan]*, Near linear time algorithm to detect community structures in large-scale networks  
+	- 2007, **Modularity Opt(Simulated Annealing)**, *[Marta Sales-Pardo]*, Extracting the hierarchical organization of complex systems  
+	- 2008, **Louvain**, *[Vincent D Blondel]*, Fast unfolding of communities in large networks  
+	- 2008, **Infomap**, *[Martin Rosvall]*, Maps of random walks on complex networks reveal community structure  
+	- 2009, **Potts model**, *[Peter Ronhovde]*, Multiresolution community detection for megascale networks by information-based replica correlations  
+	- 2010, **Link-Plus**, *[Yong-Yeol Ahn]*, Link communities reveal multiscale complexity in networks  
+	- 2010, **MOSES**, *[Aaron McDaid]*, Detecting higly overlapping communities with Model-based Overlapping Seed Expectation  
+	- 2010, **Potts Model**, *[Peter Ronhovde]*, Local resolution-limit-free Potts model for community detection  
+	- 2010, **COPRA(Label Propogation)**, *[Steve Gregory]*, Finding overlapping communities in networks by label propagation  
+	- 2010, **Top Leader**. *[Reihaneh Rabbany Khorasgani]*, Top Leaders Community Detection Approach in Information Networks  
+	- 2011, **OSOLOM**, *[Andrea Lancichinetti]*, Finding Statistically Significant Communities in Networks  
+	- 2011, **Multi-Level-Infomap**, *[Martin Rosvall]*, Multilevel Compression of Random Walks on Networks Reveals Hierarchical Organization in Large Integrated Systems  
+	- 2012, **Consensus Clustering**, *[Andrea Lancichinetti]*, Consensus clustering in complex networks  
+	- 2012, **Community-Affiliation Graph Model**, *[Jaewon Yang]*, Community-Affiliation Graph Model for Overlapping Network Community Detection  
+	- 2013, **Large Scale CAG**, *[Jaewon Yang]*, Overlapping Community Detection at Scale: A Nonnegative Matrix Factorization Approach  
 
 - Evaluations  
+	- 2009, **NMI for overlapping Community Detection**, *[Andrea Lancichinetti]*, Detecting the overlapping and hierarchical community structure in complex networks  
+	- 2011, **NMI for overlapping Community Detection**, *[Aaron F. McDaid]*, Normalized Mutual Information to evaluate overlapping community finding algorithms  
+	- 2015, **rNMI**, *[Pan Zhang]*, Evaluating accuracy of community detection using the relative normalized mutual information  
 
 ## Tools
 - General
@@ -44,7 +51,8 @@
     1. **Networkx** has implemented **[many graph algorithms](http://networkx.github.io/documentation/networkx-1.10/reference/algorithms.html)**  
     2. **[Snap](https://github.com/snap-stanford/snap)** (Infomap, Fast Newman, BIGCLAM, CESNA, CoDA, RoIX)  
     3. **[igraph](https://github.com/igraph/igraph)** (Infomap, WalkTrap, Leading Eginvector)  
-
+		- **Implementations**: edge_betweenness, leading_eigenvector, spinglass, fastgreedy , leading_eigenvector_naive, walktrap, infomap, multilevel, label_propagation, optimal_modularity  
+		- **Usage Explaination**: https://github.com/rabbanyk/CommunityEvaluation/blob/master/src/algorithms/communityMining/external_methods/iGraph/communityMinerInterface.py  
 - BLAS
     2. **[Egien](http://eigen.tuxfamily.org/index.php?title=Main_Page)** (Cpp template library for linear algebra related algorithms)  
     5. **[Boost BLAS](http://www.boost.org/doc/libs/1_60_0/libs/numeric/ublas/doc/index.html)** (Boost Library)  
@@ -53,7 +61,7 @@
 
 ## Codes
 - C++:
-    1. [Benchmark2009](https://sites.google.com/site/santofortunato/inthepress2) (Prior 2008 Algorithms Comparison)  
+    1. [Benchmark2009](https://sites.google.com/site/santofortunato/inthepress2) (Prior 2008 Algorithms Comparison from **Andrea Lancichinetti**)  
     1. [AI-community-detection](https://github.com/sina-khorami/AI-community-detection) (Combo, Martelot's algorithms)  
     2. [network-community-benchmark](https://github.com/conradlee/network-community-benchmark) (Benchmark with facebok)  
     3. [GossipMap](https://github.com/uwescience/GossipMap) (Built on PowerGraph)  
