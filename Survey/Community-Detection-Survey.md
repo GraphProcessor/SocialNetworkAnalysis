@@ -2,10 +2,10 @@
 ##Possible Research Points(Especiallly on Directed Graph)
 1. Evaluate prior detection methods(non-overlapping, overlapping, hierarchical) on metric and scalability (**WWW, ASONAM**)
 2. Implement userful algorithms on **GraphX(Scala), PowerGraph(C++), Giraph(Java)** and estimate efficiency and analyze hwo to transparent sequential one into parallel environment (**SC, IPDPS**)  
-3. Implement algorithms with GPU/MIC acceleration
+3. Implement algorithms with GPU/MIC acceleration (**My Imagination**)  
 2. Study fast local community search/query (**VLDB, SIGMOD**)  
-3. Study index technique to help combine several algorithms for social network analysis(**My Imagination**)  
-2. Study Sampling large scale graph for approximated structure(**KDD**)  
+3. Study index technique to help combine several algorithms for social network analysis (**My Imagination**)  
+2. Study Sampling large scale graph for approximated structure (**KDD**)  
 
 ##Influential Researcher
 - Foreign
@@ -16,7 +16,7 @@
     - **[Jianyong Wang](http://dbgroup.cs.tsinghua.edu.cn/wangjy/) (Tsinghua)**  
 
 ## Good Survey
-1. **[Overall Survey](http://lab41.github.io/survey-community-detection/)** (Home Page : http://lab41.github.io/Circulo/)  
+- **[Overall Survey](http://lab41.github.io/survey-community-detection/)** (Home Page : http://lab41.github.io/Circulo)  
 
 ##Prior Famous Algorithms & Evaluation Benchmark
 - Reference  
@@ -82,8 +82,11 @@
 - C/C++:
 	- Benchmark  
         - [2009 Lancichi Benchmark](https://sites.google.com/site/santofortunato/inthepress2) (from GoogleSite)  
+        - [2009 Lancichi Benchmark ReImpl](https://github.com/CarloNicolini/paco) (from Github)
         - [2013 Conrad Lee Benchmark](https://github.com/conradlee/network-community-benchmark) (from Github)  
     - Algorithm  
+    	- [???? Multi-level Modularity Based on Betweenness Centrality](https://github.com/sidrakesh/Community-Detection-Betweenness) (from Github)  
+    	- [???? K-clique Percolation](https://sites.google.com/site/cliqueperccomp/) (from GoogleSite 2012)
     	- [2004 Clauset](https://github.com/ddvlamin/CommunityDetectionC) (from Github)  
     	- [2010 linkcomm](https://github.com/bagrow/linkcomm) (from Github)  
     	- [2010 GCE](https://sites.google.com/site/greedycliqueexpansion/) (from GoogleSite)  
@@ -92,21 +95,18 @@
     	- [2011 Marvelot](http://www.elemartelot.org/index.php/programming/cd-code) (from Website)  
     	- [2012 Combo](http://senseable.mit.edu/community_detection/combo.zip) (from Martelot's Homepage), [Combo And Others](https://github.com/sina-khorami/AI-community-detection) (from Github)  
     	- [2014 SCD](https://github.com/DAMA-UPC/SCD) (from Github), [SCD GPU implementation](https://github.com/Het-SCD/Het-SCD) (from Github)  
+    	- [2014 Heterogeneous SCD Impl](https://github.com/stijnh/Par-CD) (from Github)  
     	- [2015 GossipMap](https://github.com/uwescience/GossipMap) (from Github), [2013 RelaxMap](https://github.com/uwescience/RelaxMap) (from Github)  
-
-    6. [Community-Detection-Betweenness](https://github.com/sidrakesh/Community-Detection-Betweenness) ( modified version of Brandes algorithm(BC))  
-    9. [Par-CD](https://github.com/stijnh/Par-CD) (Multi-core CPU and GPU implementation)  
-    10. [paco](https://github.com/CarloNicolini/paco) (Benchmark Refer to Physics Review 2009)  
-    12. [k-clique Percolation](https://sites.google.com/site/cliqueperccomp/) (k-clqiue Percolation 2012)  
+      
 
 - Java:
-    1. [distributed-graph-analytics](https://github.com/Sotera/distributed-graph-analytics) (BSP impl,e.g., High Betweenness Set Extraction, Weakly Connected Components, Page Rank, Leaf Compression, and Louvain Modularity)  
-    2. [Reihaneh Rabbany](https://github.com/rabbanyk/CommunityEvaluation) (5th-year Phd Student, Give integration of many sequential implementations)  
-    3. [noesis](https://github.com/sisusisu/noesis)(Some Impls)  
+    - [2013 Impl of Algorithms On Giraph, GraphX](https://github.com/Sotera/distributed-graph-analytics) (BSP impl,e.g., High Betweenness Set Extraction, Weakly Connected Components, Page Rank, Leaf Compression, and Louvain Modularity) (from Github)  
+    - [2012 Reihaneh Rabbany, Top-leader Author, Compare differnt algorithms](https://github.com/rabbanyk/CommunityEvaluation) (5th-year Phd Student, Give integration of many sequential implementations) (from Github)  
+    - [2012 An Application of Network Analysis Platform](https://github.com/sisusisu/noesis)(Noesis) (from Github)  
 
 - Python:
-    1. [Label-Propagation](https://github.com/liyanghua/Label-Propagation) (Refer to Pyshics 2007)  
-    2. [Circulo](https://github.com/Lab41/Circulo) (With Some Implementations and Refer to SNAP)  
+	- [2013 Survey Circulo](https://github.com/Lab41/Circulo) (With Some Implementations and Refer to SNAP)  
+    - [2007 Label Propagation](https://github.com/liyanghua/Label-Propagation) (Refer to Pyshics 2007) (from Github)  
 
 ## Recent Interesting Published Papers(With Codes)
 - Algorithms
