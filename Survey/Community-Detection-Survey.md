@@ -1,11 +1,40 @@
 #Community Detection Related (Mainly Social Network)
+##Basic Concepts
+- References  
+	- [Community Detection in Social Networks: An Indepth Benchmarking Study with a Procedure Oriented Framework](http://delivery.acm.org/10.1145/2800000/2794370/p998-wang.pdf) (Evaluation Framework, VLDB 2015)  
+	- [Exploring the limits of community detection strategies in complex networks](http://www.nature.com/articles/srep02216?message-global=remove&WT.ec_id=SREP-639-20130801) (Summarization(Test on 17 algorithms), Scientific Report 2013)  
+	- [Closed benchmarks for network community structure characterization](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.85.026109) (Closed Benchmark(Mention RC benchmark), Physics Review 2012)  
+	- [Benchmark graphs for testing community detection algorithms](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.78.046110) (LFR Graph Benchmark, Physics Review 2008)  
+- Benchmarks  
+	- 2002, GN benchmark(not appropriate for million to billion vertices)  
+	- 2008, LFR graph benchmark  
+	- 2010, Relaxed Caveman benchmark  
+	- 2012, closed benchmark(mention RC benchmark)  
+	- 2013, closed plus visualization for intermediate results  
+- Social Network Features  
+	- scale-free(power law), small-world(small diameter)  
+- Algorithm Efficiency  
+	- Time comlexity  
+	- Parallelism (**My Imagination**)  
+- Algorithm Applicability  
+	- Density sensitivity  
+	- Overlapping sensitivity  
+	- Outliers sensitivity  
+	- Different distribution(e.g, DBLP , Twitter, Facebook, LiveJournal) sensitivity  
+- Result Quality Metrics  
+	- With ground truth : cross common fraction, jaccard index, normalized mutual information  
+	- W/O ground truth : clustering coefficient, strength(intensity of detected communitites), modularity(compares result with a randomized one)  
+	- Evalutation methods: 1) use closed benchmarks, 2) visualize hierarchically clustering results  
+
+
 ##Possible Research Points(Especiallly on Directed Graph)
 1. Evaluate prior detection methods(non-overlapping, overlapping, hierarchical) on metric and scalability (**WWW, ASONAM**)
 2. Implement userful algorithms on **GraphX(Scala), PowerGraph(C++), Giraph(Java)** and estimate efficiency and analyze hwo to transparent sequential one into parallel environment (**SC, IPDPS**)  
 3. Implement algorithms with GPU/MIC acceleration (**My Imagination**)  
 2. Study fast local community search/query (**VLDB, SIGMOD**)  
-3. Study index technique to help combine several algorithms for social network analysis (**My Imagination**)  
 2. Study Sampling large scale graph for approximated structure (**KDD**)  
+3. Study index technique to help combine several algorithms for social network analysis (**My Imagination**)  
+1. Visulize algorithm execuation procedures(i.e. how community form especially in hierarchical algorithms) (**My Imagination**)  
 
 ##Influential Researcher
 - Foreign
