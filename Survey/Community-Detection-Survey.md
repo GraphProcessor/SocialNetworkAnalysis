@@ -52,6 +52,11 @@
 	- 2014, **RelaxMap**,*[Seung-Hee Bae]*, Scalable Flow-Based Community Detection for Large-Scale Network Analysis  
 	- 2015, **GossipMap**, *[Seung-Hee Bae]*, GossipMap: A Distributed Community Detection Algorithm for Billion-Edge Directed Graphs  
 
+- Missing Algorithms(Need to find source codes)
+	- **Maximal k-Mutual-Friends**, *[F.Zhao]*, Large scale cohesive subgraphs discovery for social network visual analysis(VLDB 2012)  
+	- **Matrix Blocking Dense Subgraph Extract**, *[J.Chen]*, Dense subgraph extraction with application to community detection (TKDE 2012)  
+	- **Skeleton Clustering**, *[D.Bortner]*, Progressive clustering of networks using structure-connected order of traversal(ICDE 2010), *[J.Huang]*, Revealing density-based clustering structure from the core-connected tree of a network(TKDE 2013)  
+
 - Evaluations  
 	- 2009, **NMI for overlapping Community Detection**, *[Andrea Lancichinetti]*, Detecting the overlapping and hierarchical community structure in complex networks  
 	- 2010, **Snap empirical comparison**, *[Jure Leskovec]*, Empirical Comparison of Algorithms for Network Community Detection  
