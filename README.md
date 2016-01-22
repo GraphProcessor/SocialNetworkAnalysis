@@ -12,6 +12,11 @@
 - [Social-Medium-Recommendation.md](./Survey/Social-Medium-Recommendation.md)  
 	Social network recommendation overview, including sina case study.  
 
+- [New Findings.md](./Survey/New Findings.md)    
+	New findings from statistical viewpoint.  
 
+- [Community-Detection-Related-Reading-List.md](./Survey/Community-Detection-Related-Reading-List.md)  
+	Classical and selected references about community detection.  
+	
 ##Survey-Codes
 Need to update and use git submodule...

@@ -8,8 +8,12 @@
         - Lei J, Rinaldo A. [Consistency of spectral clustering in stochastic block models[J]. The Annals of Statistics](http://projecteuclid.org/euclid.aos/1418135620), 2014, 43(1): 215-237.  
         - Qin T, Rohe K. [Regularized spectral clustering under the degree-corrected stochastic blockmodel](http://papers.nips.cc/paper/5099-regularized-spectral-clustering-under-the-degree-corrected-stochastic-blockmodel)[C]//Advances in Neural Information Processing Systems. 2013: 3120-3128.  
       - SDP  
-        - Amini A A, [Levina E. On semidefinite relaxations for the block model](http://arxiv.org/abs/1406.5647)[J]. arXiv preprint arXiv:1406.5647, 2014.  
+        - Amini A A, [Levina E. On semidefinite relaxations for the block model](http://arxiv.org/abs/1406.5647)[J]. arXiv preprint arXiv:1406.5647, 2014. (Influential One)    
         - Cai T T, Li X. [Robust and computationally feasible community detection in the presence of arbitrary outlier nodes](http://projecteuclid.org/euclid.aos/1431695637)[J]. The Annals of Statistics, 2015, 43(3): 1027-1059.  
+      - Others
+        - Jin J. [Fast community detection by SCORE[J]](http://projecteuclid.org/euclid.aos/1416322036). The Annals of Statistics, 2015, 43(1): 57-89.  
+        - Amini A A, Chen A, Bickel P J, et al. [Pseudo-likelihood methods for community detection in large sparse networks[J]](http://projecteuclid.org/euclid.aos/1382547514). The Annals of Statistics, 2013, 41(4): 2097-2122. (Good Paper)    
+        - Gao C, Ma Z, Zhang A Y, et al. [Achieving Optimal Misclassification Proportion in Stochastic Block Model[J]](http://arxiv.org/abs/1505.03772). arXiv preprint arXiv:1505.03772, 2015. (spectral initialization, and then majority vote)
   - Link Prediction  
   Hot topic : edge probability matrix,  
   Application : drug traffic analysis,
