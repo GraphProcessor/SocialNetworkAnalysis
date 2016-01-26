@@ -8,12 +8,14 @@
 
 ##Line Graph and Link Partitioning
 - [Link Comm (James P. Bagrow 2010) c++ Implementation](https://github.com/bagrow/linkcomm)
+- [Line Graph(T.S.Evans 2009) c++ Implementation](https://github.com/rabbanyk/CommunityEvaluation/tree/master/execs/CM-Overlapping-LineGraph)
 
 ##Local Expansion and Optimization
 - [Greedy Clique Expansion (Aaron McDaid 2011) c++ Implementation](https://sites.google.com/site/greedycliqueexpansion/)
 - [Order Statistics Local Optimization Method (A. Lancichinetti 2011) c++ Implementation](http://www.oslom.org/publications.htm)
 - [iLCD (Add nodes and Merge Community) (Cazabet 2010) c++ Implementation](http://www.cazabetremy.fr/iLCD.html)
 - [EAGLE (Shen 2009) c++ Implementation](https://code.google.com/p/eaglepp/)
+- [Connected Iterative Scan (Stephen Kelley 2009) c++ Implementation](http://www.cs.rpi.edu/~magdon/LFDlabpublic.html/software.html)
 - [LFM (Lancichi 2009) c++ Implementation](https://sites.google.com/site/santofortunato/inthepress2)
 
 ##Fuzzy Detection
@@ -27,4 +29,9 @@
 - [COPRA(Label Propogation) (Gregory 2010) java Implementation](http://www.cs.bris.ac.uk/~steve/networks/software/copra.html)
 
 ##Others
+- [BigClam(SNAP) (J. Yang 2012) c++ Implementation](https://github.com/rabbanyk/CommunityEvaluation/tree/master/execs/CM-Overlapping-AGM-SNAP/bigclam)
 - [CONGA/CONGO (Gregory 2007) java Implementation](http://www.cs.bris.ac.uk/~steve/networks/software/conga.html)
+
+#Overall Summarization
+- [Overlapping Clustering Wrapper (LFDlab http://www.cs.rpi.edu/research/groups/lfdlab/)](http://www.cs.rpi.edu/~magdon/LFDlabpublic.html/software.html)
+- [Communinity Detection Overall Classical (R Rabbany Phd-Student)](https://github.com/rabbanyk/CommunityEvaluation)
