@@ -12,7 +12,7 @@
 - [Community Detection New Findings](./Survey/Community-Detection-New-Findings.md)    
 	New findings from statistical viewpoint.  
 
-- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)
+- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)  
 	Codes for overlapping community detection.
 
 - [Community Search Survey](./Survey/Community-Search-Survey.md)  
