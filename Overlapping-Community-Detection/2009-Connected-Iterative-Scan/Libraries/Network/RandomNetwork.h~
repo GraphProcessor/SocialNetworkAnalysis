@@ -1,0 +1,10 @@
+#ifndef RNET_RPI
+#define RNET_RPI
+
+#include "Network.h"
+#include "../Random/PowerLaw.h"
+
+void RandomNetwork ( const int& V, const double& dist, const int& min_deg, const int& max_deg, const double& mix, const vector < set < int > >& communities  ){
+}
+
+#endif
