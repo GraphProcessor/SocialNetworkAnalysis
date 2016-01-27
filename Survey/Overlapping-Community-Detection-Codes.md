@@ -11,6 +11,9 @@
 - [Line Graph(T.S.Evans 2009) c++ Implementation](https://github.com/rabbanyk/CommunityEvaluation/tree/master/execs/CM-Overlapping-LineGraph)
 
 ##Local Expansion and Optimization
+- [Heat Kernel Based Community Detection (David F. Gleich 2015) matlab Implementation](https://www.cs.purdue.edu/homes/dgleich/codes/hkgrow/)
+- [Overlapping Community Detection Using Seed Set Expansion (Joyce Jiyoung Whang 2013) c++ matlab mixture Implementation](https://www.cs.utexas.edu/~joyce/codes/cikm2013/nise.html)  
+- [Demon (Giulio Rossetti 2012) python Implementation](http://www.giuliorossetti.net/about/ongoing-works/software-en/demon/)  
 - [Greedy Clique Expansion (Aaron McDaid 2011) c++ Implementation](https://sites.google.com/site/greedycliqueexpansion/)
 - [Order Statistics Local Optimization Method (A. Lancichinetti 2011) c++ Implementation](http://www.oslom.org/publications.htm)
 - [iLCD (Add nodes and Merge Community) (Cazabet 2010) c++ Implementation](http://www.cazabetremy.fr/iLCD.html)
