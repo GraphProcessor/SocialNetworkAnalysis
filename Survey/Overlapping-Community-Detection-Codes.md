@@ -19,7 +19,7 @@
 - [iLCD (Add nodes and Merge Community) (Cazabet 2010) c++ Implementation](http://www.cazabetremy.fr/iLCD.html)
 - [EAGLE (Shen 2009) c++ Implementation](https://code.google.com/p/eaglepp/)
 - [CIS (Connected Iterative Scan) (Stephen Kelley 2009) c++ Implementation](http://www.cs.rpi.edu/~magdon/LFDlabpublic.html/software.html)
-- [LFM (Lancichi 2009) c++ Implementation](https://sites.google.com/site/santofortunato/inthepress2)
+- [LFM (Lancichi 2009) c++ Implementation](https://sites.google.com/site/andrealancichinetti/files)
 
 ##Fuzzy Detection
 - [SSDE (Magdon-Ismail 2011) c++ Implementation](http://www.cs.rpi.edu/~magdon/LFDlabpublic.html/software.html?)

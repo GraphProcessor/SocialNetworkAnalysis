@@ -24,11 +24,21 @@
 ##Survey-Codes
 Need to update and use git submodule...
 
-#Datasets
+##Datasets
 - [Topic/Semantic Analylis Related](./Dataset/TopicOrSemanticAnalylis)  
 	Datasets related to those with user or product profile information.
 
-#Todo List
+##Overlapping Community Detection
+- [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)  
+- [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
+- [2010 iLCD](./Overlapping-Community-Detection/2010-iLCD)  
+- [2011 GCE](./Overlapping-Community-Detection/2011-GCE)  
+- [2011 OSLOM v2](./Overlapping-Community-Detection/2011-GCE)  
+- [2012 DEMON](./Overlapping-Community-Detection/2012-DEMON)
+- [2013 Seed Set Expansion](./Overlapping-Community-Detection/2013-Seed-Set-Expansion)  
+- [2014 Hea Kernel]((./Overlapping-Community-Detection/2014-Heat-Kernel)  
+
+##Todo List
 - Reimplement normalized mutual information, omega index, modularity and other related quality metrics.  
 
 - Integrate benchmark graphs respectively from real-world and synthetic datasets and design test cases for different kinds of algorithms.  
@@ -39,5 +49,5 @@ Need to update and use git submodule...
 
 - Implement automatic parallel engine and analysis engine.  
 
-#Question&Answer
+##Question&Answer
 Any questions, please contact me yche@cse.ust.hk, :)
