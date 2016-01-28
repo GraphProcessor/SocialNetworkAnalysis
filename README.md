@@ -36,7 +36,7 @@ Need to update and use git submodule...
 - [2011 OSLOM v2](./Overlapping-Community-Detection/2011-GCE)  
 - [2012 DEMON](./Overlapping-Community-Detection/2012-DEMON)
 - [2013 Seed Set Expansion](./Overlapping-Community-Detection/2013-Seed-Set-Expansion)  
-- [2014 Hea Kernel]((./Overlapping-Community-Detection/2014-Heat-Kernel)  
+- [2014 Hea Kernel](./Overlapping-Community-Detection/2014-Heat-Kernel)  
 
 ##Todo List
 - Reimplement normalized mutual information, omega index, modularity and other related quality metrics.  
