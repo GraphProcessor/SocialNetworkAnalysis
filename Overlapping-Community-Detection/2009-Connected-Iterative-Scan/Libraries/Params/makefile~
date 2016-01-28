@@ -1,3 +1,0 @@
-params: Parameters.h Parameters.cc
-	g++ -fpic -l../Files -lfiles -c Parameters.cc -o Params.o -std=c++0x
-	g++ -shared -o libParams.so Params.o
