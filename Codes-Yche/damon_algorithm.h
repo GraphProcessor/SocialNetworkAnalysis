@@ -7,29 +7,40 @@
 
 #endif //CODES_YCHE_DAMON_ALGORITHM_H
 
-#include <memory>
-#include <boost/graph/adjacency_list.hpp>
+#include "include_header.h"
 
 using namespace boost;
 using namespace std;
 
 namespace yche {
+    using VertexIndexType = int;
+    //Property Tag
+    struct  SubGraphVertexProperties{
+        typedef vertex_property_type type;
+    };
+    struct vertex_id_t{
+        typedef vertex_property_type type;
+    };
+    struct vertex_weight_t{
+        typedef vertex_property_type type;
+    };
+    struct vertex_label_t{
+        typedef vertex_property_type type;
+    };
+
     class Daemon {
-        using Graph = adjacency_list<vecS, vecS, undirectedS>;
-        using Vertex = graph_traits<Graph>::vertex_descriptor;
-        using VertexIndex = int;
+        using Graph = adjacency_list<vecS, setS, undirectedS,property<vertex_weight_t,double >>;
+        using VertexDescriptor = graph_traits<Graph>::vertex_descriptor;
 
-        //Property Tag
-        struct vertex_id_t;
-        struct vertex_weight_t;
-        struct vertex_label_t;
-        using SubGraphVertexProperty = property<vertex_id_t, VertexIndex,
-                property<vertex_weight_t, int,
-                        property<vertex_label_t, VertexIndex>>>;
+        using GraphVertexProperty= property<vertex_weight_t, double>;
+
+        using SubGraphVertexProperty = property<vertex_id_t, VertexIndexType,
+                property<vertex_weight_t, double,
+                        property<vertex_label_t, array<VertexIndexType, 2>>>>;
         using SubGraph = adjacency_list<vecS, vecS, undirectedS, SubGraphVertexProperty>;
-        using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
+        using SubGraphVertexDescriptor = graph_traits<SubGraph>::vertex_descriptor;
 
-        using Community = unique_ptr<set<VertexIndex>>;
+        using Community = unique_ptr<set<VertexIndexType>>;
         using OverlappingCommunityVec = vector<Community>;
 
     private:
@@ -37,11 +48,12 @@ namespace yche {
         OverlappingCommunityVec overlapping_community_vec_;
         double epsilon_;
         int min_community_size_;
+        int max_iteration_num_;
 
-        unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex ego_vertex);
+        unique_ptr<SubGraph> ExtractEgoMinusEgo(VertexDescriptor ego_vertex);
 
-        OverlappingCommunityVec DetectCommunitesViaLabelPropogation(
-                unique_ptr<Graph> sub_graph, SubGraphVertex ego_vertex);
+        OverlappingCommunityVec DetectCommunitesViaLabelPropagation(
+                unique_ptr<Graph> sub_graph, SubGraphVertexDescriptor ego_vertex);
 
         void MergeTwoCommunities(Community left_community, Community right_community);
 
@@ -49,9 +61,10 @@ namespace yche {
 
     public:
         Daemon(double epsilon, int min_community_size, vector<pair<int, int>> &edge_list,
-               long vertices_size) :
-                epsilon_(epsilon), min_community_size_(min_community_size) {
+               long vertices_size, int max_iteration) :
+                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
             graph_ = Graph(edge_list.begin(), edge_list.end(), vertices_size);
+
         }
 
         void ExecuteDaemon();

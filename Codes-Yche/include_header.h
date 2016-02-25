@@ -6,3 +6,10 @@
 #define CODES_YCHE_INCLUDE_HEADER_H
 
 #endif //CODES_YCHE_INCLUDE_HEADER_H
+
+
+#include <set>
+#include <map>
+#include <memory>
+#include <ctime>
+#include <boost/graph/adjacency_list.hpp>
