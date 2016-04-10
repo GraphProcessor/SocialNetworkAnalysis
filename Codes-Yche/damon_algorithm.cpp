@@ -22,7 +22,7 @@ namespace yche {
         property_map<Graph, vertex_weight_t>::type vertex_weight_map =
                 get(vertex_weight, *graph_ptr_);
 
-        int sub_vertex_index=0;
+        int sub_vertex_index = 0;
         vector<SubGraphVertex> sub_vertices;
         //Add SubVertices
         for (auto vp = adjacent_vertices(ego_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
@@ -46,7 +46,7 @@ namespace yche {
         //Add Edges
         for (auto vp = adjacent_vertices(ego_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto source_sub_vertex_index = origin_sub_index_map[vertex_index_map[*vp.first]];
-            auto  source_sub_vertex =sub_vertices[source_sub_vertex_index];
+            auto source_sub_vertex = sub_vertices[source_sub_vertex_index];
             for (auto vp_inner = adjacent_vertices(ego_vertex, *graph_ptr_);
                  vp_inner.first != vp_inner.second; ++vp_inner.first) {
                 bool is_edge_exists = edge(*vp.first, *vp_inner.first, *graph_ptr_).second;
@@ -60,24 +60,27 @@ namespace yche {
         return std::move(ego_net_ptr);
     }
 
-    Daemon::OverlappingCommunityVec Daemon::DetectCommunitesViaLabelPropagation
-            (unique_ptr<Daemon::Graph> sub_graph, Daemon::SubGraphVertex ego_vertex) {
-//        int iteration_num = 0;
-//        auto vertices = sub_graph->m_vertices;
+//    Daemon::OverlappingCommunityVec Daemon::DetectCommunitesViaLabelPropagation
+//            (unique_ptr<Daemon::Graph> sub_graph_ptr, Daemon::SubGraphVertex ego_vertex) {
 //
-//        property_map<SubGraph, vertex_index_t>::type SubGraphVertexId =
-//                get(vertex_index_t(), *sub_graph);
-//        property_map<SubGraph, vertex_weight_t>::type SubGraphVertexWeight =
-//                get(vertex_weight_t(), *sub_graph);
-//        property_map<SubGraph, vertex_label_t>::type SubGraphVertexLabel =
-//                get(vertex_label_t(), *sub_graph);
+//        int iteration_num = 0;
+////        auto vertices = sub_graph_ptr->m_vertices;
+//
+//        property_map<SubGraph, vertex_id_t>::type sub_vertex_id_map =
+//                get(vertex_id, *sub_graph_ptr);
+//        property_map<SubGraph, vertex_index_t>::type sub_vertex_index_map =
+//                get(vertex_index, *sub_graph_ptr);
+//        property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map =
+//                get(vertex_weight, *sub_graph_ptr);
+//        property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map =
+//                get(vertex_label, *sub_graph_ptr);
 //
 //        while (iteration_num < max_iteration_num_) {
 //            auto curr_index_indicator = (iteration_num + 1) % 2;
 //            auto last_index_indicator = iteration_num % 2;
 //            for (auto &vertex_descriptor: vertices) {
 //
-//                auto adjacency_iterator_pair = adjacent_vertices(vertex_descriptor, graph_);
+//                auto adjacency_iterator_pair = adjacent_vertices(vertex_descriptor, *graph_ptr_);
 //                auto end = adjacency_iterator_pair.second;
 //
 //                auto label_to_weight_map = map<int, double>();
@@ -115,5 +118,5 @@ namespace yche {
 //        }
 //
 //        return std::vector<yche::Daemon::Community>();
-    }
+//    }
 }

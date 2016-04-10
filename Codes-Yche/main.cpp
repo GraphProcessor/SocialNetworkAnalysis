@@ -7,7 +7,7 @@ using namespace std;
 int main() {
     srand(time(nullptr));
     for(auto i=0;i<10;i++){
-        cout << rand()*10;
+        cout << rand()%10 << endl;
     }
     cout << "Hello, World!" << endl;
     return 0;

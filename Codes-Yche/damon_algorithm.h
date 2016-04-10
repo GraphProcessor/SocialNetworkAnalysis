@@ -58,7 +58,7 @@ namespace yche {
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex ego_vertex);
 
         OverlappingCommunityVec DetectCommunitesViaLabelPropagation(
-                unique_ptr<Graph> sub_graph, SubGraphVertex ego_vertex);
+                unique_ptr<Graph> sub_graph_ptr, SubGraphVertex ego_vertex);
 
         void MergeTwoCommunities(Community left_community, Community right_community);
 
