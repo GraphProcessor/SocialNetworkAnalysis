@@ -14,14 +14,14 @@ using namespace std;
 
 //Add User-Defined Tags
 enum vertex_weight_t {
-    vertex_weight;
+    vertex_weight
 };
 enum vertex_label_t {
-    vertex_label;
+    vertex_label
 };
 
-enum vertex_id_t{
-    vertex_id;
+enum vertex_id_t {
+    vertex_id
 };
 
 namespace boost {
@@ -37,8 +37,9 @@ namespace yche {
         using Graph = adjacency_list<vecS, setS, undirectedS, VertexProperties>;
 
         using SubGraphVertexProperties = property<vertex_weight_t, double,
-                property<vertex_id_t , int>,
-                property<vertex_label_t, array<int, 2>>>;
+                property<vertex_id_t, int,
+                        property<vertex_label_t, array<int, 2>>
+                >>;
 
         using SubGraph = adjacency_list<vecS, vecS, undirectedS, SubGraphVertexProperties>;
 
@@ -66,8 +67,9 @@ namespace yche {
     public:
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
                 epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
-;                std::move(graph_ptr);
-            graph_ptr_=std::move(graph_ptr);
+            ;
+            std::move(graph_ptr);
+            graph_ptr_ = std::move(graph_ptr);
         }
 
         void ExecuteDaemon();
