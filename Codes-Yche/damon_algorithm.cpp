@@ -33,6 +33,7 @@ namespace yche {
 
             //Add Vertex Property
             auto graph_vertex_index = vertex_index_map[*vp.first];
+
             sub_vertex_id_map[sub_vertex] = graph_vertex_index;
             sub_vertex_weight_map[sub_vertex] = vertex_weight_map[*vp.first];
 
@@ -100,23 +101,30 @@ namespace yche {
                 auto candidate_label_vec = vector<int>();
                 auto max_val = 0;
                 cout << "label_weight_map:" << label_weight_map.size() << endl;
-                for (auto label_to_weight_pair:label_weight_map) {
-                    auto label_weight = label_to_weight_pair.second;
-                    if (label_weight > max_val) {
-                        candidate_label_vec.clear();
-                        max_val = label_weight;
-                    }
-                    if (label_weight >= max_val) {
-                        candidate_label_vec.push_back(label_to_weight_pair.first);
-                    }
-                }
-                srand(time(nullptr));
-                auto choice_index = rand() % candidate_label_vec.size();
-                if(candidate_label_vec.size() ==0)
-                    cerr << "errr"<<endl;
-                //Update Label
                 auto current_vertex = *vp.first;
-                sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
+                if (label_weight_map.size() == 0) {
+                    cout << "!!!" << endl;
+                    sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
+                }
+                else {
+                    for (auto label_to_weight_pair:label_weight_map) {
+                        auto label_weight = label_to_weight_pair.second;
+                        if (label_weight > max_val) {
+                            candidate_label_vec.clear();
+                            max_val = label_weight;
+                        }
+                        if (label_weight >= max_val) {
+                            candidate_label_vec.push_back(label_to_weight_pair.first);
+                        }
+                    }
+                    srand(time(nullptr));
+                    auto choice_index = rand() % candidate_label_vec.size();
+
+                    sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
+                }
+
+                //Update Label
+
             }
 
             iteration_num++;

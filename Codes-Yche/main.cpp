@@ -59,7 +59,7 @@ int main() {
     daemon.ExecuteDaemon();
     auto communities = std::move(daemon.overlap_community_vec_);
     int count =0;
-
+    cout << "comm_size:"<<communities->size()<<endl;
     for(auto iter= communities->begin();iter!=communities->end();++iter){
         count++;
         cout << "Comm" <<count<<endl;

@@ -35,13 +35,14 @@ namespace yche {
     public:
         using VertexProperties = property<vertex_weight_t, double,
                 property<vertex_index_t, int>>;
-        using Graph = adjacency_list<vecS, setS, undirectedS, VertexProperties>;
+        //Edge Vertex
+        using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties>;
 
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, int,
                         property<vertex_label_t, array<int, 2>>>>;
 
-        using SubGraph = adjacency_list<vecS, vecS, undirectedS, SubGraphVertexProperties>;
+        using SubGraph = adjacency_list<setS, vecS, undirectedS, SubGraphVertexProperties>;
 
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
