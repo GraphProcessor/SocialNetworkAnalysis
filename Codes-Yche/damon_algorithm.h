@@ -32,6 +32,7 @@ namespace boost {
 
 namespace yche {
     class Daemon {
+    public:
         using VertexProperties = property<vertex_weight_t, double,
                 property<vertex_index_t, int>>;
         using Graph = adjacency_list<vecS, setS, undirectedS, VertexProperties>;
@@ -46,10 +47,20 @@ namespace yche {
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
         using CommunityPtr = unique_ptr<set<int>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
+        Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
+                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
+            ;
+            std::move(graph_ptr);
+            graph_ptr_ = std::move(graph_ptr);
+            overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
+        }
+
+        void ExecuteDaemon();
+        CommunityVecPtr overlap_community_vec_;
 
     private:
         unique_ptr<Graph> graph_ptr_;
-        CommunityVecPtr overlap_community_vec_;
+
         double epsilon_;
         int min_community_size_;
         int max_iteration_num_;
@@ -64,16 +75,7 @@ namespace yche {
 
         CommunityPtr MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
 
-    public:
-        Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
-                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
-            ;
-            std::move(graph_ptr);
-            graph_ptr_ = std::move(graph_ptr);
-            overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
-        }
 
-        void ExecuteDaemon();
     };
 }
 

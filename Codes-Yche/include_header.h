@@ -7,12 +7,11 @@
 
 #endif //CODES_YCHE_INCLUDE_HEADER_H
 
-
 #include <set>
 #include <map>
 #include <memory>
 #include <ctime>
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <sstream>
 #include <boost/graph/adjacency_list.hpp>

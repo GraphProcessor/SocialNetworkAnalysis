@@ -99,6 +99,7 @@ namespace yche {
                 //Find Maximum Vote
                 auto candidate_label_vec = vector<int>();
                 auto max_val = 0;
+                cout << "label_weight_map:" << label_weight_map.size() << endl;
                 for (auto label_to_weight_pair:label_weight_map) {
                     auto label_weight = label_to_weight_pair.second;
                     if (label_weight > max_val) {
@@ -111,7 +112,8 @@ namespace yche {
                 }
                 srand(time(nullptr));
                 auto choice_index = rand() % candidate_label_vec.size();
-
+                if(candidate_label_vec.size() ==0)
+                    cerr << "errr"<<endl;
                 //Update Label
                 auto current_vertex = *vp.first;
                 sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
