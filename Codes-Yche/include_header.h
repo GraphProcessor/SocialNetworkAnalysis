@@ -12,4 +12,7 @@
 #include <map>
 #include <memory>
 #include <ctime>
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <boost/graph/adjacency_list.hpp>

@@ -38,31 +38,31 @@ namespace yche {
 
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, int,
-                        property<vertex_label_t, array<int, 2>>
-                >>;
+                        property<vertex_label_t, array<int, 2>>>>;
 
         using SubGraph = adjacency_list<vecS, vecS, undirectedS, SubGraphVertexProperties>;
 
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
-        using Community = unique_ptr<set<int>>;
-        using OverlappingCommunityVec = vector<Community>;
+        using CommunityPtr = unique_ptr<set<int>>;
+        using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
     private:
         unique_ptr<Graph> graph_ptr_;
-        OverlappingCommunityVec overlapping_community_vec_;
+        CommunityVecPtr overlap_community_vec_;
         double epsilon_;
         int min_community_size_;
         int max_iteration_num_;
 
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex ego_vertex);
 
-        OverlappingCommunityVec DetectCommunitesViaLabelPropagation(
-                unique_ptr<Graph> sub_graph_ptr, SubGraphVertex ego_vertex);
+        CommunityVecPtr LabelPropagationOnSubGraph(
+                unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
 
-        void MergeTwoCommunities(Community left_community, Community right_community);
+        pair<double, pair<CommunityPtr,CommunityPtr>> GetTwoCommunitiesCoverRate(CommunityPtr left_community,
+                                                                                 CommunityPtr right_community);
 
-        void MergeIntoOverallCommunities(OverlappingCommunityVec &new_created_communities_vec);
+        CommunityPtr MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
 
     public:
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
@@ -70,8 +70,39 @@ namespace yche {
             ;
             std::move(graph_ptr);
             graph_ptr_ = std::move(graph_ptr);
+            overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
         }
 
         void ExecuteDaemon();
     };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
