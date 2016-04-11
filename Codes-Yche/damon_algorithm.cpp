@@ -186,9 +186,14 @@ namespace yche {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
             auto community_vec_ptr = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
+            if(overlap_community_vec_->size()==0){
+                for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
+                    if ((*iter_inner)->size() > min_community_size_)
+                        overlap_community_vec_->push_back(std::move(*iter_inner));
+                }
+            }
             for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-                for (auto iter_inner = community_vec_ptr->begin();
-                     iter_inner != community_vec_ptr->end(); ++iter_inner) {
+                for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
                     *iter = std::move(cover_rate_result.second.first);
                     *iter_inner = std::move(cover_rate_result.second.second);
@@ -196,7 +201,7 @@ namespace yche {
                         *iter = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
                     }
                     else if ((*iter_inner)->size() > min_community_size_)
-                        community_vec_ptr->push_back(std::move(*iter_inner));
+                        overlap_community_vec_->push_back(std::move(*iter_inner));
 
                 }
             }
