@@ -100,10 +100,8 @@ namespace yche {
                 //Find Maximum Vote
                 auto candidate_label_vec = vector<int>();
                 auto max_val = 0;
-                cout << "label_weight_map:" << label_weight_map.size() << endl;
                 auto current_vertex = *vp.first;
                 if (label_weight_map.size() == 0) {
-                    cout << "!!!" << endl;
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
                 }
                 else {
@@ -122,9 +120,7 @@ namespace yche {
 
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
                 }
-
                 //Update Label
-
             }
 
             iteration_num++;
@@ -153,10 +149,17 @@ namespace yche {
             iter->second->insert(vertex_index_map[ego_vertex]);
             cooms_vec_ptr->push_back(std::move(iter->second));
         }
+        if (label_indices_map.size() == 0) {
+            //Outlier
+            CommunityPtr comm_ptr = make_unique<set<int>>();
+            comm_ptr->insert(vertex_index_map[ego_vertex]);
+            cooms_vec_ptr->push_back(std::move(comm_ptr));
+        }
         return std::move(cooms_vec_ptr);
     }
 
-    Daemon::CommunityPtr Daemon::MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community) {
+    pair<Daemon::CommunityPtr, Daemon::CommunityPtr> Daemon::MergeTwoCommunities(CommunityPtr left_community,
+                                                                                 CommunityPtr right_community) {
         vector<int> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
@@ -165,46 +168,65 @@ namespace yche {
         for (auto iter = union_set.begin(); iter != union_set.end(); ++iter) {
             union_community->insert(*iter);
         }
-        return std::move(union_community);
+        return make_pair(std::move(union_community), std::move(right_community));
     }
 
     pair<double, pair<Daemon::CommunityPtr, Daemon::CommunityPtr>> Daemon::GetTwoCommunitiesCoverRate(
             CommunityPtr left_community, CommunityPtr right_community) {
+        auto max_size = left_community->size() + right_community->size();
         vector<int> intersect_set(left_community->size() + right_community->size());
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
                                          right_community->end(), intersect_set.begin());
         intersect_set.resize(iter_end - intersect_set.begin());
-        return make_pair(
-                static_cast<double>(intersect_set.size()) / min(left_community->size(), right_community->size()),
-                make_pair(std::move(left_community), std::move(right_community)));
+        //left_community->size() call before std::move it
+        double rate = static_cast<double>(intersect_set.size()) / min(left_community->size(), right_community->size());
+        return make_pair(rate, make_pair(std::move(left_community), std::move(right_community)));
+
     }
 
     void Daemon::ExecuteDaemon() {
         //Clear Former Results
         overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
+        int point_index = 0;
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
             auto community_vec_ptr = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
-            if(overlap_community_vec_->size()==0){
-                for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
+
+            if (overlap_community_vec_->size() == 0) {
+                for (auto iter_inner = community_vec_ptr->begin();
+                     iter_inner != community_vec_ptr->end(); ++iter_inner) {
                     if ((*iter_inner)->size() > min_community_size_)
                         overlap_community_vec_->push_back(std::move(*iter_inner));
                 }
+                continue;
             }
-            for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-                for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
+            for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
+                vector<CommunityPtr> tmp_ptr_vec;
+                for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
+
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
                     *iter = std::move(cover_rate_result.second.first);
                     *iter_inner = std::move(cover_rate_result.second.second);
                     if (cover_rate_result.first > epsilon_) {
-                        *iter = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
+                        auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
+                        *iter = std::move(tmp_pair.first);
+                        *iter_inner = std::move(tmp_pair.second);
                     }
-                    else if ((*iter_inner)->size() > min_community_size_)
-                        overlap_community_vec_->push_back(std::move(*iter_inner));
+                    else if ((*iter_inner)->size() > min_community_size_) {
+                        CommunityPtr comm_ptr = make_unique<set<int>>();
+                        for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
+                            comm_ptr->insert(*tmp_iter);
+                        }
+                        tmp_ptr_vec.push_back(std::move(comm_ptr));
+                    }
+                }
 
+                for (auto tmp_iter = tmp_ptr_vec.begin(); tmp_iter != tmp_ptr_vec.end(); ++tmp_iter) {
+                    overlap_community_vec_->push_back(std::move(*tmp_iter));
                 }
             }
+            point_index++;
         }
     }
 

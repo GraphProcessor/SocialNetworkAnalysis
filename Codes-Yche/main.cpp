@@ -52,13 +52,14 @@ int main() {
         add_edge(name_vertex_map[iter->first],name_vertex_map[iter->second],*graph_ptr);
     }
 
-    auto epsilon = 0.3;
+    auto epsilon = 0.25;
     auto min_community_size = 3;
     auto max_iteration = 20;
     Daemon daemon(epsilon,min_community_size,std::move(graph_ptr),max_iteration);
     daemon.ExecuteDaemon();
     auto communities = std::move(daemon.overlap_community_vec_);
     int count =0;
+
     cout << "comm_size:"<<communities->size()<<endl;
     for(auto iter= communities->begin();iter!=communities->end();++iter){
         count++;
@@ -68,8 +69,6 @@ int main() {
         }
         cout <<endl;
     }
-    cout << "?" << i << endl;
-    getchar();
     return 0;
 }
 

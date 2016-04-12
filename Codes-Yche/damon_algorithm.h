@@ -74,7 +74,7 @@ namespace yche {
         pair<double, pair<CommunityPtr,CommunityPtr>> GetTwoCommunitiesCoverRate(CommunityPtr left_community,
                                                                                  CommunityPtr right_community);
 
-        CommunityPtr MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
+        pair<CommunityPtr,CommunityPtr> MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
 
 
     };
