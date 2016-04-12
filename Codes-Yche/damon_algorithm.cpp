@@ -188,6 +188,9 @@ namespace yche {
         //Clear Former Results
         overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
         int point_index = 0;
+
+        int test_index = 0;
+
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
@@ -202,28 +205,36 @@ namespace yche {
                 continue;
             }
             for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
-                vector<CommunityPtr> tmp_ptr_vec;
+                CommunityPtr tmp_copy_ptr;
+                bool access_flag = false;
                 for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
                     *iter = std::move(cover_rate_result.second.first);
                     *iter_inner = std::move(cover_rate_result.second.second);
                     if (cover_rate_result.first > epsilon_) {
                         auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
                         *iter = std::move(tmp_pair.first);
+                        test_index++;
+                        cout << "The" << test_index << ":\t\t";
                         *iter_inner = std::move(tmp_pair.second);
+                        for (auto tmp = (*iter_inner)->begin(); tmp != (*iter_inner)->end(); ++tmp) {
+                            cout << *tmp << " ";
+                        }
+                        cout << endl;
+                        for (auto tmp = (*iter)->begin(); tmp != (*iter)->end(); ++tmp) {
+                            cout << *tmp << " ";
+                        }
+                        cout << endl;
                     }
-                    else if ((*iter_inner)->size() > min_community_size_) {
+                    else if ((*iter_inner)->size() > min_community_size_ && access_flag == false) {
                         CommunityPtr comm_ptr = make_unique<set<int>>();
                         for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
                             comm_ptr->insert(*tmp_iter);
                         }
-                        tmp_ptr_vec.push_back(std::move(comm_ptr));
                     }
                 }
-
-                for (auto tmp_iter = tmp_ptr_vec.begin(); tmp_iter != tmp_ptr_vec.end(); ++tmp_iter) {
-                    overlap_community_vec_->push_back(std::move(*tmp_iter));
+                if (access_flag == true) {
+                    overlap_community_vec_->push_back(std::move(tmp_copy_ptr));
                 }
             }
             point_index++;

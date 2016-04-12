@@ -9,7 +9,6 @@ using namespace std;
 int main() {
     using namespace yche;
 
-
     string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
     ifstream fin(file.c_str());
     string s;
@@ -52,7 +51,7 @@ int main() {
         add_edge(name_vertex_map[iter->first],name_vertex_map[iter->second],*graph_ptr);
     }
 
-    auto epsilon = 0.25;
+    auto epsilon = 0.5;
     auto min_community_size = 3;
     auto max_iteration = 20;
     Daemon daemon(epsilon,min_community_size,std::move(graph_ptr),max_iteration);
@@ -69,6 +68,8 @@ int main() {
         }
         cout <<endl;
     }
+
+    getchar();
     return 0;
 }
 
