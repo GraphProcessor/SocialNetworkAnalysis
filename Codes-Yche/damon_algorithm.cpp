@@ -68,8 +68,6 @@ namespace yche {
 
         property_map<SubGraph, vertex_id_t>::type sub_vertex_id_map =
                 get(vertex_id, *sub_graph_ptr);
-        property_map<SubGraph, vertex_index_t>::type sub_vertex_index_map =
-                get(vertex_index, *sub_graph_ptr);
         property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map =
                 get(vertex_weight, *sub_graph_ptr);
         property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map =
@@ -83,12 +81,12 @@ namespace yche {
                 all_sub_vertices.push_back(*vp.first);
             }
 
-            random_shuffle(all_sub_vertices.begin(),all_sub_vertices.end());
+            random_shuffle(all_sub_vertices.begin(), all_sub_vertices.end());
 
 
             //Each V Do One Propagation
-            for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter!=all_sub_vertices.end();++vertex_iter) {
-                auto label_weight_map = map<int, double>();
+            for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter != all_sub_vertices.end(); ++vertex_iter) {
+                auto label_weight_map = map<unsigned long , double>();
                 //Label Propagation
                 for (auto vp_inner = adjacent_vertices(*vertex_iter, *sub_graph_ptr);
                      vp_inner.first != vp_inner.second; ++vp_inner.first) {
@@ -107,8 +105,8 @@ namespace yche {
 
 
                 //Find Maximum Vote
-                auto candidate_label_vec = vector<int>();
-                auto max_val = 0;
+                auto candidate_label_vec = vector<unsigned long>();
+                auto max_val = 0.0;
                 auto current_vertex = *vertex_iter;
                 if (label_weight_map.size() == 0) {
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
@@ -124,7 +122,7 @@ namespace yche {
                             candidate_label_vec.push_back(label_to_weight_pair.first);
                         }
                     }
-                    srand(time(nullptr));
+                    srand((unsigned int) time(nullptr));
                     auto choice_index = rand() % candidate_label_vec.size();
 
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
@@ -145,7 +143,7 @@ namespace yche {
             auto sub_vertex = *vp.first;
             auto v_label = sub_vertex_label_map[sub_vertex][curr_index_indicator];
             if (label_indices_map.find(v_label) == label_indices_map.end()) {
-                CommunityPtr community = make_unique<set<int>>();
+                CommunityPtr community = make_unique<set<unsigned long>>();
                 label_indices_map.insert(make_pair(v_label, std::move(community)));
             }
 
@@ -160,7 +158,7 @@ namespace yche {
         }
         if (label_indices_map.size() == 0) {
             //Outlier
-            CommunityPtr comm_ptr = make_unique<set<int>>();
+            CommunityPtr comm_ptr = make_unique<set<unsigned long>>();
             comm_ptr->insert(vertex_index_map[ego_vertex]);
             cooms_vec_ptr->push_back(std::move(comm_ptr));
         }
@@ -169,11 +167,11 @@ namespace yche {
 
     pair<Daemon::CommunityPtr, Daemon::CommunityPtr> Daemon::MergeTwoCommunities(CommunityPtr left_community,
                                                                                  CommunityPtr right_community) {
-        vector<int> union_set(left_community->size() + right_community->size());
+        vector<unsigned long> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
         union_set.resize(iter_end - union_set.begin());
-        CommunityPtr union_community = make_unique<set<int>>();
+        CommunityPtr union_community = make_unique<set<unsigned long>>();
         for (auto iter = union_set.begin(); iter != union_set.end(); ++iter) {
             union_community->insert(*iter);
         }
@@ -182,8 +180,7 @@ namespace yche {
 
     pair<double, pair<Daemon::CommunityPtr, Daemon::CommunityPtr>> Daemon::GetTwoCommunitiesCoverRate(
             CommunityPtr left_community, CommunityPtr right_community) {
-        auto max_size = left_community->size() + right_community->size();
-        vector<int> intersect_set(left_community->size() + right_community->size());
+        vector<unsigned long> intersect_set(left_community->size() + right_community->size());
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
                                          right_community->end(), intersect_set.begin());
         intersect_set.resize(iter_end - intersect_set.begin());
@@ -215,7 +212,7 @@ namespace yche {
             }
             for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
                 CommunityPtr tmp_copy_ptr;
-                bool access_flag = false;
+                bool first_access_flag = false;
                 for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
                     *iter = std::move(cover_rate_result.second.first);
@@ -224,28 +221,18 @@ namespace yche {
                         auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
                         *iter = std::move(tmp_pair.first);
                         test_index++;
-//                        cout << "The" << test_index << ":\t\t";
                         *iter_inner = std::move(tmp_pair.second);
-//                        for (auto tmp = (*iter_inner)->begin(); tmp != (*iter_inner)->end(); ++tmp) {
-//                            cout << *tmp << " ";
-//                        }
-//                        cout << endl;
-//                        for (auto tmp = (*iter)->begin(); tmp != (*iter)->end(); ++tmp) {
-//                            cout << *tmp << " ";
-//                        }
-//                        cout << endl;
-                        //According to Paper Demon communty to merge with found!
                         break;
                     }
-                    else if ((*iter_inner)->size() > min_community_size_ && access_flag == false) {
-                        tmp_copy_ptr = make_unique<set<int>>();
+                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
+                        tmp_copy_ptr = make_unique<set<unsigned long>>();
                         for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
                             tmp_copy_ptr->insert(*tmp_iter);
                         }
-                        access_flag = true;
+                        first_access_flag = true;
                     }
                 }
-                if (access_flag == true) {
+                if (first_access_flag) {
                     overlap_community_vec_->push_back(std::move(tmp_copy_ptr));
                 }
             }

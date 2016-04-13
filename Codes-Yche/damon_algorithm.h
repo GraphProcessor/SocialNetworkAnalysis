@@ -34,19 +34,19 @@ namespace yche {
     class Daemon {
     public:
         using VertexProperties = property<vertex_weight_t, double,
-                property<vertex_index_t, int>>;
+                property<vertex_index_t, unsigned long>>;
         //Edge Vertex
         using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties>;
 
         using SubGraphVertexProperties = property<vertex_weight_t, double,
-                property<vertex_id_t, int,
-                        property<vertex_label_t, array<int, 2>>>>;
+                property<vertex_id_t, unsigned long,
+                        property<vertex_label_t, array<unsigned long, 2>>>>;
 
         using SubGraph = adjacency_list<setS, vecS, undirectedS, SubGraphVertexProperties>;
 
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
-        using CommunityPtr = unique_ptr<set<int>>;
+        using CommunityPtr = unique_ptr<set<unsigned long>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
                 epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
