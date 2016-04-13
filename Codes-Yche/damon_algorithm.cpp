@@ -78,11 +78,19 @@ namespace yche {
         while (iteration_num < max_iteration_num_) {
             auto curr_index_indicator = (iteration_num + 1) % 2;
             auto last_index_indicator = iteration_num % 2;
-            //Each V Do One Propagation
+            vector<SubGraphVertex> all_sub_vertices;
             for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
+                all_sub_vertices.push_back(*vp.first);
+            }
+
+            random_shuffle(all_sub_vertices.begin(),all_sub_vertices.end());
+
+
+            //Each V Do One Propagation
+            for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter!=all_sub_vertices.end();++vertex_iter) {
                 auto label_weight_map = map<int, double>();
                 //Label Propagation
-                for (auto vp_inner = adjacent_vertices(*vp.first, *sub_graph_ptr);
+                for (auto vp_inner = adjacent_vertices(*vertex_iter, *sub_graph_ptr);
                      vp_inner.first != vp_inner.second; ++vp_inner.first) {
                     auto neighbor_vertex = *vp_inner.first;
                     auto neighbor_vertex_label = sub_vertex_label_map[neighbor_vertex][last_index_indicator];
@@ -97,10 +105,11 @@ namespace yche {
                     }
                 }
 
+
                 //Find Maximum Vote
                 auto candidate_label_vec = vector<int>();
                 auto max_val = 0;
-                auto current_vertex = *vp.first;
+                auto current_vertex = *vertex_iter;
                 if (label_weight_map.size() == 0) {
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
                 }
@@ -215,22 +224,25 @@ namespace yche {
                         auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
                         *iter = std::move(tmp_pair.first);
                         test_index++;
-                        cout << "The" << test_index << ":\t\t";
+//                        cout << "The" << test_index << ":\t\t";
                         *iter_inner = std::move(tmp_pair.second);
-                        for (auto tmp = (*iter_inner)->begin(); tmp != (*iter_inner)->end(); ++tmp) {
-                            cout << *tmp << " ";
-                        }
-                        cout << endl;
-                        for (auto tmp = (*iter)->begin(); tmp != (*iter)->end(); ++tmp) {
-                            cout << *tmp << " ";
-                        }
-                        cout << endl;
+//                        for (auto tmp = (*iter_inner)->begin(); tmp != (*iter_inner)->end(); ++tmp) {
+//                            cout << *tmp << " ";
+//                        }
+//                        cout << endl;
+//                        for (auto tmp = (*iter)->begin(); tmp != (*iter)->end(); ++tmp) {
+//                            cout << *tmp << " ";
+//                        }
+//                        cout << endl;
+                        //According to Paper Demon communty to merge with found!
+                        break;
                     }
                     else if ((*iter_inner)->size() > min_community_size_ && access_flag == false) {
-                        CommunityPtr comm_ptr = make_unique<set<int>>();
+                        tmp_copy_ptr = make_unique<set<int>>();
                         for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
-                            comm_ptr->insert(*tmp_iter);
+                            tmp_copy_ptr->insert(*tmp_iter);
                         }
+                        access_flag = true;
                     }
                 }
                 if (access_flag == true) {
