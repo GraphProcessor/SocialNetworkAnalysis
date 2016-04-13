@@ -39,27 +39,28 @@ class Demon(object):
         self.weighted = weighted
         #######
 
+        print  'hello'
         all_communities = {}
 
-        total_nodes = len(nx.nodes(self.G))
+        total_nodes = len(list(nx.nodes(self.G)))
         actual = 0
         old_percentage = 0
         for ego in nx.nodes(self.G):
-            percentage = float(actual * 100)/total_nodes
-            
+            percentage = float(actual * 100) / total_nodes
+
             actual += 1
 
-            #ego_minus_ego
+            # ego_minus_ego
             ego_minus_ego = nx.ego_graph(self.G, ego, 1, False)
             community_to_nodes = self.__overlapping_label_propagation(ego_minus_ego, ego)
 
-            #merging phase
+            # merging phase
             for c in community_to_nodes.keys():
                 if len(community_to_nodes[c]) > self.min_community_size:
                     actual_community = community_to_nodes[c]
                     all_communities = self.__merge_communities(all_communities, actual_community)
 
-        #print communities
+        # print communities
         out_file_com = open("communities.txt", "w")
         idc = 0
         for c in all_communities.keys():
@@ -86,7 +87,7 @@ class Demon(object):
 
             node_to_coms = {}
 
-            nodes = nx.nodes(ego_minus_ego)
+            nodes = list(nx.nodes(ego_minus_ego))
             random.shuffle(nodes)
 
             count = -len(nodes)
@@ -94,15 +95,15 @@ class Demon(object):
             for n in nodes:
                 label_freq = {}
 
-                n_neighbors = nx.neighbors(ego_minus_ego, n)
-                
+                n_neighbors = list(nx.neighbors(ego_minus_ego, n))
+
                 if len(n_neighbors) < 1:
                     continue
 
                 if count == 0:
                     t += 1
 
-                #compute the frequency of the labels
+                # compute the frequency of the labels
                 for nn in n_neighbors:
 
                     communities_nn = [nn]
@@ -113,19 +114,19 @@ class Demon(object):
                     for nn_c in communities_nn:
                         if nn_c in label_freq:
                             v = label_freq.get(nn_c)
-                            #case of weighted graph
+                            # case of weighted graph
                             if self.weighted:
                                 label_freq[nn_c] = v + ego_minus_ego.edge[nn][n]['weight']
                             else:
                                 label_freq[nn_c] = v + 1
                         else:
-                            #case of weighted graph
+                            # case of weighted graph
                             if self.weighted:
                                 label_freq[nn_c] = ego_minus_ego.edge[nn][n]['weight']
                             else:
                                 label_freq[nn_c] = 1
 
-                #first run, random choosing of the communities among the neighbors labels
+                # first run, random choosing of the communities among the neighbors labels
                 if t == 1:
                     if not len(n_neighbors) == 0:
                         r_label = random.sample(label_freq.keys(), 1)
@@ -134,7 +135,7 @@ class Demon(object):
                     count += 1
                     continue
 
-                #choose the majority
+                # choose the majority
                 else:
                     labels = []
                     max_freq = -1
@@ -154,10 +155,10 @@ class Demon(object):
 
             t += 1
 
-        #build the communities reintroducing the ego
+        # build the communities reintroducing the ego
         community_to_nodes = {}
         for n in nx.nodes(ego_minus_ego):
-            if len(nx.neighbors(ego_minus_ego, n)) == 0:
+            if len(list(nx.neighbors(ego_minus_ego, n))) == 0:
                 ego_minus_ego.node[n]['communities'] = [n]
 
             c_n = ego_minus_ego.node[n]['communities']
@@ -180,25 +181,25 @@ class Demon(object):
         :param actual_community: a community
         """
 
-        #if the community is already present return
+        # if the community is already present return
         if tuple(actual_community) in communities:
             return communities
 
         else:
-            #search a community to merge with
+            # search a community to merge with
             inserted = False
-            
+
             for test_community in communities.items():
-                
+
                 union = self.__generalized_inclusion(actual_community, test_community[0])
-                #communty to merge with found!
+                # communty to merge with found!
                 if union is not None:
                     communities.pop(test_community[0])
                     communities[tuple(sorted(union))] = 0
                     inserted = True
                     break
 
-            #not merged: insert the original community
+            # not merged: insert the original community
             if not inserted:
                 communities[tuple(sorted(actual_community))] = 0
 
@@ -226,10 +227,11 @@ class Demon(object):
 
 #################################
 g = nx.Graph()
-fin = open("network.csv")
+fin = open("/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv")
 for l in fin:
-    l = l.rstrip().split(",")
+    l = l.rstrip().split(" ")
+    print  l[0] + ' ,' + l[1]
     g.add_edge(l[0], l[1])
 
 d = Demon()
-d.execute(g, epsilon=0.25)
+d.execute(g, epsilon=0.5)
