@@ -48,15 +48,16 @@ namespace yche {
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
         using CommunityPtr = unique_ptr<set<unsigned long>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
+
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
                 epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
             ;
-            std::move(graph_ptr);
             graph_ptr_ = std::move(graph_ptr);
             overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
         }
 
         void ExecuteDaemon();
+
         CommunityVecPtr overlap_community_vec_;
 
     private:
@@ -71,10 +72,10 @@ namespace yche {
         CommunityVecPtr LabelPropagationOnSubGraph(
                 unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
 
-        pair<double, pair<CommunityPtr,CommunityPtr>> GetTwoCommunitiesCoverRate(CommunityPtr left_community,
-                                                                                 CommunityPtr right_community);
+        pair<double, pair<CommunityPtr, CommunityPtr>> GetTwoCommunitiesCoverRate(CommunityPtr left_community,
+                                                                                  CommunityPtr right_community);
 
-        pair<CommunityPtr,CommunityPtr> MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
+        pair<CommunityPtr, CommunityPtr> MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
 
 
     };
