@@ -26,7 +26,7 @@ void Print( const set < shared_ptr < string >, cmp_str_ptr >& seed ){
  *double CalcDensity( const int& size, const double& Win, const double& Wout, const double& lambda )
  *
  *   Function to calculate the density of a given set of vertices
- * 
+ *
  *@param size Number of vertices in the set
  *@param Win Total weight of edges between two vertices in the set
  *@param Wout Total weight of edges with only 1 vertex in the set
@@ -59,14 +59,14 @@ double CalcDensity( const int& size, const double& Win, const double& Wout, cons
  */
 map < double, set < shared_ptr < string >, cmp_str_ptr > > Components ( set < shared_ptr < string >, cmp_str_ptr > seed, shared_ptr < Network > G, double lambda ) {
   map < double, set < shared_ptr < string >, cmp_str_ptr > > result;
-  
+
   set < shared_ptr < string >, cmp_str_ptr >::iterator it_s, it_u, it_v;
   set < shared_ptr < string >, cmp_str_ptr > seen;
   double win = 0, wout = 0;
 
   for ( it_s = seed.begin(); it_s != seed.end(); it_s++ ){                   //Go through each vertex in set
     if ( seen.find (*it_s) != seen.end() ) continue;                         //If already assigned to partition, skip
-    
+
     win = 0;
     wout = 0;
     set < shared_ptr < string >, cmp_str_ptr > component, to_check;
@@ -76,7 +76,7 @@ map < double, set < shared_ptr < string >, cmp_str_ptr > > Components ( set < sh
     while ( to_check.size() != 0 ){
       //Add the first vertex to component
       it_u = to_check.begin();
-      component.insert(*it_u);   
+      component.insert(*it_u);
       seen.insert(*it_u);
       map < shared_ptr < string >, double, cmp_str_ptr > N = G->GetNeighborhood(*it_u);
       to_check.erase(it_u);
@@ -96,7 +96,7 @@ map < double, set < shared_ptr < string >, cmp_str_ptr > > Components ( set < sh
     //document results
     result.insert(pair < double, set < shared_ptr < string >, cmp_str_ptr > > (CalcDensity(component.size(), win, wout, lambda), component));
   }
-  
+
   //Return full results
   return result;
 }
@@ -104,8 +104,8 @@ map < double, set < shared_ptr < string >, cmp_str_ptr > > Components ( set < sh
 /**
  *void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr < Network > G, double lambda )
  *
- * Main portion of CIS. Takes a seed and iteratively adds neighbors/removes members in order to maximize the 
- *  CalcDensity() value of the set of vertices. Only rule is that the component must remain connected. If it 
+ * Main portion of CIS. Takes a seed and iteratively adds neighbors/removes members in order to maximize the
+ *  CalcDensity() value of the set of vertices. Only rule is that the component must remain connected. If it
  *  becomes disconnected, the component that has the highest independant density is taken.
  *
  *@param seed Set of vertices to start from
@@ -117,8 +117,8 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
   set < shared_ptr < string >, cmp_str_ptr > fringe;
   set < shared_ptr < string >, cmp_str_ptr >::iterator it_s;
   map < shared_ptr < string >, double, cmp_str_ptr >::iterator it_n;
-  map < shared_ptr < string >, pair < double, double >, cmp_str_ptr >::iterator it_d, it_d2;  
-  
+  map < shared_ptr < string >, pair < double, double >, cmp_str_ptr >::iterator it_d, it_d2;
+
   double seed_win = 0, seed_wout = 0;
 
   for ( it_s = seed.begin(); it_s != seed.end(); it_s++ ){  //Tally members of the seed, calculating individual
@@ -155,7 +155,7 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
       }
     }
 
-    neighbors.insert(pair < shared_ptr < string >, pair < double, double > > (shared_ptr <string> (*it_s), pair < double, double > (Win, Wout))); 
+    neighbors.insert(pair < shared_ptr < string >, pair < double, double > > (shared_ptr <string> (*it_s), pair < double, double > (Win, Wout)));
     //cout << **it_s << " : " << Win << " " << Wout << endl;
   }
 
@@ -168,10 +168,10 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
   //While the seed is changing, add new members and remove poor members
   while ( changed ){
     changed = false;
-    vector < shared_ptr < string > > to_check;             
+    vector < shared_ptr < string > > to_check;
     vector < set < shared_ptr < string >, cmp_str_ptr > >  order_by_degree;
     set < shared_ptr < string >, cmp_str_ptr >::iterator it_deg;
-    
+
     for ( it_d = neighbors.begin(); it_d != neighbors.end(); it_d++ ){
       int deg = G->Degree(it_d->first);
       if ( order_by_degree.size() < deg + 1 ) order_by_degree.resize(deg + 1);
@@ -185,7 +185,7 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
     }
 
     /*for ( it_d = neighbors.begin(); it_d != neighbors.end(); it_d++ ){
-      to_check.push_back(it_d->first);  
+      to_check.push_back(it_d->first);
     }
 
     random_shuffle ( to_check.begin(), to_check.end() );   ///Get the neighborhood in a random order*/
@@ -199,16 +199,16 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
 	//If the density would increase by includeing the vertex - do it
 	//cout << "...Added" << endl;
 	changed = true; //Mark the change in seed
-	seed_win += it_d->second.first;  
+	seed_win += it_d->second.first;
 	seed_wout = seed_wout - it_d->second.first + it_d->second.second;
 	seed.insert(it_d->first);  //Update seed
 	members.insert(pair < shared_ptr < string >, pair < double, double > > (it_d->first, it_d->second));
 	neighbors.erase( to_check[i] ); //Update local trackers
-      
+
 	//UPDATE MEMBER AND NEIGHBOR LISTS
 	// The Win and Wout values of vertices connected to the added vertex have changed...
-	map < shared_ptr < string >, double, cmp_str_ptr > N = G->GetNeighborhood(to_check[i]); 
-	
+	map < shared_ptr < string >, double, cmp_str_ptr > N = G->GetNeighborhood(to_check[i]);
+
 	for (it_n = N.begin(); it_n != N.end(); it_n++){
 	  if ( (it_d2 = members.find( it_n->first ) ) != members.end() ){ //Update member
 	    it_d2->second.first += it_n->second;
@@ -240,7 +240,7 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
     //REPEAT FOR MEMBERS (reversing mathematical signs where necessary, of course)
     to_check.clear();
     order_by_degree.clear();
-    
+
     for ( it_d = members.begin(); it_d != members.end(); it_d++ ){
       int deg = G->Degree(it_d->first);
       if ( order_by_degree.size() < deg + 1 ) order_by_degree.resize(deg + 1);
@@ -252,9 +252,9 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
 	to_check.push_back(*it_deg);
       }
     }
-    
+
     /* for ( it_d = members.begin(); it_d != members.end(); it_d++ ){
-      to_check.push_back(it_d->first); 
+      to_check.push_back(it_d->first);
     }
     random_shuffle ( to_check.begin(), to_check.end() );*/
 
@@ -271,10 +271,10 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
 	seed.erase(it_d->first);
 	neighbors.insert(pair < shared_ptr < string >, pair < double, double > > (it_d->first, it_d->second));
 	members.erase( to_check[i] );
-      
+
 	//UPDATE MEMBER AND NEIGHBOR LISTS
-	map < shared_ptr < string >, double, cmp_str_ptr > N = G->GetNeighborhood(to_check[i]); 
-	
+	map < shared_ptr < string >, double, cmp_str_ptr > N = G->GetNeighborhood(to_check[i]);
+
 	for (it_n = N.begin(); it_n != N.end(); it_n++){
 	  if ( (it_d2 = members.find( it_n->first ) ) != members.end() ){ //Update member
 	    it_d2->second.first -= it_n->second;
@@ -290,7 +290,7 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
     //Get best component to move forward with
     map < double, set < shared_ptr < string >, cmp_str_ptr > > comps = Components(seed, G, lambda);
     seed = (comps.begin())->second;
-    
+
     //Print ( seed );
   }
 }
@@ -306,7 +306,7 @@ void Print( const set < shared_ptr < string >, cmp_str_ptr >& seed, ofstream& fo
   set < shared_ptr < string > >::const_iterator it_s = seed.begin();
 
   fout << **it_s;
-  
+
   ++it_s;
   while (it_s != seed.end() ){
     fout << delim << **it_s;
@@ -323,11 +323,11 @@ int main ( int argc, char** argv ){
   //Get command line params
   Parameters P;
   P.Read(argc, argv);
-  
+
   string inputfile, outputfile, delimiters, seed_file, seed_delim, output_delim;
   bool directed, given_seeds;
   double lambda;
-  
+
   P.set < string > (&inputfile, "i", "network.dat");
   P.set < string > (&outputfile, "o", "clusters.dat");
   P.set < string > (&delimiters, "dl", "|");
@@ -336,7 +336,7 @@ int main ( int argc, char** argv ){
   P.set < double > (&lambda, "l", 0);
   P.set < string > (&output_delim, "odl", "|");
 
-  P.boolset(&given_seeds, "s");  
+  P.boolset(&given_seeds, "s");
   P.boolset(&directed, "dir");
 
   if ( argc < 2 ) {
@@ -354,7 +354,7 @@ int main ( int argc, char** argv ){
   if ( given_seeds ) {
     ifstream fin;
     openFileHarsh( &fin, seed_file );
-    
+
     vector < string > fields;
 
     while ( fline_tr ( &fin, &fields, seed_delim ) ){
@@ -362,7 +362,7 @@ int main ( int argc, char** argv ){
       for ( unsigned int i = 0; i < fields.size(); i++ ){
 	seed.insert(shared_ptr < string > ( new string ( fields[i] ) ) );
       }
-      
+
       ExpandSeed ( seed, G, lambda );
       results.insert(seed);
     }
@@ -373,12 +373,23 @@ int main ( int argc, char** argv ){
       seed.insert(shared_ptr < string > ( new string ( *it_v ) ) );
 
       ExpandSeed ( seed, G, lambda );
+      for(auto str:seed){
+        cout << *str <<",";
+      }
+      cout << endl;
       results.insert(seed);
-      
+
+      cout << seed.size() << endl;
       ++it_v;
     }
   }
 
+  for(auto iter_tmp = results.begin(); iter_tmp!= results.end(); ++iter_tmp){
+    for(auto iter_tmp2 = (*iter_tmp).begin(); iter_tmp2!=(*iter_tmp).end(); ++ iter_tmp2){
+      cout << *(*iter_tmp2)<<",";
+    }
+    cout <<endl;
+  }
   //Print resulting communities
   set < set < shared_ptr < string >, cmp_str_ptr >, cmp_set_str >::iterator it_ss;
   ofstream fout ( outputfile.c_str() );
