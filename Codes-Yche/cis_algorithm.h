@@ -20,8 +20,11 @@ namespace boost {
 namespace yche {
     using IndexType = unsigned long;
     using CommunityMember = set<IndexType>;
+
     struct CommunityInfo {
-        CommunityMember memer_;
+        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
+
+        unique_ptr<CommunityMember> memer_;
         double w_in_;
         double w_out_;
     };
@@ -38,7 +41,7 @@ namespace yche {
         using Edge = graph_traits<Graph>::edge_descriptor;
 
 
-        Cis(const unique_ptr<Graph> &graph_ptr, double lambda) : lambda_(lambda) {
+        Cis(unique_ptr<Graph> &graph_ptr, double lambda) : lambda_(lambda) {
             graph_ptr_ = std::move(graph_ptr);
         }
 
@@ -50,9 +53,9 @@ namespace yche {
 
         double CalDensity(const int &size, const double &w_in, const double &w_out, const double &lambda);
 
-        void SplitIntoConnectedComponents(unique_ptr<CommunityMember> community);
+        unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMember> community_ptr);
 
-        void ExpandSeed();
+        unique_ptr<CommunityMember> ExpandSeed(unique_ptr<CommunityMember> seed_member_ptr);
 
     };
 }
