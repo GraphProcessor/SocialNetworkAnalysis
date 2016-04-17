@@ -19,12 +19,30 @@ namespace boost {
 
 namespace yche {
     using IndexType = unsigned long;
-    using CommunityMember = set<IndexType>;
+    using CommunityMembers = set<IndexType>;
 
     struct CommunityInfo {
         CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
 
-        unique_ptr<CommunityMember> memer_;
+        unique_ptr<CommunityMembers> memers_;
+        double w_in_;
+        double w_out_;
+    };
+
+    struct MemberInfo {
+        MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) { }
+
+        MemberInfo(const MemberInfo &member_info) {
+            this->member_index_ = member_info.member_index_;
+            this->w_in_ = member_info.w_in_;
+            this->w_out_ = member_info.w_out_;
+        }
+
+        bool operator==(const MemberInfo &cmp_member_info) {
+            return this->member_index_ == cmp_member_info.member_index_;
+        }
+
+        IndexType member_index_;
         double w_in_;
         double w_out_;
     };
@@ -41,11 +59,17 @@ namespace yche {
         using Edge = graph_traits<Graph>::edge_descriptor;
 
 
+        using CommunityVec=vector<unique_ptr<CommunityInfo>>;
+
         Cis(unique_ptr<Graph> &graph_ptr, double lambda) : lambda_(lambda) {
             graph_ptr_ = std::move(graph_ptr);
         }
 
+
+        void ExecuteCis();
+
     private:
+        unique_ptr<CommunityVec> overlapping_comms_ptr_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
 
@@ -53,9 +77,17 @@ namespace yche {
 
         double CalDensity(const int &size, const double &w_in, const double &w_out, const double &lambda);
 
-        unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMember> community_ptr);
+        unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMembers> community_ptr);
 
-        unique_ptr<CommunityMember> ExpandSeed(unique_ptr<CommunityMember> seed_member_ptr);
+        unique_ptr<CommunityMembers> ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr);
+
+
+        double GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &&left_community,
+                                          unique_ptr<CommunityMembers> &&right_community);
+
+        unique_ptr<CommunityMembers> MergeTwoCommunities(unique_ptr<CommunityMembers> &&left_community,
+                                                         unique_ptr<CommunityMembers> &&right_community);
+
 
     };
 }
