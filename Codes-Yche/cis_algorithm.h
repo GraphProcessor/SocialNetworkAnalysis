@@ -63,14 +63,14 @@ namespace yche {
 
         using CommunityVec=vector<unique_ptr<CommunityMembers>>;
 
-        Cis(unique_ptr<Graph> graph_ptr, double lambda) : lambda_(lambda) {
+        Cis(unique_ptr<Graph> graph_ptr, double lambda,map<int,int>& vertex_name_map) : lambda_(lambda),vertex_name_map_(vertex_name_map){
             graph_ptr_ = std::move(graph_ptr);
-            vertices_.resize(num_vertices(*graph_ptr));
+            vertices_.clear();
             //Init Vertices
             property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
             for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
                 Vertex vertex = *vp.first;
-                vertices_[vertex_index_map[vertex]] = vertex;
+                vertices_.push_back(*vp.first);
             }
         }
 
@@ -78,7 +78,7 @@ namespace yche {
         unique_ptr<CommunityVec> ExecuteCis();
 
     private:
-
+        map<int,int> vertex_name_map_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
 

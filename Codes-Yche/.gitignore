@@ -1,2 +1,9 @@
 .idea/*
+CMakeFiles/*
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+CISTest
+Daemon_Test
+
 

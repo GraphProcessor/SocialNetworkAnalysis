@@ -65,7 +65,7 @@ int main() {
     }
 
     cout << "hello" << endl << endl;
-    Cis cis(std::move(graph_ptr), 0);
+    Cis cis(std::move(graph_ptr), 0, index_name_map);
     auto communities_ptr_vec = std::move(cis.ExecuteCis());
     for (auto &&community_ptr:*communities_ptr_vec) {
         for (auto member_id:*community_ptr) {

@@ -113,6 +113,7 @@ map < double, set < shared_ptr < string >, cmp_str_ptr > > Components ( set < sh
  *@param lambda Value for density calculation
  */
 void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr < Network > G, double lambda ) {
+  cout << *(*seed.begin())<<",,,";
   map < shared_ptr < string > , pair < double, double >, cmp_str_ptr > members, neighbors;
   set < shared_ptr < string >, cmp_str_ptr > fringe;
   set < shared_ptr < string >, cmp_str_ptr >::iterator it_s;
@@ -288,8 +289,8 @@ void ExpandSeed ( set < shared_ptr < string >, cmp_str_ptr >& seed, shared_ptr <
     }
 
     //Get best component to move forward with
-    map < double, set < shared_ptr < string >, cmp_str_ptr > > comps = Components(seed, G, lambda);
-    seed = (comps.begin())->second;
+    //map < double, set < shared_ptr < string >, cmp_str_ptr > > comps = Components(seed, G, lambda);
+    //seed = (comps.begin())->second;
 
     //Print ( seed );
   }
@@ -373,13 +374,14 @@ int main ( int argc, char** argv ){
       seed.insert(shared_ptr < string > ( new string ( *it_v ) ) );
 
       ExpandSeed ( seed, G, lambda );
+      cout <<"!!!"<<seed.size()<<"\t:";
       for(auto str:seed){
         cout << *str <<",";
       }
       cout << endl;
       results.insert(seed);
 
-      cout << seed.size() << endl;
+      //cout << seed.size() << endl;
       ++it_v;
     }
   }
