@@ -9,4 +9,4 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE_FILES test_daemon.cpp damon_algorithm.cpp damon_algorithm.h include_header.h)
 add_executable(Daemon_Test ${SOURCE_FILES})
-add_executable(CISTest cis_algorithm.cpp cis_algorithm.h include_header.h)
+add_executable(CISTest test_cis.cpp cis_algorithm.cpp cis_algorithm.h include_header.h)

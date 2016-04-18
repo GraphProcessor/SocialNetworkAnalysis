@@ -7,6 +7,8 @@
 
 #include "include_header.h"
 
+#define DOUBLE_ACCURACY 0.00001
+
 using namespace std;
 using namespace boost;
 
@@ -24,7 +26,7 @@ namespace yche {
     struct CommunityInfo {
         CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
 
-        unique_ptr<CommunityMembers> memers_;
+        unique_ptr<CommunityMembers> members_;
         double w_in_;
         double w_out_;
     };
@@ -38,9 +40,9 @@ namespace yche {
             this->w_out_ = member_info.w_out_;
         }
 
-        bool operator==(const MemberInfo &cmp_member_info) {
-            return this->member_index_ == cmp_member_info.member_index_;
-        }
+//        bool operator==(const MemberInfo &cmp_member_info) {
+//            return this->member_index_ == cmp_member_info.member_index_;
+//        }
 
         IndexType member_index_;
         double w_in_;
@@ -59,23 +61,30 @@ namespace yche {
         using Edge = graph_traits<Graph>::edge_descriptor;
 
 
-        using CommunityVec=vector<unique_ptr<CommunityInfo>>;
+        using CommunityVec=vector<unique_ptr<CommunityMembers>>;
 
-        Cis(unique_ptr<Graph> &graph_ptr, double lambda) : lambda_(lambda) {
+        Cis(unique_ptr<Graph> graph_ptr, double lambda) : lambda_(lambda) {
             graph_ptr_ = std::move(graph_ptr);
+            vertices_.resize(num_vertices(*graph_ptr));
+            //Init Vertices
+            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+            for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
+                Vertex vertex = *vp.first;
+                vertices_[vertex_index_map[vertex]] = vertex;
+            }
         }
 
 
-        void ExecuteCis();
+        unique_ptr<CommunityVec> ExecuteCis();
 
     private:
-        unique_ptr<CommunityVec> overlapping_comms_ptr_;
+
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
 
         double lambda_;
 
-        double CalDensity(const int &size, const double &w_in, const double &w_out, const double &lambda);
+        double CalculateDensity(const int &size, const double &w_in, const double &w_out, const double &lambda);
 
         unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMembers> community_ptr);
 
