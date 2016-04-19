@@ -8,9 +8,13 @@
 #include <sys/mman.h> // for mmap(2)
 #include <sys/stat.h> // for fstat64(2)
 
+//For close file_descriptor
+#include <zconf.h>
 #include "graph_loading.hpp"
 
 namespace graph_loading {
+	struct readEdgeInvalidLineInDataException : public exception { }; // TODO: Proper error message, to be throw by readEdge()
+	const char *readEdge(const char *cur, int &l, int &r) throw (readEdgeInvalidLineInDataException);
 
 template <class Name> class RangeOfEdges {
 private:
@@ -25,14 +29,13 @@ public:
 	bool empty() { return p == fileEnd; }
 	void popFront() { p = updating_p ; if(p!=fileEnd) read_a_row(); }
 };
-	
+
 pair<const char *, const char *> mmapFile(const char *fileName);
 void loadBloomGraphMMAPFastButFussy(SimpleIntGraph &bg, const char *fileName);
 void findDistinctVertices(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph &bg);
 void countDegrees(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph &bg);
 void convertDegreesToOffsets(SimpleIntGraph &bg);
-struct readEdgeInvalidLineInDataException : public exception { }; // TODO: Proper error message, to be throw by readEdge()
-const char *readEdge(const char *cur, int &l, int &r) throw (readEdgeInvalidLineInDataException);
+
 void populateNameToIDHash(SimpleIntGraph &bg); // A hash used temporarily during graph loading to test if a given edge has new nodes in it.
 static void addNeighbour(VertexIDType edge_source, VertexIDType edge_target, VertexIDType _defaultVertexID, long &_edges_added, SimpleIntGraph &_bg);
 void loadEdges(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph &bg);
@@ -40,7 +43,7 @@ void loadEdges(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph &bg);
 void loadSimpleIntGraphFromFile(SimpleIntGraph &bg, const char *fileName) {
 	loadBloomGraphMMAP(bg, fileName);
 }
-void loadBloomGraphMMAP(SimpleIntGraph &bg, const char *fileName) { 
+void loadBloomGraphMMAP(SimpleIntGraph &bg, const char *fileName) {
 	// loadBloomGraphMMAPFastButFussy(bg, fileName); return;
 	const char *fileBegin, *fileEnd;
 	make_refpair(fileBegin, fileEnd) = mmapFile(fileName);
@@ -77,8 +80,8 @@ void loadBloomGraphMMAP(SimpleIntGraph &bg, const char *fileName) {
 		}
 		bg.edge_count = edges.size();
 	}
-	populateNameToIDHash(bg); 
-	{ 
+	populateNameToIDHash(bg);
+	{
 		set <pair<N ,N> >::const_iterator edge = edges.begin();
 		size_t offset = 0;
 		for (V v = 0; v < (long) bg.vcount(); v++) {
@@ -104,7 +107,7 @@ void loadBloomGraphMMAP(SimpleIntGraph &bg, const char *fileName) {
 	PP(bg.offsets.size());
 
 }
-void loadBloomGraphMMAPFastButFussy(SimpleIntGraph &bg, const char *fileName) { 
+void loadBloomGraphMMAPFastButFussy(SimpleIntGraph &bg, const char *fileName) {
 
 	const char *fileBegin, *fileEnd;
 	make_refpair(fileBegin, fileEnd) = mmapFile(fileName);
@@ -112,7 +115,7 @@ void loadBloomGraphMMAPFastButFussy(SimpleIntGraph &bg, const char *fileName) {
 
 	findDistinctVertices(roe, bg);
 	countDegrees(roe, bg);
-	populateNameToIDHash(bg); 
+	populateNameToIDHash(bg);
 	convertDegreesToOffsets(bg);
 	loadEdges(roe, bg);
 
@@ -128,7 +131,7 @@ void loadBloomGraphMMAPFastButFussy(SimpleIntGraph &bg, const char *fileName) {
 	//         618s
 
 	// To load vertices in, counting degree. 40m nodes 75m edges. // 39058948 distinct, I think
-	//         140s 
+	//         140s
 	// To load vertices in, no edges yet. 50m nodes 350m edges. // 49999965 distinct, I think
 	//         710
 
@@ -150,7 +153,7 @@ void findDistinctVertices(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph
 	vector< SimpleIntGraph::Name > & vertices = bg.vertex_mappings; // This is empty at the start. It'll be grown here.
 
 #define BLOOM_SIZE 800000000 // 100MB should be useful, and not a waste of memory
-	bitset<BLOOM_SIZE> *bloom = new bitset<BLOOM_SIZE>; // Just to help, quickly, remember if a vertex has already been found. 
+	bitset<BLOOM_SIZE> *bloom = new bitset<BLOOM_SIZE>; // Just to help, quickly, remember if a vertex has already been found.
 
 
 	/* TODO
@@ -220,7 +223,7 @@ void countDegrees(RangeOfEdges<SimpleIntGraph::Name> roe, SimpleIntGraph &bg) {
 	Foreach(edge , roe) {
 		bg.degrees.at(bg.key_for_vertexName(edge.first))++;
 		bg.degrees.at(bg.key_for_vertexName(edge.second))++;
-	} 
+	}
 
 }
 
@@ -255,7 +258,7 @@ void populateNameToIDHash(SimpleIntGraph &bg) {
 			if(bg.hash_offsets.at(h+j)==0) {
 				bg.hash_offsets.at(h+j) = i;
 				break;
-			} 
+			}
 		}
 	}
 }
@@ -322,7 +325,7 @@ pair<const char *, const char *> mmapFile(const char *fileName) {
 //#ifdef PLATFORM_MAC
 			//|MAP_NOCACHE // flags
 //#endif
-		, graphFD , 0 ); 
+		, graphFD , 0 );
 	map != (void*) -1 || Die("mmap failed");
 	close(graphFD);
 	const char * const fileBegin = (char*) map;
@@ -334,7 +337,7 @@ pair<const char *, const char *> mmapFile(const char *fileName) {
 
 const char *readEdge(const char *cur, int &l, int &r) throw (readEdgeInvalidLineInDataException) {
 	while(*cur=='#' || *cur=='*') { cur = strchr(cur,'\n'); ++cur; } // This'll fail is the final lines in the file are like this. Gotta reorganize the file reading
-		
+
 	char *endptr;
 
 	errno=0;
@@ -355,4 +358,3 @@ const char *readEdge(const char *cur, int &l, int &r) throw (readEdgeInvalidLine
 
 
 } // namespace graph_loading
-
