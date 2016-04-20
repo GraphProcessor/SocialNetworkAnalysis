@@ -5,7 +5,7 @@
 #include "cis_algorithm.h"
 
 namespace yche {
-    double Cis::CalculateDensity(const int &size, const double &w_in, const double &w_out, const double &lambda) {
+    double Cis::CalculateDensity(const IndexType &size, const double &w_in, const double &w_out, const double &lambda) {
         if (size < 1) return numeric_limits<double>::min();
         double partA = ((1 - lambda) * (w_in / (w_in + w_out)));
         double partB = (lambda * ((2 * w_in) / (size * (size - 1))));
@@ -46,7 +46,7 @@ namespace yche {
                     tie(edge, edge_exist_flag) = boost::edge(expand_vertex, neighbor_vertex, *graph_ptr_);
                     //Do W_in and W_out Computation
                     auto iter = community_ptr->find(adjacency_vertex_index);
-                    if (mark_set.find(adjacency_vertex_index)==mark_set.end() && iter != community_ptr->end()) {
+                    if (mark_set.find(adjacency_vertex_index) == mark_set.end() && iter != community_ptr->end()) {
                         community_info_ptr->w_in_ += edge_weight_map[edge];
                         //Erase and Enqueuee
                         frontier.push(adjacency_vertex_index);
@@ -208,9 +208,9 @@ namespace yche {
                             for (auto vp_inner = adjacent_vertices(check_neighbor_vertex, *graph_ptr_);
                                  vp_inner.first != vp_inner.second; ++vp_inner.first) {
                                 auto neighbor_neighbor_vertex_index = vertex_index_map[*vp_inner.first];
-                                auto edge_weight = edge_weight_map[edge(check_neighbor_vertex,
-                                                                        vertices_[neighbor_neighbor_vertex_index],
-                                                                        *graph_ptr_).first];
+                                edge_weight = edge_weight_map[edge(check_neighbor_vertex,
+                                                                   vertices_[neighbor_neighbor_vertex_index],
+                                                                   *graph_ptr_).first];
                                 if (community_info->members_->find(neighbor_neighbor_vertex_index) !=
                                     community_info->members_->end()) {
                                     member_info_ptr->w_in_ += edge_weight;
@@ -263,7 +263,7 @@ namespace yche {
                 }
             }
 
-//            community_info = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info->members_)));
+            community_info = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info->members_)));
         }
         return std::move(community_info->members_);
     }
@@ -304,11 +304,11 @@ namespace yche {
             partial_comm_members->insert(vertex_index_map[vertex]);
             auto result_community = std::move(ExpandSeed(std::move(partial_comm_members)));
             cout << vertex_name_map_[vertex_index_map[vertex]];
-            cout <<"  size:\t"<<result_community->size()<<":\t";
-            for(auto index:*result_community){
-                cout<<vertex_name_map_[index]<<",";
+            cout << "  size:\t" << result_community->size() << ":\t";
+            for (auto index:*result_community) {
+                cout << vertex_name_map_[index] << ",";
             }
-            cout <<endl;
+            cout << endl;
             if (overlapping_communities_ptr->size() == 0) {
                 overlapping_communities_ptr->push_back(std::move(result_community));
             }
@@ -316,7 +316,7 @@ namespace yche {
                 bool insert_flag = true;
                 for (auto &&comm_ptr:*overlapping_communities_ptr) {
                     auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr), std::move(result_community));
-                    if (cover_rate > 1-DOUBLE_ACCURACY) {
+                    if (cover_rate > 1 - DOUBLE_ACCURACY) {
                         comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(result_community));
                         insert_flag = false;
                         break;

@@ -86,7 +86,7 @@ namespace yche {
 
             //Each V Do One Propagation
             for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter != all_sub_vertices.end(); ++vertex_iter) {
-                auto label_weight_map = map<unsigned long , double>();
+                auto label_weight_map = map<unsigned long, double>();
                 //Label Propagation
                 for (auto vp_inner = adjacent_vertices(*vertex_iter, *sub_graph_ptr);
                      vp_inner.first != vp_inner.second; ++vp_inner.first) {
@@ -102,7 +102,6 @@ namespace yche {
                         label_weight_map[neighbor_vertex_label] += neighbor_vertex_weight;
                     }
                 }
-
 
                 //Find Maximum Vote
                 auto candidate_label_vec = vector<unsigned long>();

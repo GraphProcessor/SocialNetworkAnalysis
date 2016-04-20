@@ -2,13 +2,7 @@
 // Created by cheyulin on 4/18/16.
 //
 
-#include <iostream>
-
-using namespace std;
-
 #include "cis_algorithm.h"
-
-using namespace std;
 
 int main() {
     using namespace yche;
@@ -24,8 +18,8 @@ int main() {
     int i = 0;
     vector<pair<int, int>> edges_vec;
     while (getline(fin, s)) {
-        int first_vertex_name;
-        int second_vertex_name;
+        int first_vertex_name = -1;
+        int second_vertex_name = -1;
         stringstream string_stream;
         string_stream.clear();
         string_stream.str(s);

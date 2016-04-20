@@ -40,10 +40,6 @@ namespace yche {
             this->w_out_ = member_info.w_out_;
         }
 
-//        bool operator==(const MemberInfo &cmp_member_info) {
-//            return this->member_index_ == cmp_member_info.member_index_;
-//        }
-
         IndexType member_index_;
         double w_in_;
         double w_out_;
@@ -55,15 +51,13 @@ namespace yche {
         using VertexProperties = property<vertex_index_t, IndexType>;
         using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
 
-//        using SubVertexProperties = property<vertex_index_t, IndexType, property<vertex_id_t, IndexType>>;
-//        using SubGraph = adjacency_list<setS, vecS, undirectedS, SubVertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
 
-
         using CommunityVec=vector<unique_ptr<CommunityMembers>>;
 
-        Cis(unique_ptr<Graph> graph_ptr, double lambda,map<int,int>& vertex_name_map) : lambda_(lambda),vertex_name_map_(vertex_name_map){
+        Cis(unique_ptr<Graph> graph_ptr, double lambda, map<int, int> &vertex_name_map) :
+                lambda_(lambda), vertex_name_map_(vertex_name_map) {
             graph_ptr_ = std::move(graph_ptr);
             vertices_.clear();
             //Init Vertices
@@ -78,13 +72,13 @@ namespace yche {
         unique_ptr<CommunityVec> ExecuteCis();
 
     private:
-        map<int,int> vertex_name_map_;
+        map<int, int> vertex_name_map_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
 
         double lambda_;
 
-        double CalculateDensity(const int &size, const double &w_in, const double &w_out, const double &lambda);
+        double CalculateDensity(const IndexType &size, const double &w_in, const double &w_out, const double &lambda);
 
         unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMembers> community_ptr);
 

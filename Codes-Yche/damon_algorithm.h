@@ -5,8 +5,6 @@
 #ifndef CODES_YCHE_DAMON_ALGORITHM_H
 #define CODES_YCHE_DAMON_ALGORITHM_H
 
-#endif //CODES_YCHE_DAMON_ALGORITHM_H
-
 #include "include_header.h"
 
 using namespace boost;
@@ -81,8 +79,7 @@ namespace yche {
     };
 }
 
-
-
+#endif //CODES_YCHE_DAMON_ALGORITHM_H
 
 
 
