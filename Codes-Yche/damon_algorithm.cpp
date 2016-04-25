@@ -239,5 +239,60 @@ namespace yche {
         }
     }
 
+    unique_ptr<vector<unique_ptr<Daemon::BasicData>>> Daemon::InitBasicComputationData() {
+        unique_ptr<vector<unique_ptr<BasicData>>> basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
+        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
+            auto ego_vertex = *vp.first;
+            basic_data_vec_ptr->push_back(make_unique<Vertex>(ego_vertex));
+            auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
+        }
+        return std::move(basic_data_vec_ptr);
+    }
+
+    unique_ptr<Daemon::MergeData> Daemon::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
+        auto ego_vertex = *seed_member_ptr;
+        auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
+        auto result = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
+        return std::move(result);
+    }
+
+    void Daemon::MergeToGlobal(unique_ptr<MergeData> &&result) {
+        if (overlap_community_vec_->size() == 0) {
+            for (auto iter_inner = result->begin();
+                 iter_inner != result->end(); ++iter_inner) {
+                if ((*iter_inner)->size() > min_community_size_)
+                    overlap_community_vec_->push_back(std::move(*iter_inner));
+            }
+        }
+        else {
+            for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
+                CommunityPtr tmp_copy_ptr;
+                bool first_access_flag = false;
+                for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
+                    auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
+                    *iter = std::move(cover_rate_result.second.first);
+                    *iter_inner = std::move(cover_rate_result.second.second);
+                    if (cover_rate_result.first > epsilon_) {
+                        auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
+                        *iter = std::move(tmp_pair.first);
+                        *iter_inner = std::move(tmp_pair.second);
+                        break;
+                    }
+                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
+                        tmp_copy_ptr = make_unique<set<unsigned long>>();
+                        for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
+                            tmp_copy_ptr->insert(*tmp_iter);
+                        }
+                        first_access_flag = true;
+                    }
+                }
+                if (first_access_flag) {
+                    overlap_community_vec_->push_back(std::move(tmp_copy_ptr));
+                }
+            }
+
+        }
+    }
+
 
 }

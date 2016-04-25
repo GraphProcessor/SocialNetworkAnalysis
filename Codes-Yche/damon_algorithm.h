@@ -54,6 +54,16 @@ namespace yche {
             overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
         }
 
+        //Implemt Interfaces For Parallelizer
+        using BasicData = Vertex;
+        using MergeData = vector<CommunityPtr>;
+
+        unique_ptr<vector<unique_ptr<BasicData>>> InitBasicComputationData();
+
+        unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
+
+        void MergeToGlobal(unique_ptr<MergeData> &&result);
+
         void ExecuteDaemon();
 
         CommunityVecPtr overlap_community_vec_;

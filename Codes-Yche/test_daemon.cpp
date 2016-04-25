@@ -1,6 +1,8 @@
 #include "damon_algorithm.h"
+#include "parallelizer.h"
 
 int main() {
+
     using namespace yche;
 
     string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
@@ -56,9 +58,13 @@ int main() {
     auto epsilon = 0.25;
     auto min_community_size = 3;
     auto max_iteration = 100;
-    Daemon daemon(epsilon, min_community_size, std::move(graph_ptr), max_iteration);
-    daemon.ExecuteDaemon();
-    auto communities = std::move(daemon.overlap_community_vec_);
+    unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr), max_iteration);
+    Parallelizer<Daemon> parallelizer(4, std::move(daemon_ptr));
+
+
+    parallelizer.ParallelExecute();
+//    daemon_ptr.ExecuteDaemon();
+    auto communities = std::move(daemon_ptr->overlap_community_vec_);
     int count = 0;
 
     cout << "comm_size:" << communities->size() << endl;

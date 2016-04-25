@@ -68,6 +68,14 @@ namespace yche {
             }
         }
 
+//        using BasicData = unique_ptr<CommunityMembers>;
+//        using MergeData = unique_ptr<CommunityMembers>;
+//
+//        unique_ptr<vector<BasicData>> InitBasicComputationData();
+//
+//        unique_ptr<CommunityMembers> LocalComputation(BasicData seed_member_ptr);
+//
+//        void MergeToGlobal(unique_ptr<CommunityMembers> &&result);
 
         unique_ptr<CommunityVec> ExecuteCis();
 
