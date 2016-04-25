@@ -57,7 +57,7 @@ namespace yche {
         double alpha_parameter_;
         double overlap_seed_rate_threshold_;
         int overlap_seed_num_threshold_;
-        
+
     };
 }
 
