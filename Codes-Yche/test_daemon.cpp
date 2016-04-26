@@ -5,7 +5,7 @@ int main() {
 
     using namespace yche;
 
-    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
+    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
     ifstream fin(file.c_str());
     string s;
     if (!fin) {
@@ -55,15 +55,22 @@ int main() {
         cout << iter->first << "," << vertex_index_map[iter->second] << endl;
     }
 
-    auto epsilon = 0.25;
+    auto epsilon = 0.5;
     auto min_community_size = 3;
     auto max_iteration = 100;
-    unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr), max_iteration);
-    Parallelizer<Daemon> parallelizer(4, std::move(daemon_ptr));
+    unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr),
+                                                        max_iteration);
+    auto thread_num =1;
+    Parallelizer<Daemon> parallelizer(thread_num, std::move(daemon_ptr));
 
 
     parallelizer.ParallelExecute();
 //    daemon_ptr.ExecuteDaemon();
+    daemon_ptr = std::move(parallelizer.algorithm_ptr_);
+    if (daemon_ptr->overlap_community_vec_ == nullptr)
+        cout << "shit" << endl;
+    else
+        cout << daemon_ptr->overlap_community_vec_->size()<<endl;
     auto communities = std::move(daemon_ptr->overlap_community_vec_);
     int count = 0;
 
