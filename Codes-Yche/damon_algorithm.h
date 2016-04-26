@@ -63,6 +63,7 @@ namespace yche {
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
         void MergeToGlobal(unique_ptr<MergeData> &&result);
+        //End Implentation for Paralleizer Traits
 
         void ExecuteDaemon();
 

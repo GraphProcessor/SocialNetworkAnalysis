@@ -86,7 +86,7 @@ namespace yche {
     }
 
     unique_ptr<CommunityMembers> Cis::ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr) {
-
+        cout <<"Expand!!"<<endl;
         auto community_info = make_unique<CommunityInfo>(0, 0);
         community_info->members_ = make_unique<CommunityMembers>();
         //First: Initialize members and neighbors
@@ -263,7 +263,7 @@ namespace yche {
                 }
             }
 
-            community_info = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info->members_)));
+//            community_info = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info->members_)));
         }
         return std::move(community_info->members_);
     }
@@ -336,27 +336,45 @@ namespace yche {
         return std::move(overlapping_communities_ptr);
     }
 
-//    unique_ptr<CommunityMembers> Cis::LocalComputation(unique_ptr<CommunityMembers> seed_member_ptr) {
-//        return std::unique_ptr<yche::CommunityMembers>();
-//    }
-//
-//    void Cis::MergeToGlobal(unique_ptr<CommunityMembers> &&result) {
-//
-//    }
-//
-//    unique_ptr<vector<BasicData>> Cis::InitBasicComputationData() {
-//        auto data_vec_ptr = make_unique<vector<BasicData>>(vertices_.size());
-//
-////        return std::unique_ptr<vector<yche::Cis::BasicData, allocator<yche::Cis::BasicData>>>();
-//
-//        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
-//            //First
-//            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-//            Vertex vertex = *vp.first;
-//            auto partial_comm_members = make_unique<CommunityMembers>();
-//            partial_comm_members->insert(vertex_index_map[vertex]);
-//        }
-//    }
+    unique_ptr<CommunityMembers> Cis::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
+        auto result_community = std::move(ExpandSeed(std::move(seed_member_ptr)));
+    }
+
+    unique_ptr<vector<unique_ptr<Cis::BasicData>>> Cis::InitBasicComputationData() {
+        auto basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
+        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
+            //First
+            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+            Vertex vertex = *vp.first;
+            auto partial_comm_members = make_unique<CommunityMembers>();
+            partial_comm_members->insert(vertex_index_map[vertex]);
+            basic_data_vec_ptr->push_back(std::move(partial_comm_members));
+        }
+        return std::move(basic_data_vec_ptr);
+    }
+
+
+    void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
+        cout <<"MergeToGlobal!!"<<endl;
+        if (overlap_community_vec_->size() == 0) {
+            overlap_community_vec_->push_back(std::move(result));
+        }
+        else {
+            bool insert_flag = true;
+            for (auto &&comm_ptr:*overlap_community_vec_) {
+                auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr), std::move(result));
+                if (cover_rate > 1 - DOUBLE_ACCURACY) {
+                    comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(result));
+                    insert_flag = false;
+                    break;
+
+                }
+            }
+            if (insert_flag) {
+                overlap_community_vec_->push_back(std::move(result));
+            }
+        }
+    }
 
 
 }

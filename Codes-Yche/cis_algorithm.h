@@ -66,16 +66,21 @@ namespace yche {
                 Vertex vertex = *vp.first;
                 vertices_.push_back(*vp.first);
             }
+
+            overlap_community_vec_ = make_unique<CommunityVec>();
         }
 
-//        using BasicData = unique_ptr<CommunityMembers>;
-//        using MergeData = unique_ptr<CommunityMembers>;
-//
-//        unique_ptr<vector<BasicData>> InitBasicComputationData();
-//
-//        unique_ptr<CommunityMembers> LocalComputation(BasicData seed_member_ptr);
-//
-//        void MergeToGlobal(unique_ptr<CommunityMembers> &&result);
+        unique_ptr<CommunityVec> overlap_community_vec_;
+
+        using BasicData = CommunityMembers;
+        using MergeData = CommunityMembers;
+
+        unique_ptr<vector<unique_ptr<BasicData>>> InitBasicComputationData();
+
+        unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
+
+        void MergeToGlobal(unique_ptr<MergeData> &&result);
+        //End Implentation for Paralleizer Traits
 
         unique_ptr<CommunityVec> ExecuteCis();
 

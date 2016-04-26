@@ -1,15 +1,20 @@
 #include "damon_algorithm.h"
 #include "parallelizer.h"
 
-int main() {
+int main(int argc, char *argv[]) {
 
     using namespace yche;
+    long thread_num = atol(argv[1]);
 
-    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
-    ifstream fin(file.c_str());
+    char *file_name_ptr = argv[2];
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Dataset/social_network/twitter_combined.txt";
+//    ifstream fin(file.c_str());
+    ifstream fin(file_name_ptr);
     string s;
     if (!fin) {
-        cout << "Error opening " << file << " for input" << endl;
+        cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
         exit(-1);
     }
 
@@ -60,7 +65,6 @@ int main() {
     auto max_iteration = 100;
     unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr),
                                                         max_iteration);
-    auto thread_num =1;
     Parallelizer<Daemon> parallelizer(thread_num, std::move(daemon_ptr));
 
 
@@ -70,7 +74,7 @@ int main() {
     if (daemon_ptr->overlap_community_vec_ == nullptr)
         cout << "shit" << endl;
     else
-        cout << daemon_ptr->overlap_community_vec_->size()<<endl;
+        cout << daemon_ptr->overlap_community_vec_->size() << endl;
     auto communities = std::move(daemon_ptr->overlap_community_vec_);
     int count = 0;
 

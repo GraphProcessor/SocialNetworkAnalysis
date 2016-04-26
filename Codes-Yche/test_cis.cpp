@@ -3,15 +3,22 @@
 //
 
 #include "cis_algorithm.h"
+#include "parallelizer.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+
     using namespace yche;
+    long thread_num = atol(argv[1]);
 
-    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
-    ifstream fin(file.c_str());
+    char *file_name_ptr = argv[2];
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
+//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Dataset/social_network/twitter_combined.txt";
+//    ifstream fin(file.c_str());
+    ifstream fin(file_name_ptr);
     string s;
     if (!fin) {
-        cout << "Error opening " << file << " for input" << endl;
+        cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
         exit(-1);
     }
 
@@ -59,8 +66,15 @@ int main() {
     }
 
     cout << "hello" << endl << endl;
-    Cis cis(std::move(graph_ptr), 0, index_name_map);
-    auto communities_ptr_vec = std::move(cis.ExecuteCis());
+    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
+    Parallelizer<Cis> parallelizer(thread_num, std::move(cis_ptr));
+
+
+    parallelizer.ParallelExecute();
+//    daemon_ptr.ExecuteDaemon();
+    cis_ptr = std::move(parallelizer.algorithm_ptr_);
+
+    auto communities_ptr_vec = std::move(cis_ptr->overlap_community_vec_);
     for (auto &&community_ptr:*communities_ptr_vec) {
         for (auto member_id:*community_ptr) {
             cout << index_name_map[member_id] << ",";

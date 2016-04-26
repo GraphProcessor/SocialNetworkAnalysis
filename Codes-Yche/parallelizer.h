@@ -203,6 +203,7 @@ namespace yche {
                     idle_count_++;
                     sem_post(&sem_counter_);
 
+                    is_rec_mail_empty_[dest_index] = false;
                     sem_wait(&sem_mail_boxes_[dest_index]);
                     if (is_end_of_local_computation) {
                         cout << "Thread Finish!!!  " << thread_index << endl;
