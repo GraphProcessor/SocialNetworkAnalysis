@@ -68,11 +68,10 @@ int main(int argc, char *argv[]) {
     cout << "hello" << endl << endl;
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
     Parallelizer<Cis> parallelizer(thread_num, std::move(cis_ptr));
-
-
     parallelizer.ParallelExecute();
-//    daemon_ptr.ExecuteDaemon();
     cis_ptr = std::move(parallelizer.algorithm_ptr_);
+
+//    auto communities_ptr_vec = cis_ptr->ExecuteCis();
 
     auto communities_ptr_vec = std::move(cis_ptr->overlap_community_vec_);
     for (auto &&community_ptr:*communities_ptr_vec) {

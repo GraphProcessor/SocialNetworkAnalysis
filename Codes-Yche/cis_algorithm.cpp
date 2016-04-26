@@ -86,7 +86,6 @@ namespace yche {
     }
 
     unique_ptr<CommunityMembers> Cis::ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr) {
-        cout <<"Expand!!"<<endl;
         auto community_info = make_unique<CommunityInfo>(0, 0);
         community_info->members_ = make_unique<CommunityMembers>();
         //First: Initialize members and neighbors
@@ -308,12 +307,12 @@ namespace yche {
 
 
             //Second
-            cout << vertex_name_map_[vertex_index_map[vertex]];
-            cout << "  size:\t" << result_community->size() << ":\t";
-            for (auto index:*result_community) {
-                cout << vertex_name_map_[index] << ",";
-            }
-            cout << endl;
+//            cout << vertex_name_map_[vertex_index_map[vertex]];
+//            cout << "  size:\t" << result_community->size() << ":\t";
+//            for (auto index:*result_community) {
+//                cout << vertex_name_map_[index] << ",";
+//            }
+//            cout << endl;
             if (overlapping_communities_ptr->size() == 0) {
                 overlapping_communities_ptr->push_back(std::move(result_community));
             }
@@ -338,6 +337,7 @@ namespace yche {
 
     unique_ptr<CommunityMembers> Cis::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
         auto result_community = std::move(ExpandSeed(std::move(seed_member_ptr)));
+        return result_community;
     }
 
     unique_ptr<vector<unique_ptr<Cis::BasicData>>> Cis::InitBasicComputationData() {
@@ -355,7 +355,6 @@ namespace yche {
 
 
     void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
-        cout <<"MergeToGlobal!!"<<endl;
         if (overlap_community_vec_->size() == 0) {
             overlap_community_vec_->push_back(std::move(result));
         }
