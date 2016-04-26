@@ -30,12 +30,12 @@ namespace yche {
     class Parallelizer {
         struct BundleInput {
             Parallelizer *parallelizer_ptr_;
-            long thread_id_;
+            unsigned long thread_id_;
         };
 
     private:
-        long thread_count_;
-        long idle_count_;
+        unsigned long thread_count_;
+        unsigned long idle_count_;
 
         using Data = typename Algorithm::BasicData;
         using MergeData = typename Algorithm::MergeData;
@@ -55,14 +55,14 @@ namespace yche {
 
         void LoopCommThreadFunction(long thread_id);
 
-        static void InvokeLoopCommThreadFunction(void *bundle_input_ptr);
+        static void *InvokeLoopCommThreadFunction(void *bundle_input_ptr);
 
         void InitTasks();
 
     public:
         void ParallelExecute();
 
-        Parallelizer(long thread_count,
+        Parallelizer(unsigned long thread_count,
                      unique_ptr<Algorithm> algorithm_ptr)
                 : thread_count_(thread_count) {
             algorithm_ptr_ = std::move(algorithm_ptr);
@@ -103,9 +103,9 @@ namespace yche {
         my_bundle_input.parallelizer_ptr_ = this;
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             my_bundle_input.thread_id_ = thread_id;
-
+            BundleInput *my_bundle_input_ptr = &my_bundle_input;
             pthread_create(&thread_handles[thread_id], NULL, this->InvokeLoopCommThreadFunction,
-                           (void *) &my_bundle_input);
+                           (void *) my_bundle_input_ptr);
         }
 
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
@@ -128,23 +128,25 @@ namespace yche {
         //Average Partitioning Tasks
         for (auto i = 0; i < thread_count_; ++i) {
             if (i == thread_count_ - 1) {
-                local_computation_task_queues_[i].assign(basic_tasks_ptr->begin() + task_per_thread * i,
-                                                         basic_tasks_ptr->end());
+                for (auto iter = basic_tasks_ptr->begin() + task_per_thread * i;
+                     iter != basic_tasks_ptr->end(); ++iter)
+                    local_computation_task_queues_[i].push_back(std::move((*iter)->data_ptr_));
             }
             else {
-                local_computation_task_queues_[i].assign(basic_tasks_ptr->begin() + task_per_thread * i,
-                                                         basic_tasks_ptr->begin() + task_per_thread * (i + 1) - 1);
+                for (auto iter = basic_tasks_ptr->begin() + task_per_thread * i;
+                     iter != basic_tasks_ptr->begin() + task_per_thread * (i + 1); ++iter)
+                    local_computation_task_queues_[i].push_back(std::move((*iter)->data_ptr_));
             }
         }
     }
 
     template<typename Algorithm>
     void Parallelizer<Algorithm>::LoopCommThreadFunction(long thread_id) {
-        long thread_index = (long) thread_id;
-        long dest_index = (thread_index + 1) % thread_count_;
-        long src_index = (thread_index - 1 + thread_count_) % thread_count_;
+        unsigned long thread_index = (unsigned long) thread_id;
+        auto dest_index = (thread_index + 1) % thread_count_;
+        auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
         auto &local_computation_queue = local_computation_task_queues_[thread_index];
-        auto &local_merge_queue = local_merge_queue[thread_index];
+        auto &local_merge_queue = merge_task_queues_[thread_index];
 
         while (true) {
             auto local_computation_task_size = local_computation_task_queues_[thread_index].size();
@@ -162,7 +164,7 @@ namespace yche {
             else {
                 if (local_computation_task_size > 1) {
                     //Check Flag
-                    auto &neighbor_computation_queue = local_computation_queue[src_index];
+                    auto &neighbor_computation_queue = local_computation_task_queues_[src_index];
                     if (is_rec_mail_empty_[thread_index] == false) {
                         for (auto iter = local_computation_queue.begin() + local_computation_queue.size() / 2;
                              iter < local_computation_queue.end(); ++iter) {
@@ -175,17 +177,18 @@ namespace yche {
                     }
 
                     //Do Local Computation
-                    auto result = algorithm_ptr_->LocalComputation(local_computation_queue.front()->data_ptr_);
+                    auto result = algorithm_ptr_->LocalComputation(
+                            std::move(local_computation_queue.front()->data_ptr_));
                     local_computation_queue.erase(local_computation_queue.begin());
 
                     if (is_any_mergeing) {
-                        local_merge_queue.pushback(make_unique<Task<decltype(result)>>(result));
+                        local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                     }
                     else {
                         pthread_mutex_lock(&merge_mutex_);
                         is_any_mergeing = true;
 
-                        algorithm_ptr_->MergeToGlobal(std::forward(result));
+                        algorithm_ptr_->MergeToGlobal(std::move(result));
                         while (local_merge_queue.size() > 0) {
                             auto &&data = std::move(local_merge_queue.front()->data_ptr_);
                             algorithm_ptr_->MergeToGlobal(std::move(data));
@@ -209,7 +212,7 @@ namespace yche {
     }
 
     template<typename Algorithm>
-    void Parallelizer<Algorithm>::InvokeLoopCommThreadFunction(void *bundle_input_ptr) {
+    void *Parallelizer<Algorithm>::InvokeLoopCommThreadFunction(void *bundle_input_ptr) {
         auto my_bundle_input = ((BundleInput *) bundle_input_ptr);
         my_bundle_input->parallelizer_ptr_->LoopCommThreadFunction(my_bundle_input->thread_id_);
     }
