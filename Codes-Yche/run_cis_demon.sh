@@ -1,6 +1,6 @@
 #!/bin/bash
 function run_with_different_thread_count(){
-  for thread_count in $( seq 1 10 )
+  for thread_count in $( seq 1 32 )
   do
 	      outputfile=$2"demon_"${thread_count}
         inputfile=$1

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     property_map<Cis::Graph, vertex_index_t>::type vertex_index_map = get(vertex_index, *graph_ptr);
     for (auto iter = name_vertex_map.begin(); iter != name_vertex_map.end(); ++iter) {
         index_name_map.insert(make_pair(vertex_index_map[iter->second], iter->first));
-        cout << iter->first << "," << vertex_index_map[iter->second] << endl;
+//        cout << iter->first << "," << vertex_index_map[iter->second] << endl;
     }
 
     cout << "hello" << endl << endl;
