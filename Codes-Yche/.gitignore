@@ -6,4 +6,6 @@ cmake_install.cmake
 CISTest
 Daemon_Test
 GceTest
+OCD/*
+hello
 
