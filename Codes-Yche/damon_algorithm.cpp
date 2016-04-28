@@ -81,7 +81,9 @@ namespace yche {
                 all_sub_vertices.push_back(*vp.first);
             }
 
-            random_shuffle(all_sub_vertices.begin(), all_sub_vertices.end());
+            static thread_local random_device rand_d;
+            static thread_local std::mt19937 rand_generator(rand_d());
+            shuffle(all_sub_vertices.begin(), all_sub_vertices.end(), rand_generator);
 
 
             //Each V Do One Propagation
@@ -121,8 +123,14 @@ namespace yche {
                             candidate_label_vec.push_back(label_to_weight_pair.first);
                         }
                     }
-                    srand((unsigned int) time(nullptr));
-                    auto choice_index = rand() % candidate_label_vec.size();
+
+//                    srand((unsigned int) time(nullptr));
+//                    auto choice_index = rand() % candidate_label_vec.size();
+                    auto choice_index = 0;
+                    if (candidate_label_vec.size() >= 1) {
+                        uniform_int_distribution<> distribution(0, candidate_label_vec.size() - 1);
+                        choice_index = distribution(rand_generator);
+                    }
 
                     sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
                 }
