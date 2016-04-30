@@ -134,10 +134,20 @@ namespace yche {
                            (void *) input_bundle_vec[thread_id]);
         }
 
-
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             pthread_join(thread_handles[thread_id], NULL);
         }
+
+        //Do Left Merging
+        for (auto i = 0; i < thread_count_; i++) {
+            auto &local_merge_queue = merge_task_vecs_[i];
+            while (local_merge_queue.size() > 0) {
+                auto &&data = std::move(local_merge_queue.front()->data_ptr_);
+                algorithm_ptr_->MergeToGlobal(std::move(data));
+                local_merge_queue.erase(local_merge_queue.begin());
+            }
+        }
+
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];
         }
@@ -280,14 +290,14 @@ namespace yche {
             cout << "Elpased Time In Parallel Computation:" << elapsed << endl;
         }
 
-        //Do Left Merging
-        pthread_mutex_lock(&merge_mutex_);
-        while (local_merge_queue.size() > 0) {
-            auto &&data = std::move(local_merge_queue.front()->data_ptr_);
-            algorithm_ptr_->MergeToGlobal(std::move(data));
-            local_merge_queue.erase(local_merge_queue.begin());
-        }
-        pthread_mutex_unlock(&merge_mutex_);
+//        //Do Left Merging
+//        pthread_mutex_lock(&merge_mutex_);
+//        while (local_merge_queue.size() > 0) {
+//            auto &&data = std::move(local_merge_queue.front()->data_ptr_);
+//            algorithm_ptr_->MergeToGlobal(std::move(data));
+//            local_merge_queue.erase(local_merge_queue.begin());
+//        }
+//        pthread_mutex_unlock(&merge_mutex_);
     }
 
     template<typename Algorithm>

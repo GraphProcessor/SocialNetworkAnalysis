@@ -12,7 +12,8 @@ def get_count_time_map(file_pattern, file_dir):
     for open_file in file_list:
         if file_pattern.match(open_file):
             filename = str(open_file) + ' \t'
-            index = open_file.split('_')[3]
+            print filename
+            index = open_file.split('_')[2]
             my_dict[index] = filename
     ordered_dict = sorted(my_dict.iteritems(), key=lambda e: int(e[0]), reverse=False)
 
@@ -66,8 +67,8 @@ def draw_bar(tuple_list, title_name):
 
 
 my_dir = sys.argv[1]
-pattern_cis = re.compile(r'demo.*cis.*')
-pattern_demon = re.compile(r'demo.*demon.*')
+pattern_cis = re.compile(r'.*cis.*')
+pattern_demon = re.compile(r'.*demon.*')
 get_count_time_map(pattern_cis, my_dir)
 print '\n'
 my_tuple_list = get_count_time_map(pattern_demon, my_dir)
