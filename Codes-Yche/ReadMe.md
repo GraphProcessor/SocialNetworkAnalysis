@@ -8,7 +8,7 @@
 the merge operation do not take a lot of time
 
 #Experiment
-- CisExp
+- Merge operation just sequentially execute  
+- Overlap some merge with Local computation, not significant  
 ![CisExp](./images/cis_v1.png)  
-- DemonExp
 ![DemonExp](./images/demon_v1.png)  
