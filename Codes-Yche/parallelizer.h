@@ -188,8 +188,8 @@ namespace yche {
             auto local_computation_task_size = local_computation_queue.size();
 //            cout << local_computation_task_size << endl;
             if (local_computation_task_size == 0) {
-                cout << thread_index << "  " << "I am idle " << endl;
-                cout << idle_count_ << " " << "Idle Count" << endl;
+//                cout << thread_index << "  " << "I am idle " << endl;
+//                cout << idle_count_ << " " << "Idle Count" << endl;
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_local_computation = true;
                     for (auto i = 0; i < thread_count_; ++i) {
@@ -206,10 +206,10 @@ namespace yche {
                     is_rec_mail_empty_[dest_index] = false;
                     sem_wait(&sem_mail_boxes_[dest_index]);
                     if (is_end_of_local_computation) {
-                        cout << "Thread Finish!!!  " << thread_index << endl;
+//                        cout << "Thread Finish!!!  " << thread_index << endl;
                         break;
                     }
-                    cout << "Thread Awake!!!  " << thread_index << endl;
+//                    cout << "Thread Awake!!!  " << thread_index << endl;
                     sem_wait(&sem_counter_);
                     idle_count_--;
                     sem_post(&sem_counter_);
