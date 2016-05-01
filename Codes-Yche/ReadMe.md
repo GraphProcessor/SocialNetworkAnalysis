@@ -15,6 +15,6 @@ the merge operation do not take a lot of time
 ![CisExp](./images/cis_v1.png)  
 ![DemonExp](./images/demon_v1.png)  
 
-##Facebook 20 thousand edges
+##Facebook 80 thousand edges
 ![CisExp_Facebook](./images/facebook_cis_v1.png)  
 ![DemonExp_Facebook](./images/facebook_demon_v1.png)  
