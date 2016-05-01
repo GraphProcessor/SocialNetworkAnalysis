@@ -10,6 +10,7 @@ the merge operation do not take a lot of time
 #Experiment
 - Merge operation just sequentially execute  
 - Overlap some merge with Local computation, not significant  
+
 ##Collaboration 20 thousand edges
 ![CisExp](./images/cis_v1.png)  
 ![DemonExp](./images/demon_v1.png)  
