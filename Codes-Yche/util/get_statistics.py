@@ -41,7 +41,7 @@ def get_count_time_map(file_pattern, file_dir):
 
 
 def draw_bar(tuple_list, title_name):
-    N = 32
+    N = len(tuple_list)
     bar_one_tuple = ()
     bar_two_tuple = ()
     for my_tuple in tuple_list:
@@ -63,10 +63,11 @@ def draw_bar(tuple_list, title_name):
     plt.ylabel('RunTime/s')
     plt.title(title_name)
     max_val = max(enumerate(bar_two_tuple), key=lambda x: x[1])[1]
-    print max_val
-    plt.yticks(np.arange(0, max_val * 3, 1))
+    max_val2 = max(enumerate(bar_one_tuple), key=lambda x: x[1])[1]
+    max_val = max(max_val, max_val2)
+    print 'max_val:' + str(max_val)
+    plt.yticks(np.arange(0, max_val * 1.5, round(max_val / 8, 1)))
     plt.legend((p1[0], p2[0]), ('Parallel Computation', 'Sequential Merge'))
-
     plt.show()
 
 
@@ -77,6 +78,6 @@ pattern_demon = re.compile(my_prefix_str + '.*demon.*')
 get_count_time_map(pattern_cis, my_dir)
 print '\n'
 my_tuple_list = get_count_time_map(pattern_demon, my_dir)
-draw_bar(my_tuple_list, 'Demon Algorithm Parallel Run-Time')
+draw_bar(my_tuple_list, 'Demon Algorithm Parallel Run-Time On ' + my_prefix_str)
 my_tuple_list = get_count_time_map(pattern_cis, my_dir)
-draw_bar(my_tuple_list, 'Cis Algorithm Parallel Run-Time')
+draw_bar(my_tuple_list, 'Cis Algorithm Parallel Run-Time On ' + my_prefix_str)
