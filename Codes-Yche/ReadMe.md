@@ -12,8 +12,8 @@ the merge operation do not take a lot of time
 - Overlap some merge with Local computation, not significant  
 
 ##Collaboration 20 thousand edges
-![CisExp](./images/cis_v1.png)  
-![DemonExp](./images/demon_v1.png)  
+![CisExp](./images/collaboration_cis_v1.png)  
+![DemonExp](./images/collaboration_demon_v1.png)  
 
 ##Facebook 80 thousand edges
 ![CisExp_Facebook](./images/facebook_cis_v1.png)  
