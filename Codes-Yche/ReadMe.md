@@ -17,16 +17,19 @@
 the merge operation do not take a lot of time
 
 #Environment(CPU Checking)
-- Physical
-  ```shell
+- Physical    
+
+  ```zsh
   cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l  
   ```
-- Logical
-  ```shell
+- Logical    
+
+  ```zsh
   cat /proc/cpuinfo |grep "processor"|wc -l
   ```
-- Core
-  ```shell
+- Core   
+
+  ```zsh
   cat /proc/cpuinfo |grep "cores"|uniq
   ```
 
