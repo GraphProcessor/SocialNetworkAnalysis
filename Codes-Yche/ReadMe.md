@@ -2,6 +2,11 @@
 - Reimplement Algorithm *Connected Iterative Scan*
 - Reimplement Algorithm *Demon*
 - Implement Parallelizer for local-based overlapping community detection algorithms
+- [Util](./util) *Draw Figures*  (e.g as facebook output handling)
+
+```zsh
+python get_statistics.py ~/Gitrepos/SocialNetworkAnalysis/Codes-Yche/demo_output_files/  facebook
+```
 
 #Build
 - Build with Cmake 3.3, Gcc 5.3, C++ 14
