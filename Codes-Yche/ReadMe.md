@@ -51,3 +51,7 @@ the merge operation do not take a lot of time
 ##Facebook 80 thousand edges
 ![CisExp_Facebook](./images/facebook_cis_v1.png)  
 ![DemonExp_Facebook](./images/facebook_demon_v1.png)  
+
+##Twitter 1.7 million edges  
+![CisExp_Facebook](./images/twitter_csi_v1.png)   
+![DemonExp_Facebook](./images/twitter_demon_v1.png)   
