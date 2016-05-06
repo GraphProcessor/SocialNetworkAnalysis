@@ -16,18 +16,18 @@ python get_statistics.py ../demo_output_files/  facebook
 - To use [Util](./util) to draw the figures, need Python 2.7 and [ANACONDA](https://www.continuum.io/downloads) installed
 
 #Build & Run & Exp
-1. In current directory, do as follows to compile the program, getting the result of executables, i.e, CISTest and Daemon_Test.  
+- In current directory, do as follows to compile the program, getting the result of executables, i.e, CISTest and Daemon_Test.  
 ```zsh
 cmake .
 make
 ```
-2. Then source the [shell script](./run_cis_demon.sh) and run the function in that script as follows, the first argument is the test input file path,
+- Then source the [shell script](./run_cis_demon.sh) and run the function in that script as follows, the first argument is the test input file path,
  the second argument is the output file directory and your prefix for the output file name.  
 ```zsh
 source run_cis_demon.sh
 run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_
 ```
-3. Draw the experiment figures with [Util](./util), the procedures are as follows. The first argument is the path of output directory,
+- Draw the experiment figures with [Util](./util), the procedures are as follows. The first argument is the path of output directory,
  the second argument is your prefix for the output file name.  
 ```zsh
 cd util/
