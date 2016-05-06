@@ -45,12 +45,16 @@ the merge operation do not take a lot of time
 - Overlap some merge with Local computation, not significant  
 
 ##Collaboration 20 thousand edges
-![CisExp](./images/collaboration_cis_v1.png)  
-![DemonExp](./images/collaboration_demon_v1.png)  
+Laptop(2-core) | Desktop(4-core)
+-------------- | ---------------
+![CisExp](./images/collaboration_cis_v1.png) | ![CisExpLab](./images/lab_desk_top/collaboration_cis_v1.png)
+![DemonExp](./images/collaboration_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/collaboration_demon_v1.png)
 
 ##Facebook 80 thousand edges
-![CisExp_Facebook](./images/facebook_cis_v1.png)  
-![DemonExp_Facebook](./images/facebook_demon_v1.png)  
+Laptop(2-core) | Desktop(4-core)
+-------------- | ---------------
+![CisExp_Facebook](./images/facebook_cis_v1.png)  | ![CisExpLab](./images/lab_desk_top/facebook_cis_v1.png)
+![DemonExp_Facebook](./images/facebook_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/facebook_demon_v1.png)
 
 ##Twitter 1.7 million edges  
 ![CisExp_Facebook](./images/twitter_csi_v1.png)   
