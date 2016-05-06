@@ -47,14 +47,14 @@ the merge operation do not take a lot of time
 ##Collaboration 20 thousand edges
 Laptop(2-core) | Desktop(4-core)
 -------------- | ---------------
-![CisExp](./images/collaboration_cis_v1.png) | ![CisExpLab](./images/lab_desk_top/collaboration_cis_v1.png)
-![DemonExp](./images/collaboration_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/collaboration_demon_v1.png)
+![CisExp](./images/collaboration_cis_v1.png) | ![CisExpLab](./images/lab_desk_top/collaboration_cis_lab_v1.png)
+![DemonExp](./images/collaboration_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/collaboration_demon_lab_v1.png)
 
 ##Facebook 80 thousand edges
 Laptop(2-core) | Desktop(4-core)
 -------------- | ---------------
-![CisExp_Facebook](./images/facebook_cis_v1.png)  | ![CisExpLab](./images/lab_desk_top/facebook_cis_v1.png)
-![DemonExp_Facebook](./images/facebook_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/facebook_demon_v1.png)
+![CisExp_Facebook](./images/facebook_cis_v1.png)  | ![CisExpLab](./images/lab_desk_top/facebook_cis_lab_v1.png)
+![DemonExp_Facebook](./images/facebook_demon_v1.png)  | ![DemonExpLab](./images/lab_desk_top/facebook_demon_lab_v1.png)
 
 ##Twitter 1.7 million edges  
 ![CisExp_Facebook](./images/twitter_csi_v1.png)   
