@@ -3,25 +3,38 @@
 - Reimplement Algorithm [*Demon*](./test_daemon.cpp)
 - Implement [Parallelizer](./parallelizer.h) for local-based overlapping community detection algorithms
 - [Util](./util) *Draw Figures*  (e.g as facebook output handling)
-
 ```zsh
-python get_statistics.py ~/Gitrepos/SocialNetworkAnalysis/Codes-Yche/demo_output_files/  facebook
+python get_statistics.py ../demo_output_files/  facebook
 ```
+
 #Pending Work
 - Reimplement Algorithm *GCE*
 
-#Build
-- Build with Cmake 3.3, Gcc 5.3, C++ 14
+#Build Environment
+- Build with Cmake 3.3, Gcc 5.3, std = C++ 14
 - Dependencies : Boost, Pthreads
+- To use [Util](./util) to draw the figures, need Python 2.7 and [ANACONDA](https://www.continuum.io/downloads) installed
 
-#Attention Please
-- Pthread_Create, void * have to make the input arguments existing until they are joined  
-- Pay attention to dead lock  
+#Build & Run & Exp
+1. In current directory, do as follows to compile the program, getting the result of executables, i.e, CISTest and Daemon_Test.
+```zsh
+cmake .
+make
+```
 
-#Potential Improvement Points
-- For CIS algorithm, the merge operation takes a lot of time for the dataset of collaboration, which is sequential,sequential 4s, parallel 2.4s    
-- For Demon algorithm, not exist such problem, and the execution time is very long, 13s for parallel and 24s for sequential,  
-the merge operation do not take a lot of time
+2. Then source the [shell script](./run_cis_demon.sh) and run the function in that script as follows, the first argument is the test input file path,
+ the second argument is the output file directory and your prefix for the output file name.
+```zsh
+source run_cis_demon.sh
+run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_
+```
+
+3. Draw the experiment figures with [Util](./util), the procedures are as follows. The first argument is the path of output directory,
+ the second argument is your prefix for the output file name.
+```zsh
+cd util/
+python get_statistics.py ../demo_output_files/  your_prefix
+```
 
 #Environment(CPU Checking)
 - Physical    
@@ -58,4 +71,13 @@ Laptop(2-core) | Desktop(4-core)
 
 ##Twitter 1.7 million edges  
 ![CisExp_Facebook](./images/twitter_csi_v1.png)   
-![DemonExp_Facebook](./images/twitter_demon_v1.png)   
+![DemonExp_Facebook](./images/twitter_demon_v1.png)
+
+#Attention Please/Advice For Pthread Programming
+- Pthread_Create, void * have to make the input arguments existing until they are joined
+- Pay attention to dead lock
+
+#Potential Improvement Points(Old)
+- For CIS algorithm, the merge operation takes a lot of time for the dataset of collaboration, which is sequential,sequential 4s, parallel 2.4s
+- For Demon algorithm, not exist such problem, and the execution time is very long, 13s for parallel and 24s for sequential,
+the merge operation do not take a lot of time
