@@ -1,6 +1,6 @@
 # SocialNetworkAnalysis
 ##My Own Codes
-- [local-based Overlapping-Community-Detection-Codes](./Codes-Yche)
+- [Local-Based Overlapping-Community-Detection-Codes](./Codes-Yche)
 
 ##Survey
 - [Conference Papers About Graph](./Survey/Conference-Papers-About-Graph)  
@@ -28,11 +28,13 @@
 Need to update and use git submodule...
 
 ##Datasets
-- [Topic/Semantic Analylis Related](./Dataset/TopicOrSemanticAnalylis)  
-	Datasets related to those with user or product profile information.
+- [Social-Network Related](./Dataset/social_network)    
+  Datasets from SNAP, target at social network data.  
+- [Topic/Semantic Analylis Related](./Dataset/TopicOrSemanticAnalylis)    
+	Datasets related to those with user or product profile information.  
 
 ##Overlapping Community Detection
-- [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)  
+- [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)   
 - [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
 - [2010 iLCD](./Overlapping-Community-Detection/2010-iLCD)  
 - [2011 GCE](./Overlapping-Community-Detection/2011-GCE)  
