@@ -1,6 +1,16 @@
 # SocialNetworkAnalysis
-##My Own Codes
+##My Own Codes On Opt For Overlapping Community Detection
 - [Local-Based Overlapping-Community-Detection-Codes](./Codes-Yche)
+
+##Overlapping Community Detection Codes
+- [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)   
+- [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
+- [2010 iLCD](./Overlapping-Community-Detection/2010-iLCD)  
+- [2011 GCE](./Overlapping-Community-Detection/2011-GCE)  
+- [2011 OSLOM v2](./Overlapping-Community-Detection/2011-GCE)  
+- [2012 DEMON](./Overlapping-Community-Detection/2012-DEMON)
+- [2013 Seed Set Expansion](./Overlapping-Community-Detection/2013-Seed-Set-Expansion)  
+- [2014 Hea Kernel](./Overlapping-Community-Detection/2014-Heat-Kernel)  
 
 ##Survey
 - [Conference Papers About Graph](./Survey/Conference-Papers-About-Graph)  
@@ -32,16 +42,6 @@ Need to update and use git submodule...
   Datasets from SNAP, target at social network data.  
 - [Topic/Semantic Analylis Related](./Dataset/TopicOrSemanticAnalylis)    
 	Datasets related to those with user or product profile information.  
-
-##Overlapping Community Detection
-- [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)   
-- [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
-- [2010 iLCD](./Overlapping-Community-Detection/2010-iLCD)  
-- [2011 GCE](./Overlapping-Community-Detection/2011-GCE)  
-- [2011 OSLOM v2](./Overlapping-Community-Detection/2011-GCE)  
-- [2012 DEMON](./Overlapping-Community-Detection/2012-DEMON)
-- [2013 Seed Set Expansion](./Overlapping-Community-Detection/2013-Seed-Set-Expansion)  
-- [2014 Hea Kernel](./Overlapping-Community-Detection/2014-Heat-Kernel)  
 
 ##Todo List
 - Reimplement normalized mutual information, omega index, modularity and other related quality metrics.  
