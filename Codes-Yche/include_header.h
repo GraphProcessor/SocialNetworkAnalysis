@@ -17,5 +17,8 @@
 #include <limits>
 #include <queue>
 #include <boost/graph/adjacency_list.hpp>
+#include "semaphore.h"
+#include <pthread.h>
+
 #endif //CODES_YCHE_INCLUDE_HEADER_H
 

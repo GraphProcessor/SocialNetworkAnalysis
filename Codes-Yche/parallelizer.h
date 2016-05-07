@@ -5,8 +5,7 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
-#include "semaphore.h"
-#include <pthread.h>
+
 #include "include_header.h"
 
 namespace yche {
