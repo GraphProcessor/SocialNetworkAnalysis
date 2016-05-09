@@ -153,7 +153,7 @@ namespace yche {
         cout << "Before Reducer" << endl;
         Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
                 thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData, algorithm_ptr_->ReduceComputation);
-//        algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
+        algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
 
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];

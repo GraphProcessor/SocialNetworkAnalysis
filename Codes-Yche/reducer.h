@@ -65,10 +65,11 @@ namespace yche {
             pthread_mutex_init(&task_taking_mutex_, NULL);
             pthread_mutex_init(&counter_mutex_, NULL);
             pthread_cond_init(&task_taking_cond_var, NULL);
-
+            local_data_vec_.resize(thread_count_);
             is_end_of_loop_ = false;
             is_end_of_reduce_ = false;
             is_rec_mail_empty_.resize(thread_count_, true);
+            idle_count_ =0;
             //InitLocalData
             InitDataPerThread(reduce_data_collection);
         }
@@ -181,6 +182,8 @@ namespace yche {
 
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         while (!is_end_of_reduce_) {
+#pragma omp critical
+            cout <<"hello"<<endl;
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
             for (auto &&data_ptr: local_reduce_data_vec) {
@@ -200,6 +203,8 @@ namespace yche {
             else {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_reduce_ = true;
+#pragma omp critical
+                    cout <<"is end!!!"<<endl;
                     pthread_cond_broadcast(&task_taking_cond_var);
                 }
                 else {
