@@ -47,13 +47,6 @@ namespace yche {
         using CommunityPtr = unique_ptr<set<unsigned long>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
-        Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
-                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
-            ;
-            graph_ptr_ = std::move(graph_ptr);
-            overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
-        }
-
         //Implemt Interfaces For Parallelizer
         using BasicData = Vertex;
         using MergeData = vector<CommunityPtr>;
@@ -65,9 +58,79 @@ namespace yche {
         void MergeToGlobal(unique_ptr<MergeData> &&result);
         //End Implentation for Paralleizer Traits
 
+        //Implement Interfaces For Reducer
+        using ReduceData = vector<CommunityPtr>;
+
+        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr);
+
+        function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
+
+        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
+                                        unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
+        //End of Implementation For Reducer
+
         void ExecuteDaemon();
 
         CommunityVecPtr overlap_community_vec_;
+
+        Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
+                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
+            ;
+            graph_ptr_ = std::move(graph_ptr);
+            overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
+
+            CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
+                auto cmp = [](auto &&left, auto &&right) -> bool {
+                    return left->size() < right->size();
+                };
+                auto iter1 = max_element(left->begin(), left->end(), cmp);
+                auto iter2 = max_element(left->begin(), left->end(), cmp);
+                return (*iter1)->size() > (*iter2)->size();
+            };
+
+            ReduceComputation = [this](
+                    unique_ptr<ReduceData> left_data_ptr,
+                    unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
+                if (left_data_ptr->size() == 0) {
+                    for (auto iter_inner = right_data_ptr->begin();
+                         iter_inner != right_data_ptr->end(); ++iter_inner) {
+                        if ((*iter_inner)->size() > min_community_size_)
+                            left_data_ptr->push_back(std::move(*iter_inner));
+                    }
+                }
+                else {
+                    for (auto iter_inner = right_data_ptr->begin(); iter_inner != right_data_ptr->end(); ++iter_inner) {
+                        CommunityPtr tmp_copy_ptr;
+                        bool first_access_flag = false;
+                        for (auto iter = left_data_ptr->begin(); iter != left_data_ptr->end(); ++iter) {
+                            auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter),
+                                                                                std::move(*iter_inner));
+                            *iter = std::move(cover_rate_result.second.first);
+                            *iter_inner = std::move(cover_rate_result.second.second);
+                            if (cover_rate_result.first > epsilon_) {
+                                auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
+                                *iter = std::move(tmp_pair.first);
+                                *iter_inner = std::move(tmp_pair.second);
+                                break;
+                            }
+                            else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
+                                tmp_copy_ptr = make_unique<set<unsigned long>>();
+                                for (auto tmp_iter = (*iter_inner)->begin();
+                                     tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
+                                    tmp_copy_ptr->insert(*tmp_iter);
+                                }
+                                first_access_flag = true;
+                            }
+                        }
+                        if (first_access_flag) {
+                            left_data_ptr->push_back(std::move(tmp_copy_ptr));
+                        }
+                    }
+
+                }
+                return left_data_ptr;
+            };
+        }
 
     private:
         unique_ptr<Graph> graph_ptr_;

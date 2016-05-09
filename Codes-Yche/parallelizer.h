@@ -7,6 +7,7 @@
 
 
 #include "include_header.h"
+#include "reducer.h"
 
 namespace yche {
     using namespace std;
@@ -37,12 +38,12 @@ namespace yche {
         unsigned long idle_count_;
         unsigned long barrier_count_;
 
-        using Data = typename Algorithm::BasicData;
+        using BasicData = typename Algorithm::BasicData;
         using MergeData = typename Algorithm::MergeData;
-//        unique_ptr<vector<unique_ptr<Task<Data>>>> basic_tasks_ptr_;
+        using ReduceData = typename Algorithm::ReduceData;
 
         pthread_t *thread_handles;
-        vector<vector<unique_ptr<Task<Data>>>> local_computation_task_vecs_;
+        vector<vector<unique_ptr<Task<BasicData>>>> local_computation_task_vecs_;
         vector<vector<unique_ptr<Task<MergeData>>>> merge_task_vecs_;
         vector<sem_t> sem_mail_boxes_;
         sem_t sem_barrier_;
@@ -137,15 +138,22 @@ namespace yche {
             pthread_join(thread_handles[thread_id], NULL);
         }
 
+        vector<unique_ptr<ReduceData>> reduce_data_ptr_vec;
         //Do Left Merging
+        reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->overlap_community_vec_));
         for (auto i = 0; i < thread_count_; i++) {
             auto &local_merge_queue = merge_task_vecs_[i];
             while (local_merge_queue.size() > 0) {
-                auto &&data = std::move(local_merge_queue.front()->data_ptr_);
-                algorithm_ptr_->MergeToGlobal(std::move(data));
-                local_merge_queue.erase(local_merge_queue.begin());
+                unique_ptr<MergeData> merge_data_ptr = std::move(local_merge_queue.front()->data_ptr_);
+//                reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(std::move(merge_data_ptr))));
+                reduce_data_ptr_vec.push_back(std::move(merge_data_ptr));
             }
         }
+
+        cout << "Before Reducer" << endl;
+        Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
+                thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData, algorithm_ptr_->ReduceComputation);
+//        algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
 
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];
@@ -161,9 +169,9 @@ namespace yche {
     template<typename Algorithm>
     void Parallelizer<Algorithm>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
-        auto basic_tasks_ptr = make_unique<vector<unique_ptr<Task<Data>>>>();
+        auto basic_tasks_ptr = make_unique<vector<unique_ptr<Task<BasicData>>>>();
         for (auto &&basic_data_ptr:*basic_data_vec_ptr) {
-            basic_tasks_ptr->push_back(make_unique<Task<Data>>(std::move(basic_data_ptr)));
+            basic_tasks_ptr->push_back(make_unique<Task<BasicData>>(std::move(basic_data_ptr)));
         }
         auto task_per_thread = basic_tasks_ptr->size() / thread_count_;
         //Average Partitioning Tasks
@@ -188,37 +196,33 @@ namespace yche {
         clock_gettime(CLOCK_MONOTONIC, &begin);
 
         unsigned long thread_index = thread_id;
-        auto dest_index = (thread_index + 1) % thread_count_;
+        auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
         auto &local_computation_queue = local_computation_task_vecs_[thread_index];
         auto &local_merge_queue = merge_task_vecs_[thread_index];
         while (true) {
 
             auto local_computation_task_size = local_computation_queue.size();
-//            cout << local_computation_task_size << endl;
             if (local_computation_task_size == 0) {
-//                cout << thread_index << "  " << "I am idle " << endl;
-//                cout << idle_count_ << " " << "Idle Count" << endl;
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_local_computation = true;
                     for (auto i = 0; i < thread_count_; ++i) {
-                        if (i != dest_index)
+                        if (i != dst_index)
                             sem_post(&sem_mail_boxes_[i]);
                     }
                     cout << "Thread Finish!!!  " << thread_index << endl;
                     break;
-                } else {
+                }
+                else {
                     sem_wait(&sem_counter_);
                     idle_count_++;
                     sem_post(&sem_counter_);
 
-                    is_rec_mail_empty_[dest_index] = false;
-                    sem_wait(&sem_mail_boxes_[dest_index]);
+                    is_rec_mail_empty_[dst_index] = false;
+                    sem_wait(&sem_mail_boxes_[dst_index]);
                     if (is_end_of_local_computation) {
-//                        cout << "Thread Finish!!!  " << thread_index << endl;
                         break;
                     }
-//                    cout << "Thread Awake!!!  " << thread_index << endl;
                     sem_wait(&sem_counter_);
                     idle_count_--;
                     sem_post(&sem_counter_);
@@ -246,7 +250,6 @@ namespace yche {
                 auto result = algorithm_ptr_->LocalComputation(
                         std::move(local_computation_queue.front()->data_ptr_));
                 local_computation_queue.erase(local_computation_queue.begin());
-//                cout << "Thread " << thread_index << ",My remaining work:" << local_computation_queue.size() << endl;
                 if (is_any_mergeing) {
                     local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                 }
@@ -289,7 +292,6 @@ namespace yche {
             cout << "Elpased Time In Parallel Computation:" << elapsed << endl;
         }
 
-//        //Do Left Merging
 //        pthread_mutex_lock(&merge_mutex_);
 //        while (local_merge_queue.size() > 0) {
 //            auto &&data = std::move(local_merge_queue.front()->data_ptr_);

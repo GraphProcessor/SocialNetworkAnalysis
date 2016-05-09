@@ -302,5 +302,8 @@ namespace yche {
         }
     }
 
+    inline unique_ptr<Daemon::ReduceData> Daemon::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+        return std::move(merge_data_ptr);
+    }
 
 }
