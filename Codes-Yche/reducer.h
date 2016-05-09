@@ -13,12 +13,19 @@ namespace yche {
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     class Reducer {
     private:
+
+        struct BundleInput {
+            Reducer *reducer_ptr_;
+            unsigned long thread_id_;
+        };
+
         unsigned long thread_count_;
         unsigned long idle_count_;
         unsigned long barrier_count_;
 
         pthread_t *thread_handles;
 
+        vector<unique_ptr<Data>> global_data_vec_;
         vector<unique_ptr<Data>> local_data_vec_;
         vector<sem_t> sem_mail_boxes_;
         vector<bool> is_rec_mail_empty_;
@@ -66,12 +73,31 @@ namespace yche {
     }
 
     void *Reducer::InvokeLoopCommThreadFunction(void *bundle_input_ptr) {
-        return nullptr;
+        auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
+        my_bundle_input_ptr->reducer_ptr_->LoopCommThreadFunction(my_bundle_input_ptr->thread_id_);
     }
 
     void Reducer::ParallelExecute() {
         //InitLocalData
         InitDataPerThread();
+        vector<BundleInput *> input_bundle_vec(thread_count_);
+        for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
+            input_bundle_vec[thread_id] = new BundleInput();
+            input_bundle_vec[thread_id]->parallelizer_ptr_ = this;
+            input_bundle_vec[thread_id]->thread_id_ = thread_id;
+            pthread_create(&thread_handles[thread_id], NULL, this->InvokeLoopCommThreadFunction,
+                           (void *) input_bundle_vec[thread_id]);
+        }
+
+        for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
+            pthread_join(thread_handles[thread_id], NULL);
+        }
+
+        //Delete After All Execution-Flow Join
+        for (auto i = 0; i < thread_count_; ++i) {
+            delete input_bundle_vec[i];
+        }
+
     }
 
 
