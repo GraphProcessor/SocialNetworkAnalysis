@@ -11,8 +11,8 @@ find_package(Threads)
 add_executable(Daemon_Test test_daemon.cpp damon_algorithm.cpp damon_algorithm.h include_header.h parallelizer.h reducer.h)
 target_link_libraries(Daemon_Test ${CMAKE_THREAD_LIBS_INIT})
 
-#add_executable(CISTest test_cis.cpp cis_algorithm.cpp cis_algorithm.h include_header.h parallelizer.h reducer.h)
-#target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
+add_executable(CISTest test_cis.cpp cis_algorithm.cpp cis_algorithm.h include_header.h parallelizer.h reducer.h)
+target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable(GceTest test_gce.cpp gce_algorithm.cpp gce_algorithm.h include_header.h)
 

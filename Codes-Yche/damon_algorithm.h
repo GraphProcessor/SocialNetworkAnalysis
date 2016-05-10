@@ -47,7 +47,8 @@ namespace yche {
         using CommunityPtr = unique_ptr<set<unsigned long>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
-        //Implemt Interfaces For Parallelizer
+        //Start Implementation Interfaces For Parallelizer Traits
+        CommunityVecPtr overlap_community_vec_;
         using BasicData = Vertex;
         using MergeData = vector<CommunityPtr>;
 
@@ -56,9 +57,9 @@ namespace yche {
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
         void MergeToGlobal(unique_ptr<MergeData> &&result);
-        //End Implentation for Paralleizer Traits
+        //End Implementation for Paralleizer Traits
 
-        //Implement Interfaces For Reducer
+        //Start Implementation Interfaces For Reducer Traits
         using ReduceData = vector<CommunityPtr>;
 
         unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr);
@@ -67,11 +68,9 @@ namespace yche {
 
         function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
                                         unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
-        //End of Implementation For Reducer
+        //End of Implementation For Reducer Traits
 
         void ExecuteDaemon();
-
-        CommunityVecPtr overlap_community_vec_;
 
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
                 epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {

@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
         cout << endl;
     }
 
-    getchar();
+//    getchar();
 
     return 0;
 }

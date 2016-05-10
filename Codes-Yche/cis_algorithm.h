@@ -56,6 +56,31 @@ namespace yche {
 
         using CommunityVec=vector<unique_ptr<CommunityMembers>>;
 
+        //Start Implementation Interfaces For Parallelizer Traits
+        unique_ptr<CommunityVec> overlap_community_vec_;
+        using BasicData = CommunityMembers;
+        using MergeData = CommunityMembers;
+
+        unique_ptr<vector<unique_ptr<BasicData>>> InitBasicComputationData();
+
+        unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
+
+        void MergeToGlobal(unique_ptr<MergeData> &&result);
+        //End Implementation for Paralleizer Traits
+
+        //Start Implementation Interfaces For Reducer Traits
+        using ReduceData = CommunityVec;
+
+        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr);
+
+        function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
+
+        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
+                                        unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
+        //End of Implementation For Reducer Traits
+
+        unique_ptr<CommunityVec> ExecuteCis();
+
         Cis(unique_ptr<Graph> graph_ptr, double lambda, map<int, int> &vertex_name_map) :
                 lambda_(lambda), vertex_name_map_(vertex_name_map) {
             graph_ptr_ = std::move(graph_ptr);
@@ -68,21 +93,43 @@ namespace yche {
             }
 
             overlap_community_vec_ = make_unique<CommunityVec>();
+
+            CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
+                auto cmp = [](auto &&left, auto &&right) -> bool {
+                    return left->size() < right->size();
+                };
+                auto iter1 = max_element(left->begin(), left->end(), cmp);
+                auto iter2 = max_element(left->begin(), left->end(), cmp);
+                return (*iter1)->size() > (*iter2)->size();
+            };
+
+            ReduceComputation = [this](
+                    unique_ptr<ReduceData> left_data_ptr,
+                    unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
+                for (auto &&right_merge_data:*right_data_ptr) {
+                    if (left_data_ptr->size() == 0) {
+                        left_data_ptr->push_back(std::move(right_merge_data));
+                    }
+                    else {
+                        bool insert_flag = true;
+                        for (auto &&comm_ptr:*left_data_ptr) {
+                            auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr),
+                                                                         std::move(right_merge_data));
+                            if (cover_rate > 1 - DOUBLE_ACCURACY) {
+                                comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(right_merge_data));
+                                insert_flag = false;
+                                break;
+
+                            }
+                        }
+                        if (insert_flag) {
+                            left_data_ptr->push_back(std::move(right_merge_data));
+                        }
+                    }
+                }
+                return left_data_ptr;
+            };
         }
-
-        unique_ptr<CommunityVec> overlap_community_vec_;
-
-        using BasicData = CommunityMembers;
-        using MergeData = CommunityMembers;
-
-        unique_ptr<vector<unique_ptr<BasicData>>> InitBasicComputationData();
-
-        unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
-
-        void MergeToGlobal(unique_ptr<MergeData> &&result);
-        //End Implentation for Paralleizer Traits
-
-        unique_ptr<CommunityVec> ExecuteCis();
 
     private:
         map<int, int> vertex_name_map_;

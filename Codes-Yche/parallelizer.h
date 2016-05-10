@@ -146,8 +146,8 @@ namespace yche {
             while (local_merge_queue.size() > 0) {
                 unique_ptr<MergeData> merge_data_ptr = std::move(local_merge_queue.back()->data_ptr_);
                 local_merge_queue.erase(local_merge_queue.end() - 1);
-//                reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(std::move(merge_data_ptr))));
-                reduce_data_ptr_vec.push_back(std::move(merge_data_ptr));
+                reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(std::move(merge_data_ptr))));
+//                reduce_data_ptr_vec.push_back(std::move(merge_data_ptr));
             }
         }
 
