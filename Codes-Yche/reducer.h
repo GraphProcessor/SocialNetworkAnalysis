@@ -58,7 +58,7 @@ namespace yche {
             data_count_ = 0;
             sem_mail_boxes_.resize(thread_count_);
             for (auto i = 0; i < thread_count_; ++i) {
-                sem_init(&sem_mail_boxes_[i], NULL, 0);
+                sem_init(&sem_mail_boxes_[i], 0, 0);
             }
 
             pthread_mutex_init(&task_taking_mutex_, NULL);

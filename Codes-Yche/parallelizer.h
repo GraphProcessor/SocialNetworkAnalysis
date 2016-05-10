@@ -77,13 +77,13 @@ namespace yche {
 
             sem_mail_boxes_.resize(thread_count_);
             for (auto i = 0; i < thread_count_; ++i) {
-                sem_init(&sem_mail_boxes_[i], NULL, 0);
+                sem_init(&sem_mail_boxes_[i], 0, 0);
             }
 
 
-            sem_init(&sem_counter_, NULL, 1);
-            sem_init(&sem_barrier_, NULL, 0);
-            sem_init(&sem_barrier_counter_, NULL, 1);
+            sem_init(&sem_counter_, 0, 1);
+            sem_init(&sem_barrier_, 0, 0);
+            sem_init(&sem_barrier_counter_, 0, 1);
 
             pthread_mutex_init(&merge_mutex_, NULL);
 
@@ -121,6 +121,10 @@ namespace yche {
         clock_gettime(CLOCK_MONOTONIC, &begin);
 
         InitTasks();
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        elapsed = end.tv_sec - begin.tv_sec;
+        elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
+        cout << "Task Init Cost :" << elapsed << endl;
         cout << "Finish Init" << endl;
         cout << local_computation_task_vecs_.size() << endl;
         vector<BundleInput *> input_bundle_vec(thread_count_);
@@ -146,7 +150,8 @@ namespace yche {
             while (local_merge_queue.size() > 0) {
                 unique_ptr<MergeData> merge_data_ptr = std::move(local_merge_queue.back()->data_ptr_);
                 local_merge_queue.erase(local_merge_queue.end() - 1);
-                reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(std::move(merge_data_ptr))));
+                reduce_data_ptr_vec.push_back(
+                        std::move(algorithm_ptr_->WrapMergeDataToReduceData(std::move(merge_data_ptr))));
 //                reduce_data_ptr_vec.push_back(std::move(merge_data_ptr));
             }
         }
@@ -194,9 +199,11 @@ namespace yche {
     void Parallelizer<Algorithm>::LoopCommThreadFunction(unsigned long thread_id) {
         struct timespec begin, end;
         double elapsed;
-        clock_gettime(CLOCK_MONOTONIC, &begin);
 
         unsigned long thread_index = thread_id;
+        if (thread_index == 0) {
+            clock_gettime(CLOCK_MONOTONIC, &begin);
+        }
         auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
         auto &local_computation_queue = local_computation_task_vecs_[thread_index];
@@ -286,20 +293,13 @@ namespace yche {
         }
 
 
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = end.tv_sec - begin.tv_sec;
-        elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
         if (thread_index == 0) {
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            elapsed = end.tv_sec - begin.tv_sec;
+            elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
             cout << "Elpased Time In Parallel Computation:" << elapsed << endl;
         }
 
-//        pthread_mutex_lock(&merge_mutex_);
-//        while (local_merge_queue.size() > 0) {
-//            auto &&data = std::move(local_merge_queue.front()->data_ptr_);
-//            algorithm_ptr_->MergeToGlobal(std::move(data));
-//            local_merge_queue.erase(local_merge_queue.begin());
-//        }
-//        pthread_mutex_unlock(&merge_mutex_);
     }
 
     template<typename Algorithm>
