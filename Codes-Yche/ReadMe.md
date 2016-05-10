@@ -27,12 +27,14 @@ make
  the second argument is the output file directory and your prefix for the output file name.  
 ```zsh
 source run_cis_demon.sh
-run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_with_reduce_
+run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_  seq
+run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_with_reduce_  reduce
 ```
 - Draw the experiment figures with [Util](./util), the procedures are as follows. The first argument is the path of output directory,
  the second argument is your prefix for the output file name.  
 ```zsh
 cd util/
+python get_statistics.py ../demo_output_files/  your_prefix
 python get_statistics.py ../demo_output_files/  your_prefix_with_reduce
 ```
 

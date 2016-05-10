@@ -5,9 +5,9 @@ function run_with_different_thread_count(){
 	      outputfile=$2"demon_"${thread_count}
         inputfile=$1
         echo $inputfile
-        ./Daemon_Test $thread_count $inputfile  > $outputfile
+        ./Daemon_Test $thread_count $inputfile $3> $outputfile
         outputfile=$2"cis_"${thread_count}
-        ./CISTest $thread_count $inputfile  > $outputfile
+        ./CISTest $thread_count $inputfile $3> $outputfile
         let thread_count+=1
   done
 }
