@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 //    auto communities_ptr_vec = cis_ptr->ExecuteCis();
 
     auto communities_ptr_vec = std::move(cis_ptr->overlap_community_vec_);
+    cout << "comm_size:" << communities->size() << endl;
     for (auto &&community_ptr:*communities_ptr_vec) {
         for (auto member_id:*community_ptr) {
             cout << index_name_map[member_id] << ",";

@@ -56,7 +56,6 @@ namespace yche {
                   reduce_compute_function_(compute_function) {
             thread_handles = new pthread_t[thread_count_];
             data_count_ = 0;
-            cout << "Reducer Constructor" << endl;
             sem_mail_boxes_.resize(thread_count_);
             for (auto i = 0; i < thread_count_; ++i) {
                 sem_init(&sem_mail_boxes_[i], NULL, 0);
@@ -69,7 +68,7 @@ namespace yche {
             is_end_of_loop_ = false;
             is_end_of_reduce_ = false;
             is_rec_mail_empty_.resize(thread_count_, true);
-            idle_count_ =0;
+            idle_count_ = 0;
             //InitLocalData
             InitDataPerThread(reduce_data_collection);
         }
@@ -106,20 +105,17 @@ namespace yche {
             }
         }
 
-        cout << task_per_thread << " Before sort" << endl;
         //Sort From Greatest to Least
         for (auto i = 0; i < thread_count_; i++) {
             sort(local_data_vec_[i].begin(), local_data_vec_[i].end(), data_cmp_function_);
         }
 
-        cout << "Reduce Data Init Finished" << endl;
     }
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::LoopCommThreadFunction(
             unsigned long thread_id) {
-#pragma omp critical
-        cout << "Enter Reduce Computation" << thread_id << endl;
+
         unsigned long thread_index = thread_id;
         auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
@@ -171,25 +167,24 @@ namespace yche {
                         }
                     }
                     //Do reduce computation, use the first max one and the last min one
-                    reduce_compute_function_(std::move(local_reduce_data_vec[0]),
-                                             std::move(local_reduce_data_vec.back()));
+                    local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
+                                                                                  std::move(
+                                                                                          local_reduce_data_vec.back())));
+                    local_reduce_data_vec.erase(local_reduce_data_vec.end() - 1);
                 }
             }
         }
 
-#pragma omp critical
-        cout << "Enter Global Variable Reduce Computation" << thread_id << endl;
-
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         while (!is_end_of_reduce_) {
-#pragma omp critical
-            cout <<"hello"<<endl;
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
-            for (auto &&data_ptr: local_reduce_data_vec) {
+
+            for (auto &data_ptr: local_reduce_data_vec) {
                 global_data_vec_.push_back(std::move(data_ptr));
             }
-            local_reduce_data_vec.resize(0);
+            local_reduce_data_vec.clear();
+
             if (global_data_vec_.size() >= 2) {
                 for (auto i = 0; i < 2; i++) {
                     local_reduce_data_vec.push_back(std::move(global_data_vec_.back()));
@@ -197,18 +192,21 @@ namespace yche {
                 }
                 pthread_mutex_unlock(&task_taking_mutex_);
                 //Do the computation After release the lock
-                local_reduce_data_vec[0] = reduce_compute_function_(std::move(local_reduce_data_vec[0]),
-                                                                    std::move(local_reduce_data_vec[1]));
+
+                local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
+                                                                              std::move(local_reduce_data_vec[1])));
+                local_reduce_data_vec.resize(1);
+
             }
             else {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_reduce_ = true;
-#pragma omp critical
-                    cout <<"is end!!!"<<endl;
+
                     pthread_cond_broadcast(&task_taking_cond_var);
                 }
                 else {
                     idle_count_++;
+
                     while (pthread_cond_wait(&task_taking_cond_var, &task_taking_mutex_) != 0);
                 }
                 pthread_mutex_unlock(&task_taking_mutex_);
@@ -227,7 +225,6 @@ namespace yche {
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     unique_ptr<Data> Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::ParallelExecute() {
-        cout << "Enter Reduce Parallel Exe" << endl;
         vector<BundleInput *> input_bundle_vec(thread_count_);
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
