@@ -20,5 +20,11 @@
 #include "semaphore.h"
 #include <pthread.h>
 
+namespace yche {
+    //Define Tags For Template Specialization In parallelizer.h
+    struct MergeWithReduce;
+    struct MergeSequential;
+}
+
 #endif //CODES_YCHE_INCLUDE_HEADER_H
 

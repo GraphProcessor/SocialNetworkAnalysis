@@ -74,7 +74,7 @@ Laptop(2-core) | Desktop(4-core)
 ![DemonExp_Facebook](./images/twitter_demon_v1.png)
 
 #Improvement With Reduce
-- Add reduce computation for merge, but have some extra overhead from the figures.  
+- Add reduce computation for merge, but have some extra overhead from the figures.
 - Need to confirm the effectiveness of the final result(pending..)
 
 ##Collaboration 20 thousand edges

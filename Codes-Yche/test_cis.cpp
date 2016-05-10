@@ -11,10 +11,7 @@ int main(int argc, char *argv[]) {
     long thread_num = atol(argv[1]);
 
     char *file_name_ptr = argv[2];
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Dataset/social_network/twitter_combined.txt";
-//    ifstream fin(file.c_str());
+
     ifstream fin(file_name_ptr);
     string s;
     if (!fin) {
@@ -67,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     cout << "hello" << endl << endl;
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
-    Parallelizer<Cis> parallelizer(thread_num, std::move(cis_ptr));
+    Parallelizer<Cis, yche::MergeWithReduce> parallelizer(thread_num, std::move(cis_ptr));
     parallelizer.ParallelExecute();
     cis_ptr = std::move(parallelizer.algorithm_ptr_);
 

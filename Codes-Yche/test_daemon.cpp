@@ -7,10 +7,7 @@ int main(int argc, char *argv[]) {
     long thread_num = atol(argv[1]);
 
     char *file_name_ptr = argv[2];
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv";
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/collaboration_edges_input.csv";
-//    string file = "/home/cheyulin/gitrepos/SocialNetworkAnalysis/Dataset/social_network/twitter_combined.txt";
-//    ifstream fin(file.c_str());
+
     ifstream fin(file_name_ptr);
     string s;
     if (!fin) {
@@ -65,8 +62,7 @@ int main(int argc, char *argv[]) {
     auto max_iteration = 100;
     unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr),
                                                         max_iteration);
-    Parallelizer<Daemon> parallelizer(thread_num, std::move(daemon_ptr));
-
+    Parallelizer<Daemon, yche::MergeWithReduce> parallelizer(thread_num, std::move(daemon_ptr));
 
     parallelizer.ParallelExecute();
 //    daemon_ptr.ExecuteDaemon();
