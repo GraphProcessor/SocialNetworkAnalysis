@@ -61,20 +61,26 @@ def draw_bar(tuple_list, title_name):
     p2 = plt.bar(ind, womenMeans, width, color='lime',
                  bottom=menMeans, yerr=womenstd)
     plt.ylabel('RunTime/s')
-    plt.title(title_name)
+
+    plt.title(title_name.replace('_', ' '))
     max_val = max(enumerate(bar_two_tuple), key=lambda x: x[1])[1]
     max_val2 = max(enumerate(bar_one_tuple), key=lambda x: x[1])[1]
     max_val = max(max_val, max_val2)
     print 'max_val:' + str(max_val)
     plt.yticks(np.arange(0, max_val * 1.5, round(max_val / 8, 1)))
-    plt.legend((p1[0], p2[0]), ('Parallel Computation', 'Sequential Merge'))
+
+    second_phase_str = 'Sequential Merge'
+    if 'reduce' in title_name:
+        second_phase_str = 'Merge With Reduce'
+
+    plt.legend((p1[0], p2[0]), ('Parallel Computation', second_phase_str))
     plt.show()
 
 
 my_dir = sys.argv[1]
 my_prefix_str = sys.argv[2]
-pattern_cis = re.compile(my_prefix_str + '.*cis.*')
-pattern_demon = re.compile(my_prefix_str + '.*demon.*')
+pattern_cis = re.compile(my_prefix_str + '_*cis.*')
+pattern_demon = re.compile(my_prefix_str + '_*demon.*')
 get_count_time_map(pattern_cis, my_dir)
 print '\n'
 my_tuple_list = get_count_time_map(pattern_demon, my_dir)

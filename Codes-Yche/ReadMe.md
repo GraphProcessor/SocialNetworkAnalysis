@@ -2,11 +2,12 @@
 - Reimplement Algorithm [*Connected Iterative Scan*](./test_cis.cpp)
 - Reimplement Algorithm [*Demon*](./test_daemon.cpp)
 - Implement [Parallelizer](./parallelizer.h) for local-based overlapping community detection algorithms
-- [Util](./util) *Draw Figures*  (e.g as facebook output handling)
+- Implement [Reducer](./reducer.h) for reducing data in parallel
+- [Util](./util) *Draw Figures*  (e.g as facebook output handling) (add suffix with_reduce_ for current version)
 ```zsh
 python get_statistics.py ../demo_output_files/  facebook
+python get_statistics.py ../demo_output_files/  facebook_with_reduce_
 ```
-
 #Pending Work
 - Reimplement Algorithm *GCE*
 
@@ -25,13 +26,13 @@ make
  the second argument is the output file directory and your prefix for the output file name.  
 ```zsh
 source run_cis_demon.sh
-run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_
+run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/your_prefix_with_reduce_
 ```
 - Draw the experiment figures with [Util](./util), the procedures are as follows. The first argument is the path of output directory,
  the second argument is your prefix for the output file name.  
 ```zsh
 cd util/
-python get_statistics.py ../demo_output_files/  your_prefix
+python get_statistics.py ../demo_output_files/  your_prefix_with_reduce
 ```
 
 #Environment(CPU Checking)
@@ -70,6 +71,21 @@ Laptop(2-core) | Desktop(4-core)
 ##Twitter 1.7 million edges  
 ![CisExp_Facebook](./images/twitter_csi_v1.png)   
 ![DemonExp_Facebook](./images/twitter_demon_v1.png)
+
+#Improvement With REduce
+- Add reduce computation for merge
+- Need to confirm the effectiveness of the final result(pending..)
+##Collaboration 20 thousand edges
+Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
+------------------------ | ----------------------
+![CisExpLabV1](./images/lab_desk_top/collaboration_cis_lab_v1.png) | ![CisExpLabV2](./images/lab_desk_top/collaboration_cis_lab_v2.png)
+![DemonExpLabV1](./images/lab_desk_top/collaboration_demon_lab_v1.png) | ![DemonExpLabV2](./images/lab_desk_top/collaboration_demon_lab_v2.png)
+
+##Facebook 80 thousand edges
+Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
+------------------------ | ----------------------
+![CisExpLabV1](./images/lab_desk_top/facebook_cis_lab_v1.png) | ![CisExpLabV2](./images/lab_desk_top/facebook_cis_lab_v2.png)
+![DemonExpLabV1](./images/lab_desk_top/facebook_demon_lab_v1.png) | ![DemonExpLabV2](./images/lab_desk_top/facebook_demon_lab_v2.png)
 
 #Attention Please/Advice For Pthread Programming
 - Pthread_Create, void * have to make the input arguments existing until they are joined
