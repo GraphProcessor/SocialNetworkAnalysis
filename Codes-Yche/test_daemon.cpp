@@ -7,6 +7,8 @@ int main(int argc, char *argv[]) {
     long thread_num = atol(argv[1]);
 
     char *file_name_ptr = argv[2];
+    char *is_reduce_in_merge = argv[3];
+    string is_reduce_in_merge_str(is_reduce_in_merge);
 
     ifstream fin(file_name_ptr);
     string s;
@@ -62,11 +64,23 @@ int main(int argc, char *argv[]) {
     auto max_iteration = 100;
     unique_ptr<Daemon> daemon_ptr = make_unique<Daemon>(epsilon, min_community_size, std::move(graph_ptr),
                                                         max_iteration);
-    Parallelizer<Daemon, yche::MergeWithReduce> parallelizer(thread_num, std::move(daemon_ptr));
 
-    parallelizer.ParallelExecute();
-//    daemon_ptr.ExecuteDaemon();
-    daemon_ptr = std::move(parallelizer.algorithm_ptr_);
+    if (!is_reduce_in_merge_str.compare("reduce")) {
+        cout <<"Reduce Enabled"<<endl;
+        Parallelizer<Daemon, yche::MergeWithReduce> parallelizer(thread_num, std::move(daemon_ptr));
+        parallelizer.ParallelExecute();
+        daemon_ptr = std::move(parallelizer.algorithm_ptr_);
+    }
+    else {
+        cout <<"Reduce Not Enabled"<<endl;
+        Parallelizer<Daemon, yche::MergeSequential> parallelizer(thread_num, std::move(daemon_ptr));
+        parallelizer.ParallelExecute();
+        daemon_ptr = std::move(parallelizer.algorithm_ptr_);
+
+    }
+
+
+
     if (daemon_ptr->overlap_community_vec_ == nullptr)
         cout << "shit" << endl;
     else

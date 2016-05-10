@@ -11,6 +11,8 @@ int main(int argc, char *argv[]) {
     long thread_num = atol(argv[1]);
 
     char *file_name_ptr = argv[2];
+    char *is_reduce_in_merge = argv[3];
+    string is_reduce_in_merge_str(is_reduce_in_merge);
 
     ifstream fin(file_name_ptr);
     string s;
@@ -64,10 +66,19 @@ int main(int argc, char *argv[]) {
 
     cout << "hello" << endl << endl;
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
-    Parallelizer<Cis, yche::MergeWithReduce> parallelizer(thread_num, std::move(cis_ptr));
-    parallelizer.ParallelExecute();
-    cis_ptr = std::move(parallelizer.algorithm_ptr_);
+    if (!is_reduce_in_merge_str.compare("reduce")) {
+        cout <<"Reduce Enabled"<<endl;
+        Parallelizer<Cis, yche::MergeWithReduce> parallelizer(thread_num, std::move(cis_ptr));
+        parallelizer.ParallelExecute();
+        cis_ptr = std::move(parallelizer.algorithm_ptr_);
+    }
+    else {
+        cout <<"Reduce Not Enabled"<<endl;
+        Parallelizer<Cis, yche::MergeSequential> parallelizer(thread_num, std::move(cis_ptr));
+        parallelizer.ParallelExecute();
+        cis_ptr = std::move(parallelizer.algorithm_ptr_);
 
+    }
 //    auto communities_ptr_vec = cis_ptr->ExecuteCis();
 
     auto communities_ptr_vec = std::move(cis_ptr->overlap_community_vec_);
