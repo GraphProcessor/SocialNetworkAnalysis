@@ -10,6 +10,7 @@ python get_statistics.py ../demo_output_files/  facebook_with_reduce_
 ```
 #Pending Work
 - Reimplement Algorithm *GCE*
+- Performance Evaluation Indices  
 
 #Build Environment
 - Build with Cmake 3.3, Gcc 5.3, std = C++ 14
@@ -75,6 +76,7 @@ Laptop(2-core) | Desktop(4-core)
 #Improvement With REduce
 - Add reduce computation for merge
 - Need to confirm the effectiveness of the final result(pending..)
+
 ##Collaboration 20 thousand edges
 Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
 ------------------------ | ----------------------
