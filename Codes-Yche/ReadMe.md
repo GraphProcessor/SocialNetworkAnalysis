@@ -73,8 +73,8 @@ Laptop(2-core) | Desktop(4-core)
 ![CisExp_Facebook](./images/twitter_csi_v1.png)   
 ![DemonExp_Facebook](./images/twitter_demon_v1.png)
 
-#Improvement With REduce
-- Add reduce computation for merge
+#Improvement With Reduce
+- Add reduce computation for merge, but have some extra overhead from the figures.  
 - Need to confirm the effectiveness of the final result(pending..)
 
 ##Collaboration 20 thousand edges
