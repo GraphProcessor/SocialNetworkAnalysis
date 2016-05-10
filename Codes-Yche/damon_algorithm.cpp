@@ -252,7 +252,6 @@ namespace yche {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             basic_data_vec_ptr->push_back(make_unique<Vertex>(ego_vertex));
-            auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
         }
         return std::move(basic_data_vec_ptr);
     }
