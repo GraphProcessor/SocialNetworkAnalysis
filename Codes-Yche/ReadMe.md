@@ -99,7 +99,7 @@ Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
 Laptop(2-core)-NoReduce | Laptop(2-core)-Reduce
 ------------------------ | ----------------------
 ![CisExpV1](./images/facebook_cis_v1.png) | ![CisExpV2](./images/facebook_cis_v2.png)
-![DemonExpV1](./images/facebook_demo_v1.png) | ![DemonExpV2](./images/facebook_demon_v2.png)
+![DemonExpV1](./images/facebook_demon_v1.png) | ![DemonExpV2](./images/facebook_demon_v2.png)
 
 #Attention Please/Advice For Pthread Programming
 - Pthread_Create, void * have to make the input arguments existing until they are joined
