@@ -85,11 +85,21 @@ Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
 ![CisExpLabV1](./images/lab_desk_top/collaboration_cis_lab_v1.png) | ![CisExpLabV2](./images/lab_desk_top/collaboration_cis_lab_v2.png)
 ![DemonExpLabV1](./images/lab_desk_top/collaboration_demon_lab_v1.png) | ![DemonExpLabV2](./images/lab_desk_top/collaboration_demon_lab_v2.png)
 
+Laptop(2-core)-NoReduce | Laptop(2-core)-Reduce
+------------------------ | ----------------------
+![CisExpV1](./images/lab_desk_top/collaboration_cis_v1.png) | ![CisExpV2](./images/lab_desk_top/collaboration_cis_v2.png)
+![DemonExpV1](./images/lab_desk_top/collaboration_demon_v1.png) | ![DemonExpV2](./images/lab_desk_top/collaboration_demon_v2.png)
+
 ##Facebook 80 thousand edges
 Desktop(4-core)-NoReduce | Desktop(4-core)-Reduce
 ------------------------ | ----------------------
 ![CisExpLabV1](./images/lab_desk_top/facebook_cis_lab_v1.png) | ![CisExpLabV2](./images/lab_desk_top/facebook_cis_lab_v2.png)
 ![DemonExpLabV1](./images/lab_desk_top/facebook_demon_lab_v1.png) | ![DemonExpLabV2](./images/lab_desk_top/facebook_demon_lab_v2.png)
+
+Laptop(2-core)-NoReduce | Laptop(2-core)-Reduce
+------------------------ | ----------------------
+![CisExpV1](./images/lab_desk_top/facebook_cis_v1.png) | ![CisExpV2](./images/lab_desk_top/facebook_cis_v2.png)
+![DemonExpV1](./images/lab_desk_top/facebook_demo_v1.png) | ![DemonExpV2](./images/lab_desk_top/facebook_demon_v2.png)
 
 #Attention Please/Advice For Pthread Programming
 - Pthread_Create, void * have to make the input arguments existing until they are joined
