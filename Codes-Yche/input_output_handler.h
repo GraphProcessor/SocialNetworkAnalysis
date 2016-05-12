@@ -42,7 +42,7 @@ namespace yche {
     }
 
     template<typename Algorithm, typename VertexIndexType>
-    void ExecuteAlgorithmWithParallelizer(const long &thread_num, const string &is_reduce_in_merge_str,
+    void ExecuteAlgorithmWithParallelizer(const unsigned long &thread_num, const string &is_reduce_in_merge_str,
                                           unique_ptr<Algorithm> &algorithm_ptr,
                                           map<VertexIndexType, VertexIndexType> &index_name_map) {
 

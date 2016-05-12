@@ -79,8 +79,8 @@ namespace yche {
             overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
 
             CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
-                auto cmp = [](auto &&left, auto &&right) -> bool {
-                    return left->size() < right->size();
+                auto cmp = [](auto &&tmp_left, auto &&tmp_right) -> bool {
+                    return tmp_left->size() < tmp_right->size();
                 };
                 auto iter1 = max_element(left->begin(), left->end(), cmp);
                 auto iter2 = max_element(left->begin(), left->end(), cmp);

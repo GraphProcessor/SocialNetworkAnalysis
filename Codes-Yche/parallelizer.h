@@ -12,11 +12,6 @@
 namespace yche {
     using namespace std;
 
-    enum class function_type {
-        local_computation,
-        merge
-    };
-
     template<typename Data>
     struct Task {
         unique_ptr<Data> data_ptr_;
@@ -55,7 +50,7 @@ namespace yche {
 
         vector<bool> is_rec_mail_empty_;
 
-        bool is_any_mergeing;
+        bool is_any_merging;
 
         bool is_end_of_local_computation;
 
@@ -95,7 +90,7 @@ namespace yche {
             merge_task_vecs_.resize(thread_count_);
 
             is_end_of_local_computation = false;
-            is_any_mergeing = false;
+            is_any_merging = false;
 
             idle_count_ = 0;
             barrier_count_ = 0;
@@ -103,7 +98,6 @@ namespace yche {
 
 
         virtual ~Parallelizer() {
-//            cout <<"destroy"<<endl;
             for (auto i = 0; i < thread_count_; ++i) {
                 sem_destroy(&sem_mail_boxes_[i]);
             }
@@ -245,12 +239,12 @@ namespace yche {
                 auto result = algorithm_ptr_->LocalComputation(
                         std::move(local_computation_queue.front()->data_ptr_));
                 local_computation_queue.erase(local_computation_queue.begin());
-                if (is_any_mergeing) {
+                if (is_any_merging) {
                     local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                 }
                 else {
                     pthread_mutex_lock(&merge_mutex_);
-                    is_any_mergeing = true;
+                    is_any_merging = true;
 
                     algorithm_ptr_->MergeToGlobal(std::move(result));
                     while (local_merge_queue.size() > 0) {
@@ -258,7 +252,7 @@ namespace yche {
                         algorithm_ptr_->MergeToGlobal(std::move(data));
                         local_merge_queue.erase(local_merge_queue.begin());
                     }
-                    is_any_mergeing = false;
+                    is_any_merging = false;
                     pthread_mutex_unlock(&merge_mutex_);
                 }
             }
@@ -293,6 +287,7 @@ namespace yche {
     void *Parallelizer<Algorithm, MergeType>::InvokeLoopCommThreadFunction(void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->parallelizer_ptr_->LoopCommThreadFunction(my_bundle_input_ptr->thread_id_);
+        return NULL;
     }
 
     template<typename Algorithm, typename MergeType>
