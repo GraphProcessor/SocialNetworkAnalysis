@@ -102,14 +102,11 @@ namespace yche {
                         CommunityPtr tmp_copy_ptr;
                         bool first_access_flag = false;
                         for (auto iter = left_data_ptr->begin(); iter != left_data_ptr->end(); ++iter) {
-                            auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter),
-                                                                                std::move(*iter_inner));
-                            *iter = std::move(cover_rate_result.second.first);
-                            *iter_inner = std::move(cover_rate_result.second.second);
-                            if (cover_rate_result.first > epsilon_) {
-                                auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
-                                *iter = std::move(tmp_pair.first);
-                                *iter_inner = std::move(tmp_pair.second);
+                            auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter,
+                                                                                *iter_inner);
+
+                            if (cover_rate_result > epsilon_) {
+                                 MergeTwoCommunities(*iter, *iter_inner);
                                 break;
                             }
                             else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
@@ -143,10 +140,9 @@ namespace yche {
         CommunityVecPtr LabelPropagationOnSubGraph(
                 unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
 
-        pair<double, pair<CommunityPtr, CommunityPtr>> GetTwoCommunitiesCoverRate(CommunityPtr left_community,
-                                                                                  CommunityPtr right_community);
+        double GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        pair<CommunityPtr, CommunityPtr> MergeTwoCommunities(CommunityPtr left_community, CommunityPtr right_community);
+        void MergeTwoCommunities(CommunityPtr& left_community, CommunityPtr& right_community);
 
 
     };

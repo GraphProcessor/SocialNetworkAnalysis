@@ -124,8 +124,6 @@ namespace yche {
                         }
                     }
 
-//                    srand((unsigned int) time(nullptr));
-//                    auto choice_index = rand() % candidate_label_vec.size();
                     auto choice_index = 0;
                     if (candidate_label_vec.size() >= 1) {
                         uniform_int_distribution<> distribution(0, candidate_label_vec.size() - 1);
@@ -172,8 +170,7 @@ namespace yche {
         return std::move(cooms_vec_ptr);
     }
 
-    pair<Daemon::CommunityPtr, Daemon::CommunityPtr> Daemon::MergeTwoCommunities(CommunityPtr left_community,
-                                                                                 CommunityPtr right_community) {
+    void Daemon::MergeTwoCommunities(CommunityPtr& left_community, CommunityPtr& right_community) {
         vector<unsigned long> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
@@ -182,27 +179,23 @@ namespace yche {
         for (auto iter = union_set.begin(); iter != union_set.end(); ++iter) {
             union_community->insert(*iter);
         }
-        return make_pair(std::move(union_community), std::move(right_community));
+        left_community = std::move(union_community);
     }
 
-    pair<double, pair<Daemon::CommunityPtr, Daemon::CommunityPtr>> Daemon::GetTwoCommunitiesCoverRate(
-            CommunityPtr left_community, CommunityPtr right_community) {
+    double Daemon::GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community) {
         vector<unsigned long> intersect_set(left_community->size() + right_community->size());
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
                                          right_community->end(), intersect_set.begin());
         intersect_set.resize(iter_end - intersect_set.begin());
-        //left_community->size() call before std::move it
-        double rate = static_cast<double>(intersect_set.size()) / min(left_community->size(), right_community->size());
-        return make_pair(rate, make_pair(std::move(left_community), std::move(right_community)));
 
+        double rate = static_cast<double>(intersect_set.size()) / min(left_community->size(), right_community->size());
+        return rate;
     }
 
     void Daemon::ExecuteDaemon() {
         //Clear Former Results
         overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
         int point_index = 0;
-
-        int test_index = 0;
 
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
@@ -221,14 +214,9 @@ namespace yche {
                 CommunityPtr tmp_copy_ptr;
                 bool first_access_flag = false;
                 for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-                    auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
-                    *iter = std::move(cover_rate_result.second.first);
-                    *iter_inner = std::move(cover_rate_result.second.second);
-                    if (cover_rate_result.first > epsilon_) {
-                        auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
-                        *iter = std::move(tmp_pair.first);
-                        test_index++;
-                        *iter_inner = std::move(tmp_pair.second);
+                    auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
+                    if (cover_rate_result > epsilon_) {
+                        MergeTwoCommunities(*iter, *iter_inner);
                         break;
                     }
                     else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
@@ -276,13 +264,9 @@ namespace yche {
                 CommunityPtr tmp_copy_ptr;
                 bool first_access_flag = false;
                 for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-                    auto cover_rate_result = GetTwoCommunitiesCoverRate(std::move(*iter), std::move(*iter_inner));
-                    *iter = std::move(cover_rate_result.second.first);
-                    *iter_inner = std::move(cover_rate_result.second.second);
-                    if (cover_rate_result.first > epsilon_) {
-                        auto tmp_pair = MergeTwoCommunities(std::move(*iter), std::move(*iter_inner));
-                        *iter = std::move(tmp_pair.first);
-                        *iter_inner = std::move(tmp_pair.second);
+                    auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
+                    if (cover_rate_result > epsilon_) {
+                        MergeTwoCommunities(*iter, *iter_inner);
                         break;
                     }
                     else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
