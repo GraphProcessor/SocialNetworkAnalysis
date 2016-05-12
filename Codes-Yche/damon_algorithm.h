@@ -90,40 +90,7 @@ namespace yche {
             ReduceComputation = [this](
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
-                if (left_data_ptr->size() == 0) {
-                    for (auto iter_inner = right_data_ptr->begin();
-                         iter_inner != right_data_ptr->end(); ++iter_inner) {
-                        if ((*iter_inner)->size() > min_community_size_)
-                            left_data_ptr->push_back(std::move(*iter_inner));
-                    }
-                }
-                else {
-                    for (auto iter_inner = right_data_ptr->begin(); iter_inner != right_data_ptr->end(); ++iter_inner) {
-                        CommunityPtr tmp_copy_ptr;
-                        bool first_access_flag = false;
-                        for (auto iter = left_data_ptr->begin(); iter != left_data_ptr->end(); ++iter) {
-                            auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter,
-                                                                                *iter_inner);
-
-                            if (cover_rate_result > epsilon_) {
-                                 MergeTwoCommunities(*iter, *iter_inner);
-                                break;
-                            }
-                            else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
-                                tmp_copy_ptr = make_unique<set<unsigned long>>();
-                                for (auto tmp_iter = (*iter_inner)->begin();
-                                     tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
-                                    tmp_copy_ptr->insert(*tmp_iter);
-                                }
-                                first_access_flag = true;
-                            }
-                        }
-                        if (first_access_flag) {
-                            left_data_ptr->push_back(std::move(tmp_copy_ptr));
-                        }
-                    }
-
-                }
+                MergeToCommunityCollection(std::move(left_data_ptr),std::move(right_data_ptr));
                 return left_data_ptr;
             };
         }
@@ -142,8 +109,10 @@ namespace yche {
 
         double GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        void MergeTwoCommunities(CommunityPtr& left_community, CommunityPtr& right_community);
+        void MergeTwoCommunities(CommunityPtr &left_community, CommunityPtr &right_community);
 
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
+                                        unique_ptr<MergeData> &&result);
 
     };
 }

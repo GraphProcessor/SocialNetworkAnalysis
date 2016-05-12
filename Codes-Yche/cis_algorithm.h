@@ -134,7 +134,7 @@ namespace yche {
                                                          unique_ptr<CommunityMembers> &&right_community);
 
 
-        void MergeToCommunityCollection(unique_ptr<CommunityVec>&& community_collection, unique_ptr<MergeData> &&result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_)&& community_collection, unique_ptr<MergeData> &&result);
 
     };
 }

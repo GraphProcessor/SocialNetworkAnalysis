@@ -170,7 +170,7 @@ namespace yche {
         return std::move(cooms_vec_ptr);
     }
 
-    void Daemon::MergeTwoCommunities(CommunityPtr& left_community, CommunityPtr& right_community) {
+    void Daemon::MergeTwoCommunities(CommunityPtr &left_community, CommunityPtr &right_community) {
         vector<unsigned long> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
@@ -195,43 +195,13 @@ namespace yche {
     void Daemon::ExecuteDaemon() {
         //Clear Former Results
         overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
-        int point_index = 0;
 
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
             auto community_vec_ptr = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
 
-            if (overlap_community_vec_->size() == 0) {
-                for (auto iter_inner = community_vec_ptr->begin();
-                     iter_inner != community_vec_ptr->end(); ++iter_inner) {
-                    if ((*iter_inner)->size() > min_community_size_)
-                        overlap_community_vec_->push_back(std::move(*iter_inner));
-                }
-                continue;
-            }
-            for (auto iter_inner = community_vec_ptr->begin(); iter_inner != community_vec_ptr->end(); ++iter_inner) {
-                CommunityPtr tmp_copy_ptr;
-                bool first_access_flag = false;
-                for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
-                    auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
-                    if (cover_rate_result > epsilon_) {
-                        MergeTwoCommunities(*iter, *iter_inner);
-                        break;
-                    }
-                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
-                        tmp_copy_ptr = make_unique<set<unsigned long>>();
-                        for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
-                            tmp_copy_ptr->insert(*tmp_iter);
-                        }
-                        first_access_flag = true;
-                    }
-                }
-                if (first_access_flag) {
-                    overlap_community_vec_->push_back(std::move(tmp_copy_ptr));
-                }
-            }
-            point_index++;
+            MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(community_vec_ptr));
         }
     }
 
@@ -252,18 +222,27 @@ namespace yche {
     }
 
     void Daemon::MergeToGlobal(unique_ptr<MergeData> &&result) {
-        if (overlap_community_vec_->size() == 0) {
+        MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result));
+    }
+
+    unique_ptr<Daemon::ReduceData> Daemon::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+        return std::move(merge_data_ptr);
+    }
+
+    void Daemon::MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
+                                            unique_ptr<MergeData> &&result) {
+        if (community_collection->size() == 0) {
             for (auto iter_inner = result->begin();
                  iter_inner != result->end(); ++iter_inner) {
                 if ((*iter_inner)->size() > min_community_size_)
-                    overlap_community_vec_->push_back(std::move(*iter_inner));
+                    community_collection->push_back(std::move(*iter_inner));
             }
         }
         else {
             for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
                 CommunityPtr tmp_copy_ptr;
                 bool first_access_flag = false;
-                for (auto iter = overlap_community_vec_->begin(); iter != overlap_community_vec_->end(); ++iter) {
+                for (auto iter = community_collection->begin(); iter != community_collection->end(); ++iter) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
                     if (cover_rate_result > epsilon_) {
                         MergeTwoCommunities(*iter, *iter_inner);
@@ -278,15 +257,11 @@ namespace yche {
                     }
                 }
                 if (first_access_flag) {
-                    overlap_community_vec_->push_back(std::move(tmp_copy_ptr));
+                    community_collection->push_back(std::move(tmp_copy_ptr));
                 }
             }
 
         }
-    }
-
-    unique_ptr<Daemon::ReduceData> Daemon::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
-        return std::move(merge_data_ptr);
     }
 
 }

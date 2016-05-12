@@ -331,7 +331,7 @@ namespace yche {
         return std::move(reduce_data_ptr);
     }
 
-    void Cis::MergeToCommunityCollection(unique_ptr<CommunityVec> &&community_collection,
+    void Cis::MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
                                          unique_ptr<MergeData> &&result) {
         if (community_collection->size() == 0) {
             community_collection->push_back(std::move(result));
