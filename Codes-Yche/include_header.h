@@ -17,6 +17,7 @@
 #include <limits>
 #include <queue>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/regex.hpp>
 #include "semaphore.h"
 #include <pthread.h>
 

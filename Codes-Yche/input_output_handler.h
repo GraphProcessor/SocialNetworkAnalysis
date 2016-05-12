@@ -23,6 +23,12 @@ namespace yche {
 
         int i = 0;
         while (getline(fin, s)) {
+            using namespace boost;
+            boost::regex pat("$#.*");
+            boost::smatch matches;
+            if (boost::regex_match(s, matches, pat))
+                continue;
+
             int first_vertex_name = -1;
             int second_vertex_name = -1;
             stringstream string_stream;
@@ -38,7 +44,7 @@ namespace yche {
     template<typename Algorithm, typename VertexIndexType>
     void ExecuteAlgorithmWithParallelizer(const long &thread_num, const string &is_reduce_in_merge_str,
                                           unique_ptr<Algorithm> &algorithm_ptr,
-                                           map<VertexIndexType, VertexIndexType> &index_name_map) {
+                                          map<VertexIndexType, VertexIndexType> &index_name_map) {
 
         if (!is_reduce_in_merge_str.compare("reduce")) {
             cout << "Reduce Enabled" << endl;
