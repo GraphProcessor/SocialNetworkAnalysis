@@ -107,25 +107,7 @@ namespace yche {
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
                 for (auto &&right_merge_data:*right_data_ptr) {
-                    if (left_data_ptr->size() == 0) {
-                        left_data_ptr->push_back(std::move(right_merge_data));
-                    }
-                    else {
-                        bool insert_flag = true;
-                        for (auto &&comm_ptr:*left_data_ptr) {
-                            auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr),
-                                                                         std::move(right_merge_data));
-                            if (cover_rate > 1 - DOUBLE_ACCURACY) {
-                                comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(right_merge_data));
-                                insert_flag = false;
-                                break;
-
-                            }
-                        }
-                        if (insert_flag) {
-                            left_data_ptr->push_back(std::move(right_merge_data));
-                        }
-                    }
+                    MergeToCommunityCollection(std::move(left_data_ptr),std::move(right_merge_data));
                 }
                 return left_data_ptr;
             };
@@ -151,6 +133,8 @@ namespace yche {
         unique_ptr<CommunityMembers> MergeTwoCommunities(unique_ptr<CommunityMembers> &&left_community,
                                                          unique_ptr<CommunityMembers> &&right_community);
 
+
+        void MergeToCommunityCollection(unique_ptr<CommunityVec>&& community_collection, unique_ptr<MergeData> &&result);
 
     };
 }

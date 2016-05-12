@@ -140,16 +140,6 @@ namespace yche {
             neighbors.insert(std::move(neighbor_info_ptr));
         }
 
-//        for (auto &&members_element_ptr:members) {
-//            cout << "mem:" << members_element_ptr->member_index_ << "," << members_element_ptr->w_in_ << "," <<
-//            members_element_ptr->w_out_ << endl;
-//        }
-//
-//        for (auto &&members_element_ptr:neighbors) {
-//            cout << "neighbors:" << members_element_ptr->member_index_ << "," << members_element_ptr->w_in_ << "," <<
-//            members_element_ptr->w_out_ << endl;
-//        }
-
         bool change_flag = true;
         //Do Iterative Scan
 
@@ -274,7 +264,7 @@ namespace yche {
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
                                          right_community->end(), intersect_set.begin());
         intersect_set.resize(iter_end - intersect_set.begin());
-        //left_community->size() call before std::move it
+
         double rate = static_cast<double>(intersect_set.size()) / min(left_community->size(), right_community->size());
         return rate;
     }
@@ -307,30 +297,7 @@ namespace yche {
 
 
             //Second
-//            cout << vertex_name_map_[vertex_index_map[vertex]];
-//            cout << "  size:\t" << result_community->size() << ":\t";
-//            for (auto index:*result_community) {
-//                cout << vertex_name_map_[index] << ",";
-//            }
-//            cout << endl;
-            if (overlapping_communities_ptr->size() == 0) {
-                overlapping_communities_ptr->push_back(std::move(result_community));
-            }
-            else {
-                bool insert_flag = true;
-                for (auto &&comm_ptr:*overlapping_communities_ptr) {
-                    auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr), std::move(result_community));
-                    if (cover_rate > 1 - DOUBLE_ACCURACY) {
-                        comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(result_community));
-                        insert_flag = false;
-                        break;
-
-                    }
-                }
-                if (insert_flag) {
-                    overlapping_communities_ptr->push_back(std::move(result_community));
-                }
-            }
+            MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result_community));
         }
         return std::move(overlapping_communities_ptr);
     }
@@ -355,12 +322,23 @@ namespace yche {
 
 
     void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
-        if (overlap_community_vec_->size() == 0) {
-            overlap_community_vec_->push_back(std::move(result));
+        MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result));
+    }
+
+    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+        auto reduce_data_ptr = make_unique<ReduceData>();
+        reduce_data_ptr->push_back(std::move(merge_data_ptr));
+        return std::move(reduce_data_ptr);
+    }
+
+    void Cis::MergeToCommunityCollection(unique_ptr<CommunityVec> &&community_collection,
+                                         unique_ptr<MergeData> &&result) {
+        if (community_collection->size() == 0) {
+            community_collection->push_back(std::move(result));
         }
         else {
             bool insert_flag = true;
-            for (auto &&comm_ptr:*overlap_community_vec_) {
+            for (auto &&comm_ptr:*community_collection) {
                 auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr), std::move(result));
                 if (cover_rate > 1 - DOUBLE_ACCURACY) {
                     comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(result));
@@ -370,17 +348,10 @@ namespace yche {
                 }
             }
             if (insert_flag) {
-                overlap_community_vec_->push_back(std::move(result));
+                community_collection->push_back(std::move(result));
             }
         }
     }
-
-    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
-        auto reduce_data_ptr = make_unique<ReduceData>();
-        reduce_data_ptr->push_back(std::move(merge_data_ptr));
-        return std::move(reduce_data_ptr);
-    }
-
 
 }
 
