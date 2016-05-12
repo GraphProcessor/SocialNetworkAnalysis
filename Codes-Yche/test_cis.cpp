@@ -3,42 +3,15 @@
 //
 
 #include "cis_algorithm.h"
-#include "parallelizer.h"
+#include "input_output_handler.h"
 
-int main(int argc, char *argv[]) {
+using namespace yche;
 
-    using namespace yche;
-    long thread_num = atol(argv[1]);
-
-    char *file_name_ptr = argv[2];
-    char *is_reduce_in_merge = argv[3];
-    string is_reduce_in_merge_str(is_reduce_in_merge);
-
-    ifstream fin(file_name_ptr);
-    string s;
-    if (!fin) {
-        cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
-        exit(-1);
-    }
-
-    int i = 0;
-    vector<pair<int, int>> edges_vec;
-    while (getline(fin, s)) {
-        int first_vertex_name = -1;
-        int second_vertex_name = -1;
-        stringstream string_stream;
-        string_stream.clear();
-        string_stream.str(s);
-        string_stream >> first_vertex_name;
-        string_stream >> second_vertex_name;
-        edges_vec.push_back(make_pair(first_vertex_name, second_vertex_name));
-        i++;
-    }
-
-
-    unique_ptr<Cis::Graph> graph_ptr = make_unique<Cis::Graph>();
-    map<int, Cis::Vertex> name_vertex_map;
-
+template<typename VertexIndexType>
+void ConstructGraphWithEdgeVecForCIS(unique_ptr<Cis::Graph> &graph_ptr,
+                                     map<VertexIndexType, Cis::Vertex> &name_vertex_map,
+                                     map<VertexIndexType, VertexIndexType> &index_name_map,
+                                     vector<pair<VertexIndexType, VertexIndexType>> &edges_vec) {
     using namespace boost;
     property_map<Cis::Graph, edge_weight_t>::type edge_weight_map =
             get(edge_weight, *graph_ptr);
@@ -57,38 +30,31 @@ int main(int argc, char *argv[]) {
         edge_weight_map[edge] = 1;
     }
 
-    map<int, int> index_name_map;
     property_map<Cis::Graph, vertex_index_t>::type vertex_index_map = get(vertex_index, *graph_ptr);
     for (auto iter = name_vertex_map.begin(); iter != name_vertex_map.end(); ++iter) {
         index_name_map.insert(make_pair(vertex_index_map[iter->second], iter->first));
-//        cout << iter->first << "," << vertex_index_map[iter->second] << endl;
     }
+}
 
-    cout << "hello" << endl << endl;
+int main(int argc, char *argv[]) {
+
+    long thread_num = atol(argv[1]);
+    char *file_name_ptr = argv[2];
+    char *is_reduce_in_merge = argv[3];
+    string is_reduce_in_merge_str(is_reduce_in_merge);
+
+    using VertexIndexType =int;
+    vector<pair<VertexIndexType, VertexIndexType>> edges_vec;
+    ReadEdgeListInToEdgeVector<VertexIndexType>(file_name_ptr, edges_vec);
+
+    auto graph_ptr = make_unique<Cis::Graph>();
+    map<VertexIndexType, Cis::Vertex> name_vertex_map;
+    map<VertexIndexType, VertexIndexType> index_name_map;
+    ConstructGraphWithEdgeVecForCIS<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
+
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
-    if (!is_reduce_in_merge_str.compare("reduce")) {
-        cout <<"Reduce Enabled"<<endl;
-        Parallelizer<Cis, yche::MergeWithReduce> parallelizer(thread_num, std::move(cis_ptr));
-        parallelizer.ParallelExecute();
-        cis_ptr = std::move(parallelizer.algorithm_ptr_);
-    }
-    else {
-        cout <<"Reduce Not Enabled"<<endl;
-        Parallelizer<Cis, yche::MergeSequential> parallelizer(thread_num, std::move(cis_ptr));
-        parallelizer.ParallelExecute();
-        cis_ptr = std::move(parallelizer.algorithm_ptr_);
+    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, is_reduce_in_merge_str, cis_ptr, index_name_map);
 
-    }
-//    auto communities_ptr_vec = cis_ptr->ExecuteCis();
-
-    auto communities_ptr_vec = std::move(cis_ptr->overlap_community_vec_);
-    cout << "comm_size:" << communities_ptr_vec->size() << endl;
-    for (auto &&community_ptr:*communities_ptr_vec) {
-        for (auto member_id:*community_ptr) {
-            cout << index_name_map[member_id] << ",";
-        }
-        cout << endl;
-    }
 //    getchar();
     return 0;
 }
