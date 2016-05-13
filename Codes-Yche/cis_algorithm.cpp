@@ -86,8 +86,8 @@ namespace yche {
     }
 
     unique_ptr<CommunityMembers> Cis::ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr) {
-        auto community_info = make_unique<CommunityInfo>(0, 0);
-        community_info->members_ = make_unique<CommunityMembers>();
+        auto community_info_ptr = make_unique<CommunityInfo>(0, 0);
+        community_info_ptr->members_ = make_unique<CommunityMembers>();
         //First: Initialize members and neighbors
         auto comp = [](auto &&left_ptr, auto &&right_ptr) -> bool {
             return left_ptr->member_index_ < right_ptr->member_index_;
@@ -102,7 +102,7 @@ namespace yche {
         //Tally Members of the seed, calculating individual w_in and w_out
         for (auto &seed_vertex_index :*seed_member_ptr) {
             auto member_info_ptr = make_unique<MemberInfo>(seed_vertex_index);
-            community_info->members_->insert(seed_vertex_index);
+            community_info_ptr->members_->insert(seed_vertex_index);
             Vertex seed_vertex = vertices_[seed_vertex_index];
 
             for (auto vp = adjacent_vertices(seed_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
@@ -111,11 +111,11 @@ namespace yche {
                                                         *graph_ptr_).first];
                 if (seed_member_ptr->find(neighbor_vertex_index) != seed_member_ptr->end()) {
                     member_info_ptr->w_in_ += edge_weight;
-                    community_info->w_in_ += edge_weight;
+                    community_info_ptr->w_in_ += edge_weight;
                 }
                 else {
                     member_info_ptr->w_out_ += edge_weight;
-                    community_info->w_out_ += edge_weight;
+                    community_info_ptr->w_out_ += edge_weight;
                     to_computed_neighbors.insert(neighbor_vertex_index);
                 }
             }
@@ -146,7 +146,6 @@ namespace yche {
         while (change_flag) {
             change_flag = false;
 
-
             //Add Neighbor to Check List
             vector<unique_ptr<MemberInfo>> to_check_list;
             for (auto &&neighbor_info_ptr:neighbors) {
@@ -159,24 +158,23 @@ namespace yche {
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
             //First For Neighbors Iteration
             for (auto &&neighbor_info_ptr:to_check_list) {
-                if (CalculateDensity(community_info->members_->size(), community_info->w_in_, community_info->w_out_,
+                if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
+                                     community_info_ptr->w_out_,
                                      lambda_)
-                    < CalculateDensity(community_info->members_->size() + 1,
-                                       community_info->w_in_ + neighbor_info_ptr->w_in_,
-                                       community_info->w_out_ + neighbor_info_ptr->w_out_, lambda_)) {
+                    < CalculateDensity(community_info_ptr->members_->size() + 1,
+                                       community_info_ptr->w_in_ + neighbor_info_ptr->w_in_,
+                                       community_info_ptr->w_out_ + neighbor_info_ptr->w_out_, lambda_)) {
                     //Change Neighbor to Member
                     change_flag = true;
-                    community_info->w_in_ += neighbor_info_ptr->w_in_;
-                    community_info->w_out_ += neighbor_info_ptr->w_out_;
-                    community_info->members_->insert(neighbor_info_ptr->member_index_);
+                    community_info_ptr->w_in_ += neighbor_info_ptr->w_in_;
+                    community_info_ptr->w_out_ += neighbor_info_ptr->w_out_;
+                    community_info_ptr->members_->insert(neighbor_info_ptr->member_index_);
                     neighbors.erase(neighbor_info_ptr);
 
                     auto check_vertex = vertices_[neighbor_info_ptr->member_index_];
                     members.insert(std::move(neighbor_info_ptr));
 
                     //Update Member and Neighbor List
-
-
                     for (auto vp = adjacent_vertices(check_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
                         auto check_neighbor_vertex = *vp.first;
                         auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
@@ -200,8 +198,8 @@ namespace yche {
                                 edge_weight = edge_weight_map[edge(check_neighbor_vertex,
                                                                    vertices_[neighbor_neighbor_vertex_index],
                                                                    *graph_ptr_).first];
-                                if (community_info->members_->find(neighbor_neighbor_vertex_index) !=
-                                    community_info->members_->end()) {
+                                if (community_info_ptr->members_->find(neighbor_neighbor_vertex_index) !=
+                                    community_info_ptr->members_->end()) {
                                     member_info_ptr->w_in_ += edge_weight;
                                 }
                                 else {
@@ -221,21 +219,21 @@ namespace yche {
             }
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
             for (auto &&member_info_ptr:to_check_list) {
-                if (CalculateDensity(community_info->members_->size(), community_info->w_in_, community_info->w_out_,
+                if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
+                                     community_info_ptr->w_out_,
                                      lambda_)
-                    < CalculateDensity(community_info->members_->size() - 1,
-                                       community_info->w_in_ - member_info_ptr->w_in_,
-                                       community_info->w_out_ - member_info_ptr->w_out_, lambda_)) {
+                    < CalculateDensity(community_info_ptr->members_->size() - 1,
+                                       community_info_ptr->w_in_ - member_info_ptr->w_in_,
+                                       community_info_ptr->w_out_ - member_info_ptr->w_out_, lambda_)) {
                     change_flag = true;
-                    community_info->w_in_ -= member_info_ptr->w_in_;
-                    community_info->w_out_ -= member_info_ptr->w_out_;
-                    community_info->members_->erase(member_info_ptr->member_index_);
+                    community_info_ptr->w_in_ -= member_info_ptr->w_in_;
+                    community_info_ptr->w_out_ -= member_info_ptr->w_out_;
+                    community_info_ptr->members_->erase(member_info_ptr->member_index_);
                     members.erase(member_info_ptr);
                     auto check_vertex = vertices_[member_info_ptr->member_index_];
                     neighbors.insert(std::move(member_info_ptr));
 
                     //Update Member and Neighbor List
-
                     for (auto vp = adjacent_vertices(check_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
                         auto check_neighbor_vertex = *vp.first;
                         auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
@@ -252,9 +250,9 @@ namespace yche {
                 }
             }
 
-//            community_info = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info->members_)));
+//            community_info_ptr = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info_ptr->members_)));
         }
-        return std::move(community_info->members_);
+        return std::move(community_info_ptr->members_);
     }
 
 
@@ -352,6 +350,13 @@ namespace yche {
             }
         }
     }
+
+    void Cis::UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
+                                                  unique_ptr<CommunityInfo> community_info_ptr, auto &members,
+                                                  auto &neighbors, MutationType mutation_type) {
+        auto
+    }
+
 
 }
 

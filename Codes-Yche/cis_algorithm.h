@@ -23,12 +23,9 @@ namespace yche {
     using IndexType = unsigned long;
     using CommunityMembers = set<IndexType>;
 
-    struct CommunityInfo {
-        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
-
-        unique_ptr<CommunityMembers> members_;
-        double w_in_;
-        double w_out_;
+    enum class MutationType {
+        add_neighbor,
+        remove_member
     };
 
     struct MemberInfo {
@@ -43,7 +40,24 @@ namespace yche {
         IndexType member_index_;
         double w_in_;
         double w_out_;
+
+        void UpdateInfoForMutation(double edge_weight, MutationType mutation_type) {
+
+        }
     };
+
+    struct CommunityInfo {
+        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
+
+        unique_ptr<CommunityMembers> members_;
+        double w_in_;
+        double w_out_;
+
+        void UpdateInfoForMutation(const MemberInfo &member_info, MutationType mutation_type) {
+
+        }
+    };
+
 
     class Cis {
     public:
@@ -107,13 +121,14 @@ namespace yche {
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
                 for (auto &&right_merge_data:*right_data_ptr) {
-                    MergeToCommunityCollection(std::move(left_data_ptr),std::move(right_merge_data));
+                    MergeToCommunityCollection(std::move(left_data_ptr), std::move(right_merge_data));
                 }
                 return left_data_ptr;
             };
         }
 
     private:
+
         map<int, int> vertex_name_map_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
@@ -123,6 +138,10 @@ namespace yche {
         double CalculateDensity(const IndexType &size, const double &w_in, const double &w_out, const double &lambda);
 
         unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMembers> community_ptr);
+
+        void UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
+                                                 unique_ptr<CommunityInfo> community_info_ptr, auto &members,
+                                                 auto &neighbors, MutationType mutation_type);
 
         unique_ptr<CommunityMembers> ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr);
 
@@ -134,7 +153,8 @@ namespace yche {
                                                          unique_ptr<CommunityMembers> &&right_community);
 
 
-        void MergeToCommunityCollection(decltype(overlap_community_vec_)&& community_collection, unique_ptr<MergeData> &&result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
+                                        unique_ptr<MergeData> &&result);
 
     };
 }
