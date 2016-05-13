@@ -70,6 +70,7 @@ namespace yche {
                                         unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
         //End of Implementation For Reducer Traits
 
+        [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
 
         Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
@@ -90,7 +91,7 @@ namespace yche {
             ReduceComputation = [this](
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
-                MergeToCommunityCollection(std::move(left_data_ptr),std::move(right_data_ptr));
+                MergeToCommunityCollection(std::move(left_data_ptr), std::move(right_data_ptr));
                 return left_data_ptr;
             };
         }
@@ -104,8 +105,17 @@ namespace yche {
 
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex ego_vertex);
 
-        CommunityVecPtr LabelPropagationOnSubGraph(
-                unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
+        CommunityVecPtr GetCommunitiesBasedOnLabelPropagationResult(unique_ptr<SubGraph> &sub_graph_ptr,
+                                                                    Vertex &ego_vertex,
+                                                                    const int &curr_index_indicator);
+
+        CommunityVecPtr LabelPropagationOnSubGraph(unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
+
+        void DoLabelPropagationOnSingleVertex(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_Vertex,
+                                              std::mt19937 &rand_generator, const int &last_index_indicator,
+                                              const int &curr_index_indicator,
+                                              property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map,
+                                              property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map);
 
         double GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community);
 
