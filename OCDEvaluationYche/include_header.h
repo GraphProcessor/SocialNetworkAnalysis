@@ -9,6 +9,7 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <cmath>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/algorithm/string.hpp>
