@@ -103,17 +103,17 @@ namespace yche {
             double *in_degree_arr = new double[comm_size];
             double *out_degree_arr = new double[comm_size];
 
-            for(auto i=0;i<comm_size;i++){
-                f_sum_in_arr[i]=0;
-                f_sum_out_arr[i]=0;
-                in_degree_arr[i]=0;
-                out_degree_arr[i]=0;
+            for (auto i = 0; i < comm_size; i++) {
+                f_sum_in_arr[i] = 0;
+                f_sum_out_arr[i] = 0;
+                in_degree_arr[i] = 0;
+                out_degree_arr[i] = 0;
             }
 
             for (auto i = 0; i < comm_size; i++) {
                 f_value_matrix[i] = new double[comm_size];
-                for(auto j=0;j<comm_size;j++)
-                    f_value_matrix[i][j]=0;
+                for (auto j = 0; j < comm_size; j++)
+                    f_value_matrix[i][j] = 0;
             }
 
             bool adjacent_flag;
@@ -133,13 +133,13 @@ namespace yche {
                             f_value_matrix[i][j] = overlap_coefficient_calc_func_(
                                     community_belongings_count_reverse_vec_[start_index],
                                     community_belongings_count_reverse_vec_[end_index]);
-                            if(f_value_matrix[i][j]>1){
-                                cout <<"shit:"<<f_value_matrix[i][j]<<endl;
+                            if (f_value_matrix[i][j] > 1) {
+                                cout << "shit:" << f_value_matrix[i][j] << endl;
                             }
                             f_sum_out_arr[i] += f_value_matrix[i][j];
                             f_sum_in_arr[j] += f_value_matrix[i][j];
-                            if(f_value_matrix[i][j]>1){
-                                cout <<"shit:!!!"<<f_value_matrix[i][j]<<endl;
+                            if (f_value_matrix[i][j] > 1) {
+                                cout << "shit:!!!" << f_value_matrix[i][j] << endl;
                             }
                         }
                     }
@@ -156,8 +156,8 @@ namespace yche {
                     if (i == j)
                         continue;
                     if (f_value_matrix[i][j] > PRECISION) {
-                        if(f_value_matrix[i][j]>1){
-                            cout <<"shit:" << i<<","<<j<<" :"<<f_value_matrix[i][j]<<endl;
+                        if (f_value_matrix[i][j] > 1) {
+                            cout << "shit:" << i << "," << j << " :" << f_value_matrix[i][j] << endl;
                         }
                         modularity_rate += f_value_matrix[i][j] -
                                            out_degree_arr[i] * in_degree_arr[j] * f_sum_out_arr[i] * f_sum_in_arr[j] /
@@ -175,7 +175,7 @@ namespace yche {
                 delete[] f_value_matrix[i];
             }
             delete[] f_value_matrix;
-            cout << "Curr Modularity:"<<modularity_rate/edge_num << endl <<endl;
+            cout << "Curr Modularity:" << modularity_rate / edge_num << endl << endl;
         }
 
         modularity_rate = modularity_rate / edge_num;
@@ -185,6 +185,7 @@ namespace yche {
     template<typename CoefficientFunc>
     void ModularityLinkBelonging<CoefficientFunc>::InitAlphaVertexCommunity() {
         property_map<Graph, vertex_index_t>::type vertex_index_map = get(vertex_index, *graph_ptr_);
+        long long sum = 0;
         for (auto &community_ptr :overlap_communities_) {
             for (auto &vertex :*community_ptr) {
                 community_belongings_count_vec_[vertex_index_map[vertex]]++;
@@ -194,8 +195,11 @@ namespace yche {
         for (auto i = 0; i < community_belongings_count_vec_.size(); i++) {
             if (community_belongings_count_vec_[i] != 0) {
                 community_belongings_count_reverse_vec_[i] = 1.0 / community_belongings_count_vec_[i];
+                sum += community_belongings_count_vec_[i];
+//                cout << "node " << i << ":" << community_belongings_count_reverse_vec_[i] << endl;
             }
         }
+        cout << "sum" << sum << endl;
         auto num_vertices = boost::num_vertices(*graph_ptr_);
         in_degree_vec_.resize(num_vertices);
         out_degree_vec_.resize(num_vertices);
