@@ -354,43 +354,8 @@ namespace yche {
     void Cis::UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
                                                   unique_ptr<CommunityInfo> community_info_ptr, auto &members,
                                                   auto &neighbors, MutationType mutation_type) {
-        auto
+        
     }
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
