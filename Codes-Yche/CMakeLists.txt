@@ -4,7 +4,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14  -O3")
 
 set(CMAKE_CXX_COMPILER "/ghome/yche/usr/local/bin/g++")
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS regex)
+message(${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
