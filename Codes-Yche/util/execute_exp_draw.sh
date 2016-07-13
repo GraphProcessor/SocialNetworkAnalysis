@@ -1,3 +1,4 @@
+cd ..
 cd util/
 python get_statistics.py ../demo_output_files/  collaboration
 python get_statistics.py ../demo_output_files/  collaboration_with_reduce

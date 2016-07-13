@@ -1,3 +1,4 @@
+cd ..
 source ./run_cis_demon.sh
 echo 'start'
 run_with_different_thread_count demo_input_files/collaboration_edges_input.csv demo_output_files/collaboration_  seq
