@@ -20,9 +20,11 @@ python get_statistics.py ../demo_output_files/  facebook_with_reduce_
 #Build & Run & Exp
 - In current directory, do as follows to compile the program, getting the result of executables, i.e, CISTest and Daemon_Test.  
 ```zsh
-cmake .
+cmake . -DBoost_NO_BOOST_CMAKE=ON
 make
-```
+```   
+Add The Flag to make it correctly built on the GPU-Cluster.
+
 - Then source the [shell script](./run_cis_demon.sh) and run the function in that script as follows, the first argument is the test input file path,
  the second argument is the output file directory and your prefix for the output file name.  
 ```zsh
