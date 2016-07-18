@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(Codes_Yche)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14  -O3")
 
-set(CMAKE_CXX_COMPILER "/ghome/yche/usr/local/bin/g++")
+#set(CMAKE_CXX_COMPILER "/ghome/yche/usr/local/bin/g++")
 
 find_package(Boost REQUIRED COMPONENTS regex)
 message(${Boost_LIBRARIES})

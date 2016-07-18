@@ -39,8 +39,12 @@ namespace yche {
         using ReduceData = typename Algorithm::ReduceData;
 
         pthread_t *thread_handles;
-        vector<vector<unique_ptr<Task<BasicData>>>> local_computation_task_vecs_;
+        unique_ptr<vector<unique_ptr<Task<BasicData>>>> global_computation_task_vec_ptr_;
+//        vector<vector<unique_ptr<Task<BasicData>>>> local_computation_task_vecs_;
         vector<vector<unique_ptr<Task<MergeData>>>> merge_task_vecs_;
+        vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
+//        vector<pair<unsigned long, unsigned long>>  merge_range_index_vec_;
+
         vector<sem_t> sem_mail_boxes_;
         sem_t sem_barrier_;
         sem_t sem_counter_;
@@ -86,12 +90,9 @@ namespace yche {
             pthread_mutex_init(&merge_mutex_, NULL);
 
             is_rec_mail_empty_.resize(thread_count_, true);
-            local_computation_task_vecs_.resize(thread_count_);
-            merge_task_vecs_.resize(thread_count_);
-
             is_end_of_local_computation = false;
             is_any_merging = false;
-
+            local_computation_range_index_vec_.resize(thread_count);
             idle_count_ = 0;
             barrier_count_ = 0;
         }
@@ -123,7 +124,7 @@ namespace yche {
         elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
         cout << "Task Init Cost :" << elapsed << endl;
         cout << "Finish Init" << endl;
-        cout << local_computation_task_vecs_.size() << endl;
+//        cout << local_computation_task_vecs_.size() << endl;
         vector<BundleInput *> input_bundle_vec(thread_count_);
         cout << "Thread_count:" << thread_count_ << endl;
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
@@ -156,24 +157,18 @@ namespace yche {
     template<typename Algorithm, typename MergeType>
     void Parallelizer<Algorithm, MergeType>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
-        auto basic_tasks_ptr = make_unique<vector<unique_ptr<Task<BasicData>>>>();
+        global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<Task<BasicData>>>>();
         for (auto &&basic_data_ptr:*basic_data_vec_ptr) {
-            basic_tasks_ptr->push_back(make_unique<Task<BasicData>>(std::move(basic_data_ptr)));
+            global_computation_task_vec_ptr_->push_back(make_unique<Task<BasicData>>(std::move(basic_data_ptr)));
         }
-        auto task_per_thread = basic_tasks_ptr->size() / thread_count_;
-        //Average Partitioning Tasks
-        for (auto i = 0; i < thread_count_; ++i) {
-            if (i == thread_count_ - 1) {
-                for (auto iter = basic_tasks_ptr->begin() + task_per_thread * i;
-                     iter != basic_tasks_ptr->end(); ++iter)
-                    local_computation_task_vecs_[i].push_back(std::move((*iter)));
-            }
-            else {
-                for (auto iter = basic_tasks_ptr->begin() + task_per_thread * i;
-                     iter != basic_tasks_ptr->begin() + task_per_thread * (i + 1); ++iter)
-                    local_computation_task_vecs_[i].push_back(std::move((*iter)));
-            }
+        auto whole_size = global_computation_task_vec_ptr_->size();
+        auto avg_size = whole_size / thread_count_;
+        for (auto i = 0; i < thread_count_ - 1; i++) {
+            local_computation_range_index_vec_[i].first = avg_size * i;
+            local_computation_range_index_vec_[i].second = avg_size * (i + 1) - 1;
         }
+        local_computation_range_index_vec_[thread_count_ - 1].first = avg_size * (thread_count_ - 1);
+        local_computation_range_index_vec_[thread_count_ - 1].second = whole_size - 1;
     }
 
     template<typename Algorithm, typename MergeType>
@@ -187,11 +182,12 @@ namespace yche {
         }
         auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
-        auto &local_computation_queue = local_computation_task_vecs_[thread_index];
+        auto &local_computation_range_pair = local_computation_range_index_vec_[thread_index];
         auto &local_merge_queue = merge_task_vecs_[thread_index];
         while (true) {
 
-            auto local_computation_task_size = local_computation_queue.size();
+            auto local_computation_task_size =
+                    local_computation_range_pair.second - local_computation_range_pair.first + 1;
             if (local_computation_task_size == 0) {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_local_computation = true;
@@ -222,13 +218,14 @@ namespace yche {
             else {
                 if (local_computation_task_size > 1) {
                     //Check Flag
-                    auto &neighbor_computation_queue = local_computation_task_vecs_[src_index];
+                    auto &neighbor_computation_range_pair = local_computation_range_index_vec_[src_index];
                     if (is_rec_mail_empty_[thread_index] == false) {
-                        for (auto iter = local_computation_queue.begin() + local_computation_queue.size() / 2;
-                             iter < local_computation_queue.end(); ++iter) {
-                            neighbor_computation_queue.push_back(std::move(*iter));
-                            local_computation_queue.erase(iter);
-                        }
+                        // to be continued
+//                        for (auto iter = local_computation_range_pair.begin() + local_computation_range_pair.size() / 2;
+//                             iter < local_computation_range_pair.end(); ++iter) {
+//                            neighbor_computation_range_pair.push_back(std::move(*iter));
+//                            local_computation_range_pair.erase(iter);
+//                        }
                         is_rec_mail_empty_[thread_index] = true;
 
                         sem_post(&sem_mail_boxes_[thread_index]);
@@ -237,8 +234,8 @@ namespace yche {
 
                 //Do Local Computation
                 auto result = algorithm_ptr_->LocalComputation(
-                        std::move(local_computation_queue.front()->data_ptr_));
-                local_computation_queue.erase(local_computation_queue.begin());
+                        std::move(local_computation_range_pair.front()->data_ptr_));
+                local_computation_range_pair.erase(local_computation_range_pair.begin());
                 if (is_any_merging) {
                     local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                 }
