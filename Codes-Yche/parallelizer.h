@@ -40,10 +40,8 @@ namespace yche {
 
         pthread_t *thread_handles;
         unique_ptr<vector<unique_ptr<Task<BasicData>>>> global_computation_task_vec_ptr_;
-//        vector<vector<unique_ptr<Task<BasicData>>>> local_computation_task_vecs_;
         vector<vector<unique_ptr<Task<MergeData>>>> merge_task_vecs_;
         vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
-//        vector<pair<unsigned long, unsigned long>>  merge_range_index_vec_;
 
         vector<sem_t> sem_mail_boxes_;
         sem_t sem_barrier_;
@@ -93,6 +91,7 @@ namespace yche {
             is_end_of_local_computation = false;
             is_any_merging = false;
             local_computation_range_index_vec_.resize(thread_count);
+            merge_task_vecs_.resize(thread_count_);
             idle_count_ = 0;
             barrier_count_ = 0;
         }
@@ -220,22 +219,23 @@ namespace yche {
                     //Check Flag
                     auto &neighbor_computation_range_pair = local_computation_range_index_vec_[src_index];
                     if (is_rec_mail_empty_[thread_index] == false) {
-                        // to be continued
-//                        for (auto iter = local_computation_range_pair.begin() + local_computation_range_pair.size() / 2;
-//                             iter < local_computation_range_pair.end(); ++iter) {
-//                            neighbor_computation_range_pair.push_back(std::move(*iter));
-//                            local_computation_range_pair.erase(iter);
-//                        }
+                        //update neighbor computatin range pair
+                        neighbor_computation_range_pair.second = local_computation_range_pair.second;
+                        neighbor_computation_range_pair.first =
+                                neighbor_computation_range_pair.second - local_computation_task_size / 2 + 1;
+                        local_computation_range_pair.second= neighbor_computation_range_pair.first-1;
+//                        cout << "update:" << neighbor_computation_range_pair.first << "," <<
+//                        neighbor_computation_range_pair.second << endl;
+
                         is_rec_mail_empty_[thread_index] = true;
 
                         sem_post(&sem_mail_boxes_[thread_index]);
                     }
                 }
-
                 //Do Local Computation
                 auto result = algorithm_ptr_->LocalComputation(
-                        std::move(local_computation_range_pair.front()->data_ptr_));
-                local_computation_range_pair.erase(local_computation_range_pair.begin());
+                        std::move((*global_computation_task_vec_ptr_)[local_computation_range_pair.first]->data_ptr_));
+                local_computation_range_pair.first++;
                 if (is_any_merging) {
                     local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                 }
@@ -324,8 +324,6 @@ namespace yche {
             cout << "Specialization Error" << endl;
         }
     }
-
-
 }
 
 
