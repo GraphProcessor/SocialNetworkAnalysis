@@ -6,6 +6,7 @@
 #define CODES_YCHE_REDUCER_H
 
 #include "include_header.h"
+#include "configuration.h"
 
 namespace yche {
     using namespace std;
@@ -22,10 +23,13 @@ namespace yche {
         unsigned long thread_count_;
         unsigned long data_count_;
         unsigned long idle_count_;
+        unsigned long barrier_count_;
+        sem_t sem_barrier_counter_;
+        sem_t sem_barrier_;
 
         pthread_t *thread_handles;
 
-        vector<unique_ptr<Data>> global_data_vec_;
+        vector<unique_ptr<Data>> global_reduce_data_vec_;
         vector<vector<unique_ptr<Data>>> local_data_vec_;
         vector<sem_t> sem_mail_boxes_;
         vector<bool> is_rec_mail_empty_;
@@ -57,6 +61,10 @@ namespace yche {
             thread_handles = new pthread_t[thread_count_];
             data_count_ = 0;
             sem_mail_boxes_.resize(thread_count_);
+
+            sem_init(&sem_barrier_, 0, 0);
+            sem_init(&sem_barrier_counter_, 0, 1);
+
             for (auto i = 0; i < thread_count_; ++i) {
                 sem_init(&sem_mail_boxes_[i], 0, 0);
             }
@@ -80,7 +88,8 @@ namespace yche {
             pthread_mutex_destroy(&task_taking_mutex_);
             pthread_mutex_destroy(&counter_mutex_);
             pthread_cond_destroy(&task_taking_cond_var);
-
+            sem_destroy(&sem_barrier_);
+            sem_destroy(&sem_barrier_counter_);
             delete[]thread_handles;
         }
     };
@@ -120,7 +129,10 @@ namespace yche {
         auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
         auto &local_reduce_data_vec = local_data_vec_[thread_index];
-
+        struct timespec begin, end;
+        if (thread_index == 0) {
+            clock_gettime(CLOCK_MONOTONIC, &begin);
+        }
         if (thread_count_ < data_count_) {
             while (true) {
                 auto reduce_data_size = local_reduce_data_vec.size();
@@ -175,44 +187,79 @@ namespace yche {
             }
         }
 
+
+        double elapsed;
+        //Barrier
+        sem_wait(&sem_barrier_counter_);
+        if (barrier_count_ == thread_count_ - 1) {
+            barrier_count_ = 0;
+            sem_post(&sem_barrier_counter_);
+            for (auto thread = 0; thread < thread_count_ - 1; thread++) {
+                sem_post(&sem_barrier_);
+            }
+        }
+        else {
+            barrier_count_++;
+            sem_post(&sem_barrier_counter_);
+            sem_wait(&sem_barrier_);
+        }
+
+        if (thread_index == 0) {
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            elapsed = end.tv_sec - begin.tv_sec;
+            elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
+            cout << "Before Global Variable Task Acq In First-Phase Reduce:" << elapsed << endl;
+        }
+
+#ifndef REDUCE_2ND_PHASE_SEQUENTIAL
+        //Reduce Data Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         while (!is_end_of_reduce_) {
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
-
             for (auto &data_ptr: local_reduce_data_vec) {
-                global_data_vec_.push_back(std::move(data_ptr));
+                global_reduce_data_vec_.push_back(std::move(data_ptr));
             }
             local_reduce_data_vec.clear();
 
-            if (global_data_vec_.size() >= 2) {
+            //Fetch Data : Busy Worker
+            if (global_reduce_data_vec_.size() >= 2) {
                 for (auto i = 0; i < 2; i++) {
-                    local_reduce_data_vec.push_back(std::move(global_data_vec_.back()));
-                    global_data_vec_.erase(global_data_vec_.end() - 1);
+                    local_reduce_data_vec.push_back(std::move(global_reduce_data_vec_.back()));
+                    global_reduce_data_vec_.erase(global_reduce_data_vec_.end() - 1);
                 }
                 pthread_mutex_unlock(&task_taking_mutex_);
                 //Do the computation After release the lock
-
+                if(is_end_of_reduce_)
+                    break;
                 local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
                                                                               std::move(local_reduce_data_vec[1])));
                 local_reduce_data_vec.resize(1);
-
             }
+            //Judge Whether The Whole Computation Finished
             else {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_reduce_ = true;
-
                     pthread_cond_broadcast(&task_taking_cond_var);
                 }
                 else {
                     idle_count_++;
-
+                    //Idle Worker, Go to Cond Var Buffer
                     while (pthread_cond_wait(&task_taking_cond_var, &task_taking_mutex_) != 0);
                 }
                 pthread_mutex_unlock(&task_taking_mutex_);
 
             }
         }
+#endif
+
+        //Send Back And Ask Corresponding One to Finish
+#ifdef REDUCE_2ND_PHASE_SEQUENTIAL
+        pthread_mutex_lock(&task_taking_mutex_);
+        global_reduce_data_vec_.resize(thread_count_);
+        pthread_mutex_unlock(&task_taking_mutex_);
+        global_reduce_data_vec_[thread_index]=std::move(local_reduce_data_vec[0]);
+#endif
     }
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
@@ -243,7 +290,19 @@ namespace yche {
             delete input_bundle_vec[i];
         }
 
-        return std::move(global_data_vec_[0]);
+#ifdef REDUCE_2ND_PHASE_SEQUENTIAL
+        //Do Left Reduce
+        auto global_reduce_data_vec_size =global_reduce_data_vec_.size();
+        while(global_reduce_data_vec_size>1){
+            global_reduce_data_vec_[global_reduce_data_vec_size-2]=
+                    std::move(reduce_compute_function_(std::move(global_reduce_data_vec_[global_reduce_data_vec_size-1]),
+                                                       std::move(global_reduce_data_vec_[global_reduce_data_vec_size-2])));
+            global_reduce_data_vec_size--;
+        }
+#endif
+        return std::move(global_reduce_data_vec_[0]);
+
+
     }
 
 

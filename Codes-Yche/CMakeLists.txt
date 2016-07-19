@@ -11,7 +11,7 @@ find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
 
-set(ParallelUtilFiles include_header.h parallelizer.h reducer.h)
+set(ParallelUtilFiles include_header.h parallelizer.h reducer.h configuration.h)
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_daemon.cpp damon_algorithm.cpp damon_algorithm.h)
 set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)

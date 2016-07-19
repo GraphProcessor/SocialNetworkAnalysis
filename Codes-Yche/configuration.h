@@ -1,0 +1,10 @@
+//
+// Created by cheyulin on 7/19/16.
+//
+
+#ifndef CODES_YCHE_CONFIGURATION_H
+#define CODES_YCHE_CONFIGURATION_H
+
+//#define REDUCE_2ND_PHASE_SEQUENTIAL
+
+#endif //CODES_YCHE_CONFIGURATION_H
