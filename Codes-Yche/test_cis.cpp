@@ -37,7 +37,7 @@ void ConstructGraphWithEdgeVecForCIS(unique_ptr<Cis::Graph> &graph_ptr,
 }
 
 int main(int argc, char *argv[]) {
-
+    std::ios_base::sync_with_stdio(false);
     long thread_num = atol(argv[1]);
     char *file_name_ptr = argv[2];
     char *is_reduce_in_merge = argv[3];

@@ -60,6 +60,7 @@ namespace yche {
 
         }
         //Print the result
+#ifndef NOT_COUT_COMMUNITY_RESULT
         auto communities_ptr_vec = std::move(algorithm_ptr->overlap_community_vec_);
         cout << "comm_size:" << communities_ptr_vec->size() << endl;
         for (auto &&community_ptr:*communities_ptr_vec) {
@@ -68,6 +69,8 @@ namespace yche {
             }
             cout << endl;
         }
+#endif
+
     }
 }
 #endif //CODES_YCHE_INPUT_OUTPUT_HANDLER_H
