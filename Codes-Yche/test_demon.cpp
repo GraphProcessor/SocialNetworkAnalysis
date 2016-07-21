@@ -55,8 +55,6 @@ int main(int argc, char *argv[]) {
     ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, is_reduce_in_merge_str, daemon_ptr,
                                                               index_name_map);
 
-//    getchar();
-
     return 0;
 }
 

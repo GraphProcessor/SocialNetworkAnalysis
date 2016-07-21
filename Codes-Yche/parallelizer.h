@@ -123,14 +123,12 @@ namespace yche {
         elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
         cout << "Task Init Cost :" << elapsed << endl;
         cout << "Finish Init" << endl;
-//        cout << local_computation_task_vecs_.size() << endl;
         vector<BundleInput *> input_bundle_vec(thread_count_);
         cout << "Thread_count:" << thread_count_ << endl;
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
             input_bundle_vec[thread_id]->parallelizer_ptr_ = this;
             input_bundle_vec[thread_id]->thread_id_ = thread_id;
-//            cout << input_bundle_vec[thread_id]->thread_id_ << endl;
             pthread_create(&thread_handles[thread_id], NULL, this->InvokeLoopCommThreadFunction,
                            (void *) input_bundle_vec[thread_id]);
         }
@@ -224,8 +222,6 @@ namespace yche {
                         neighbor_computation_range_pair.first =
                                 neighbor_computation_range_pair.second - local_computation_task_size / 2 + 1;
                         local_computation_range_pair.second= neighbor_computation_range_pair.first-1;
-//                        cout << "update:" << neighbor_computation_range_pair.first << "," <<
-//                        neighbor_computation_range_pair.second << endl;
 
                         is_rec_mail_empty_[thread_index] = true;
 
@@ -290,7 +286,7 @@ namespace yche {
     template<typename Algorithm, typename MergeType>
     void Parallelizer<Algorithm, MergeType>::DoLeftMerging() {
         vector<unique_ptr<ReduceData>> reduce_data_ptr_vec;
-        //Do Left Merging
+        //Do Left Merging, Current Impl Do not care about the branch cost since it is only called once
         if (std::is_same<MergeType, yche::MergeWithReduce>::value) {
             reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->overlap_community_vec_));
             for (auto i = 0; i < thread_count_; i++) {

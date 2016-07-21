@@ -10,18 +10,16 @@
 using namespace boost;
 using namespace std;
 
-//Add User-Defined Tags
+//Add User-Defined Tags For Boost Graph Library Usage
 enum vertex_weight_t {
     vertex_weight
 };
 enum vertex_label_t {
     vertex_label
 };
-
 enum vertex_id_t {
     vertex_id
 };
-
 namespace boost {
     BOOST_INSTALL_PROPERTY(vertex, weight);
     BOOST_INSTALL_PROPERTY(vertex, label);
@@ -31,20 +29,21 @@ namespace boost {
 namespace yche {
     class Demon {
     public:
+        //Graph Representation Related Types
         using IndexType = unsigned long;
         using VertexProperties = property<vertex_weight_t, double,
                 property<vertex_index_t, IndexType >>;
-        //Edge Vertex
         using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties>;
+        using Vertex = graph_traits<Graph>::vertex_descriptor;
 
+        //Label Propagation Related Types
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, IndexType,
                         property<vertex_label_t, array<IndexType, 2>>>>;
-
         using SubGraph = adjacency_list<setS, vecS, undirectedS, SubGraphVertexProperties>;
-
-        using Vertex = graph_traits<Graph>::vertex_descriptor;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
+
+        //Overlapping Community Results Related Types
         using CommunityPtr = unique_ptr<vector<IndexType>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
@@ -58,7 +57,6 @@ namespace yche {
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
         void MergeToGlobal(unique_ptr<MergeData> &&result);
-        //End Implementation for Paralleizer Traits
 
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = vector<CommunityPtr>;
@@ -69,7 +67,6 @@ namespace yche {
 
         function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
                                         unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
-        //End of Implementation For Reducer Traits
 
         [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
@@ -81,7 +78,7 @@ namespace yche {
             overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
 
             CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
-                auto cmp = [](auto &&tmp_left, auto &&tmp_right) -> bool {
+                auto cmp = [](auto &tmp_left, auto &tmp_right) -> bool {
                     return tmp_left->size() < tmp_right->size();
                 };
                 auto iter1 = max_element(left->begin(), left->end(), cmp);
@@ -92,7 +89,7 @@ namespace yche {
             ReduceComputation = [this](
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
-                MergeToCommunityCollection(std::move(left_data_ptr), std::move(right_data_ptr));
+                MergeToCommunityCollection(left_data_ptr, right_data_ptr);
                 return left_data_ptr;
             };
         }
@@ -106,24 +103,25 @@ namespace yche {
 
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex ego_vertex);
 
-        CommunityVecPtr GetCommunitiesBasedOnLabelPropagationResult(unique_ptr<SubGraph> &sub_graph_ptr,
-                                                                    Vertex &ego_vertex,
-                                                                    const int &curr_index_indicator);
-
-        CommunityVecPtr LabelPropagationOnSubGraph(unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
-
         void DoLabelPropagationOnSingleVertex(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_Vertex,
                                               std::mt19937 &rand_generator, const int &last_index_indicator,
                                               const int &curr_index_indicator,
                                               property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map,
                                               property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map);
 
+
+        CommunityVecPtr GetCommunitiesBasedOnLabelPropagationResult(unique_ptr<SubGraph> &sub_graph_ptr,
+                                                                    Vertex &ego_vertex,
+                                                                    const int &curr_index_indicator);
+
+        CommunityVecPtr DoLabelPropagationOnSubGraph(unique_ptr<SubGraph> sub_graph_ptr, Vertex ego_vertex);
+
         double GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        void MergeTwoCommunities(CommunityPtr &left_community, CommunityPtr &right_community);
+        void MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        void MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
-                                        unique_ptr<MergeData> &&result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
+                                        unique_ptr<MergeData> &result);
 
     };
 }

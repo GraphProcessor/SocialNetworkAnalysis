@@ -57,52 +57,11 @@ namespace yche {
         return std::move(ego_net_ptr);
     }
 
-    //To be optimized Part since the cache-unfriendly access of set(RB_Tree)
-    //Now Implementation : Replace the set with vector
-    Demon::CommunityVecPtr Demon::GetCommunitiesBasedOnLabelPropagationResult(
-            unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, const int &curr_index_indicator) {
-        property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map =
-                get(vertex_label, *sub_graph_ptr);
-        property_map<SubGraph, vertex_id_t>::type sub_vertex_id_map =
-                get(vertex_id, *sub_graph_ptr);
-        property_map<Graph, vertex_index_t>::type vertex_index_map =
-                get(vertex_index, *graph_ptr_);
-
-        map<int, CommunityPtr> label_indices_map;
-
-        for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
-            auto sub_vertex = *vp.first;
-            auto v_label = sub_vertex_label_map[sub_vertex][curr_index_indicator];
-            if (label_indices_map.find(v_label) == label_indices_map.end()) {
-                CommunityPtr community = make_unique<vector<IndexType>>();
-                label_indices_map.insert(make_pair(v_label, std::move(community)));
-            }
-
-            label_indices_map[v_label]->push_back(sub_vertex_id_map[sub_vertex]);
-        }
-
-        CommunityVecPtr communities_vec_ptr = make_unique<vector<CommunityPtr>>();
-        for (auto iter = label_indices_map.begin(); iter != label_indices_map.end(); ++iter) {
-            //Add Ego Vertex
-            //Make The Community Vector Sorted
-            sort(iter->second->begin(),iter->second->end());
-            iter->second->push_back(vertex_index_map[ego_vertex]);
-            communities_vec_ptr->push_back(std::move(iter->second));
-        }
-        if (label_indices_map.size() == 0) {
-            //Outlier
-            CommunityPtr comm_ptr = make_unique<vector<IndexType>>();
-            comm_ptr->push_back(vertex_index_map[ego_vertex]);
-            communities_vec_ptr->push_back(std::move(comm_ptr));
-        }
-        return std::move(communities_vec_ptr);
-    }
-
     void Demon::DoLabelPropagationOnSingleVertex(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_Vertex,
-                                                  std::mt19937 &rand_generator, const int &last_index_indicator,
-                                                  const int &curr_index_indicator,
-                                                  property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map,
-                                                  property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map) {
+                                                 std::mt19937 &rand_generator, const int &last_index_indicator,
+                                                 const int &curr_index_indicator,
+                                                 property_map<SubGraph, vertex_weight_t>::type sub_vertex_weight_map,
+                                                 property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map) {
 
         auto label_weight_map = map<IndexType, double>();
 
@@ -149,10 +108,51 @@ namespace yche {
 
             sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
         }
-        //Update Label
     }
 
-    Demon::CommunityVecPtr Demon::LabelPropagationOnSubGraph
+    //To be optimized Part since the cache-unfriendly access of set(RB_Tree)
+    //Now Implementation : Replace the set with vector to guarantee better cache-locality
+    Demon::CommunityVecPtr Demon::GetCommunitiesBasedOnLabelPropagationResult(
+            unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, const int &curr_index_indicator) {
+        property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map =
+                get(vertex_label, *sub_graph_ptr);
+        property_map<SubGraph, vertex_id_t>::type sub_vertex_id_map =
+                get(vertex_id, *sub_graph_ptr);
+        property_map<Graph, vertex_index_t>::type vertex_index_map =
+                get(vertex_index, *graph_ptr_);
+
+        map<int, CommunityPtr> label_indices_map;
+
+        for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
+            auto sub_vertex = *vp.first;
+            auto v_label = sub_vertex_label_map[sub_vertex][curr_index_indicator];
+            if (label_indices_map.find(v_label) == label_indices_map.end()) {
+                CommunityPtr community = make_unique<vector<IndexType>>();
+                label_indices_map.insert(make_pair(v_label, std::move(community)));
+            }
+
+            label_indices_map[v_label]->push_back(sub_vertex_id_map[sub_vertex]);
+        }
+
+        CommunityVecPtr communities_vec_ptr = make_unique<vector<CommunityPtr>>();
+        for (auto iter = label_indices_map.begin(); iter != label_indices_map.end(); ++iter) {
+            //Add Ego Vertex
+            //Make The Community Vector Sorted
+            sort(iter->second->begin(), iter->second->end());
+            iter->second->push_back(vertex_index_map[ego_vertex]);
+            communities_vec_ptr->push_back(std::move(iter->second));
+        }
+        if (label_indices_map.size() == 0) {
+            //Outlier
+            CommunityPtr comm_ptr = make_unique<vector<IndexType>>();
+            comm_ptr->push_back(vertex_index_map[ego_vertex]);
+            communities_vec_ptr->push_back(std::move(comm_ptr));
+        }
+        return std::move(communities_vec_ptr);
+    }
+
+
+    Demon::CommunityVecPtr Demon::DoLabelPropagationOnSubGraph
             (unique_ptr<Demon::SubGraph> sub_graph_ptr, Demon::Vertex ego_vertex) {
 
         int iteration_num = 0;
@@ -172,12 +172,11 @@ namespace yche {
             static thread_local random_device rand_d;
             static thread_local std::mt19937 rand_generator(rand_d());
             shuffle(all_sub_vertices.begin(), all_sub_vertices.end(), rand_generator);
-//            cout << "Enter One Round" << endl;
             //Each V Do One Propagation
             for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter != all_sub_vertices.end(); ++vertex_iter) {
                 //Label Propagation
                 DoLabelPropagationOnSingleVertex(sub_graph_ptr, *vertex_iter, rand_generator, last_index_indicator,
-                                                 curr_index_indicator,sub_vertex_weight_map,sub_vertex_label_map);
+                                                 curr_index_indicator, sub_vertex_weight_map, sub_vertex_label_map);
             }
 
             iteration_num++;
@@ -186,15 +185,6 @@ namespace yche {
 
         return std::move(
                 GetCommunitiesBasedOnLabelPropagationResult(sub_graph_ptr, ego_vertex, curr_index_indicator));
-    }
-
-    void Demon::MergeTwoCommunities(CommunityPtr &left_community, CommunityPtr &right_community) {
-        //Executed After GetTwoCommunitiesCoverRate with Sorted left_community & right_community
-        vector<IndexType> union_set(left_community->size() + right_community->size());
-        auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
-                                  right_community->end(), union_set.begin());
-        union_set.resize(iter_end - union_set.begin());
-        left_community= make_unique<vector<IndexType>>(std::move(union_set));
     }
 
     double Demon::GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community) {
@@ -209,8 +199,17 @@ namespace yche {
         return rate;
     }
 
-    void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
-                                            unique_ptr<MergeData> &&result) {
+    void Demon::MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community) {
+        //Executed After GetTwoCommunitiesCoverRate with Sorted left_community & right_community
+        vector<IndexType> union_set(left_community->size() + right_community->size());
+        auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
+                                  right_community->end(), union_set.begin());
+        union_set.resize(iter_end - union_set.begin());
+        left_community = make_unique<vector<IndexType>>(std::move(union_set));
+    }
+
+    void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
+                                           unique_ptr<MergeData> &result) {
         if (community_collection->size() == 0) {
             for (auto iter_inner = result->begin();
                  iter_inner != result->end(); ++iter_inner) {
@@ -225,7 +224,7 @@ namespace yche {
                 for (auto iter = community_collection->begin(); iter != community_collection->end(); ++iter) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
                     if (cover_rate_result > epsilon_) {
-                        MergeTwoCommunities(*iter, *iter_inner);
+                        MergeTwoCommunitiesToLeftOne(*iter, *iter_inner);
                         break;
                     }
                     else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
@@ -252,8 +251,8 @@ namespace yche {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
-            auto community_vec_ptr = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
-            MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(community_vec_ptr));
+            auto community_vec_ptr = std::move(DoLabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
+            MergeToCommunityCollection(overlap_community_vec_, community_vec_ptr);
         }
     }
 
@@ -269,17 +268,15 @@ namespace yche {
     unique_ptr<Demon::MergeData> Demon::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
         auto ego_vertex = *seed_member_ptr;
         auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
-        auto result = std::move(LabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
+        auto result = std::move(DoLabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
         return std::move(result);
     }
 
     void Demon::MergeToGlobal(unique_ptr<MergeData> &&result) {
-        MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result));
+        MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
     unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
         return std::move(merge_data_ptr);
     }
-
-
 }

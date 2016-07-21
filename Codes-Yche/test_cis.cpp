@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
     ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, is_reduce_in_merge_str, cis_ptr, index_name_map);
 
-//    getchar();
     return 0;
 }
 
