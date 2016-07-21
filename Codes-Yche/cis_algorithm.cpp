@@ -37,7 +37,6 @@ namespace yche {
                 auto expand_vertex = vertices_[expand_vertex_index];
 
                 //Add To CommunityInfo Only At Start of Expansion
-//                community_ptr->erase(expand_vertex_index);
                 community_info_ptr->members_->insert(expand_vertex_index);
                 for (auto vp = adjacent_vertices(vertices_[expand_vertex_index], *graph_ptr_);
                      vp.first != vp.second; ++vp.first) {
@@ -48,7 +47,7 @@ namespace yche {
                     auto iter = community_ptr->find(adjacency_vertex_index);
                     if (mark_set.find(adjacency_vertex_index) == mark_set.end() && iter != community_ptr->end()) {
                         community_info_ptr->w_in_ += edge_weight_map[edge];
-                        //Erase and Enqueuee
+                        //Erase and Enqueue
                         frontier.push(adjacency_vertex_index);
                         mark_set.insert(adjacency_vertex_index);
                     }
@@ -65,8 +64,7 @@ namespace yche {
 
         //Sort and Select Best CommuntiyInfo , i.e., With Largest Density
         sort(community_info_ptr_vec.begin(), community_info_ptr_vec.end(),
-             [this](auto &&left_comm_info_ptr, auto &&right_comm_info_ptr) -> bool {
-//            return CalculateDensity(/)
+             [this](auto &left_comm_info_ptr, auto &right_comm_info_ptr) -> bool {
                  double left_density = this->CalculateDensity((left_comm_info_ptr->members_)->size(),
                                                               left_comm_info_ptr->w_in_,
                                                               left_comm_info_ptr->w_out_, this->lambda_);
@@ -89,7 +87,7 @@ namespace yche {
         auto community_info_ptr = make_unique<CommunityInfo>(0, 0);
         community_info_ptr->members_ = make_unique<CommunityMembers>();
         //First: Initialize members and neighbors
-        auto comp = [](auto &&left_ptr, auto &&right_ptr) -> bool {
+        auto comp = [](auto &left_ptr, auto &right_ptr) -> bool {
             return left_ptr->member_index_ < right_ptr->member_index_;
         };
         using MemberInfoSet = set<unique_ptr<MemberInfo>, decltype(comp)>;
@@ -142,22 +140,21 @@ namespace yche {
 
         bool change_flag = true;
         //Do Iterative Scan
-
         while (change_flag) {
             change_flag = false;
 
             //Add Neighbor to Check List
             vector<unique_ptr<MemberInfo>> to_check_list;
-            for (auto &&neighbor_info_ptr:neighbors) {
+            for (auto &neighbor_info_ptr:neighbors) {
                 to_check_list.push_back(std::move(make_unique<MemberInfo>(*neighbor_info_ptr)));
             }
-            auto degree_cmp = [this](auto &&left_ptr, auto &&right_ptr) -> bool {
+            auto degree_cmp = [this](auto &left_ptr, auto &right_ptr) -> bool {
                 return degree(this->vertices_[left_ptr->member_index_], *this->graph_ptr_) <
                        degree(this->vertices_[right_ptr->member_index_], *this->graph_ptr_);
             };
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
             //First For Neighbors Iteration
-            for (auto &&neighbor_info_ptr:to_check_list) {
+            for (auto &neighbor_info_ptr:to_check_list) {
                 if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
                                      community_info_ptr->w_out_,
                                      lambda_)
@@ -214,11 +211,11 @@ namespace yche {
 
             //Add Member to Check List
             to_check_list.clear();
-            for (auto &&member_info_ptr:members) {
+            for (auto &member_info_ptr:members) {
                 to_check_list.push_back(std::move(make_unique<MemberInfo>(*member_info_ptr)));
             }
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
-            for (auto &&member_info_ptr:to_check_list) {
+            for (auto &member_info_ptr:to_check_list) {
                 if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
                                      community_info_ptr->w_out_,
                                      lambda_)
@@ -249,15 +246,15 @@ namespace yche {
                     }
                 }
             }
-
+//            following line commented because the process make the community connected
 //            community_info_ptr = std::move(SplitAndChooseBestConnectedComponent(std::move(community_info_ptr->members_)));
         }
         return std::move(community_info_ptr->members_);
     }
 
 
-    double Cis::GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &&left_community,
-                                           unique_ptr<CommunityMembers> &&right_community) {
+    double Cis::GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &left_community,
+                                           unique_ptr<CommunityMembers> &right_community) {
         vector<IndexType> intersect_set(left_community->size() + right_community->size());
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
                                          right_community->end(), intersect_set.begin());
@@ -267,9 +264,8 @@ namespace yche {
         return rate;
     }
 
-    unique_ptr<CommunityMembers> Cis::MergeTwoCommunities(unique_ptr<CommunityMembers> &&left_community,
-                                                          unique_ptr<CommunityMembers> &&right_community) {
-
+    unique_ptr<CommunityMembers> Cis::MergeTwoCommunities(unique_ptr<CommunityMembers> &left_community,
+                                                          unique_ptr<CommunityMembers> &right_community) {
         vector<IndexType> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
@@ -278,68 +274,20 @@ namespace yche {
         for (auto iter = union_set.begin(); iter != union_set.end(); ++iter) {
             union_community->insert(*iter);
         }
-
         return std::move(union_community);
     }
 
-    unique_ptr<Cis::CommunityVec> Cis::ExecuteCis() {
-        auto overlapping_communities_ptr = make_unique<CommunityVec>();
-
-        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
-            //First
-            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-            Vertex vertex = *vp.first;
-            auto partial_comm_members = make_unique<CommunityMembers>();
-            partial_comm_members->insert(vertex_index_map[vertex]);
-            auto result_community = std::move(ExpandSeed(std::move(partial_comm_members)));
-
-
-            //Second
-            MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result_community));
-        }
-        return std::move(overlapping_communities_ptr);
-    }
-
-    unique_ptr<CommunityMembers> Cis::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
-        auto result_community = std::move(ExpandSeed(std::move(seed_member_ptr)));
-        return result_community;
-    }
-
-    unique_ptr<vector<unique_ptr<Cis::BasicData>>> Cis::InitBasicComputationData() {
-        auto basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
-        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
-            //First
-            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-            Vertex vertex = *vp.first;
-            auto partial_comm_members = make_unique<CommunityMembers>();
-            partial_comm_members->insert(vertex_index_map[vertex]);
-            basic_data_vec_ptr->push_back(std::move(partial_comm_members));
-        }
-        return std::move(basic_data_vec_ptr);
-    }
-
-
-    void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
-        MergeToCommunityCollection(std::move(overlap_community_vec_), std::move(result));
-    }
-
-    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
-        auto reduce_data_ptr = make_unique<ReduceData>();
-        reduce_data_ptr->push_back(std::move(merge_data_ptr));
-        return std::move(reduce_data_ptr);
-    }
-
-    void Cis::MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
-                                         unique_ptr<MergeData> &&result) {
+    void Cis::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
+                                         unique_ptr<MergeData> &result) {
         if (community_collection->size() == 0) {
             community_collection->push_back(std::move(result));
         }
         else {
             bool insert_flag = true;
-            for (auto &&comm_ptr:*community_collection) {
-                auto cover_rate = GetTwoCommunitiesCoverRate(std::move(comm_ptr), std::move(result));
+            for (auto &comm_ptr:*community_collection) {
+                auto cover_rate = GetTwoCommunitiesCoverRate(comm_ptr, result);
                 if (cover_rate > 1 - DOUBLE_ACCURACY) {
-                    comm_ptr = MergeTwoCommunities(std::move(comm_ptr), std::move(result));
+                    comm_ptr = MergeTwoCommunities(comm_ptr, result);
                     insert_flag = false;
                     break;
 
@@ -351,11 +299,53 @@ namespace yche {
         }
     }
 
+    [[deprecated("Replaced With Parallel Execution")]]
+    unique_ptr<Cis::CommunityVec> Cis::ExecuteCis() {
+        auto overlapping_communities_ptr = make_unique<CommunityVec>();
+
+        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
+            //First
+            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+            Vertex vertex = *vp.first;
+            auto partial_comm_members = make_unique<CommunityMembers>();
+            partial_comm_members->insert(vertex_index_map[vertex]);
+            auto result_community = std::move(ExpandSeed(std::move(partial_comm_members)));
+            //Second
+            MergeToCommunityCollection(overlap_community_vec_, result_community);
+        }
+        return std::move(overlapping_communities_ptr);
+    }
+
+    unique_ptr<vector<unique_ptr<Cis::BasicData>>> Cis::InitBasicComputationData() {
+        auto basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
+        for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
+            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+            Vertex vertex = *vp.first;
+            auto partial_comm_members = make_unique<CommunityMembers>();
+            partial_comm_members->insert(vertex_index_map[vertex]);
+            basic_data_vec_ptr->push_back(std::move(partial_comm_members));
+        }
+        return std::move(basic_data_vec_ptr);
+    }
+
+    unique_ptr<CommunityMembers> Cis::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
+        auto result_community = std::move(ExpandSeed(std::move(seed_member_ptr)));
+        return result_community;
+    }
+
+    void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
+        MergeToCommunityCollection(overlap_community_vec_, result);
+    }
+
+    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+        auto reduce_data_ptr = make_unique<ReduceData>();
+        reduce_data_ptr->push_back(std::move(merge_data_ptr));
+        return std::move(reduce_data_ptr);
+    }
+
     void Cis::UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
                                                   unique_ptr<CommunityInfo> community_info_ptr, auto &members,
                                                   auto &neighbors, MutationType mutation_type) {
-        
+
     }
-
-
 }

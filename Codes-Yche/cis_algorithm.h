@@ -29,7 +29,7 @@ namespace yche {
     };
 
     struct MemberInfo {
-        MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) { }
+        MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) {}
 
         MemberInfo(const MemberInfo &member_info) {
             this->member_index_ = member_info.member_index_;
@@ -47,7 +47,7 @@ namespace yche {
     };
 
     struct CommunityInfo {
-        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) { }
+        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) {}
 
         unique_ptr<CommunityMembers> members_;
         double w_in_;
@@ -61,13 +61,14 @@ namespace yche {
 
     class Cis {
     public:
+        //Graph Representation Related Types
         using EdgeProperties = property<edge_weight_t, double>;
         using VertexProperties = property<vertex_index_t, IndexType>;
         using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
-
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
 
+        //Overlapping Community Results Related Types
         using CommunityVec=vector<unique_ptr<CommunityMembers>>;
 
         //Start Implementation Interfaces For Parallelizer Traits
@@ -80,7 +81,6 @@ namespace yche {
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
         void MergeToGlobal(unique_ptr<MergeData> &&result);
-        //End Implementation for Paralleizer Traits
 
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = CommunityVec;
@@ -91,8 +91,8 @@ namespace yche {
 
         function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
                                         unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
-        //End of Implementation For Reducer Traits
 
+        [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<CommunityVec> ExecuteCis();
 
         Cis(unique_ptr<Graph> graph_ptr, double lambda, map<int, int> &vertex_name_map) :
@@ -109,7 +109,7 @@ namespace yche {
             overlap_community_vec_ = make_unique<CommunityVec>();
 
             CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
-                auto cmp = [](auto &&tmp_left, auto &&tmp_right) -> bool {
+                auto cmp = [](auto &tmp_left, auto &tmp_right) -> bool {
                     return tmp_left->size() < tmp_right->size();
                 };
                 auto iter1 = max_element(left->begin(), left->end(), cmp);
@@ -120,8 +120,8 @@ namespace yche {
             ReduceComputation = [this](
                     unique_ptr<ReduceData> left_data_ptr,
                     unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
-                for (auto &&right_merge_data:*right_data_ptr) {
-                    MergeToCommunityCollection(std::move(left_data_ptr), std::move(right_merge_data));
+                for (auto &right_merge_data:*right_data_ptr) {
+                    MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
                 return left_data_ptr;
             };
@@ -146,15 +146,14 @@ namespace yche {
         unique_ptr<CommunityMembers> ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr);
 
 
-        double GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &&left_community,
-                                          unique_ptr<CommunityMembers> &&right_community);
+        double GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &left_community,
+                                          unique_ptr<CommunityMembers> &right_community);
 
-        unique_ptr<CommunityMembers> MergeTwoCommunities(unique_ptr<CommunityMembers> &&left_community,
-                                                         unique_ptr<CommunityMembers> &&right_community);
+        unique_ptr<CommunityMembers> MergeTwoCommunities(unique_ptr<CommunityMembers> &left_community,
+                                                         unique_ptr<CommunityMembers> &right_community);
 
-
-        void MergeToCommunityCollection(decltype(overlap_community_vec_) &&community_collection,
-                                        unique_ptr<MergeData> &&result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
+                                        unique_ptr<MergeData> &result);
 
     };
 }
