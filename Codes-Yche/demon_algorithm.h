@@ -56,7 +56,7 @@ namespace yche {
 
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
-        void MergeToGlobal(unique_ptr<MergeData> &&result);
+        void MergeToGlobal(unique_ptr<MergeData> &result);
 
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = vector<CommunityPtr>;

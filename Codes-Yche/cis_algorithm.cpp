@@ -333,7 +333,7 @@ namespace yche {
         return result_community;
     }
 
-    void Cis::MergeToGlobal(unique_ptr<MergeData> &&result) {
+    void Cis::MergeToGlobal(unique_ptr<MergeData> &result) {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 

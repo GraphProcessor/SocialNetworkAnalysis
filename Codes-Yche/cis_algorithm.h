@@ -12,6 +12,7 @@
 using namespace std;
 using namespace boost;
 
+//Add User-Defined Tags For Boost Graph Library Usage
 enum vertex_id_t {
     vertex_id
 };
@@ -20,6 +21,7 @@ namespace boost {
 }
 
 namespace yche {
+    //Iterative Scan Related Types
     using IndexType = unsigned long;
     using CommunityMembers = set<IndexType>;
 
@@ -80,7 +82,7 @@ namespace yche {
 
         unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
 
-        void MergeToGlobal(unique_ptr<MergeData> &&result);
+        void MergeToGlobal(unique_ptr<MergeData> &result);
 
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = CommunityVec;
@@ -144,7 +146,6 @@ namespace yche {
                                                  auto &neighbors, MutationType mutation_type);
 
         unique_ptr<CommunityMembers> ExpandSeed(unique_ptr<CommunityMembers> seed_member_ptr);
-
 
         double GetTwoCommunitiesCoverRate(unique_ptr<CommunityMembers> &left_community,
                                           unique_ptr<CommunityMembers> &right_community);

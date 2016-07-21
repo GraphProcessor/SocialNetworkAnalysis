@@ -155,7 +155,7 @@ namespace yche {
     void Parallelizer<Algorithm, MergeType>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
         global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<Task<BasicData>>>>();
-        for (auto &&basic_data_ptr:*basic_data_vec_ptr) {
+        for (auto &basic_data_ptr:*basic_data_vec_ptr) {
             global_computation_task_vec_ptr_->push_back(make_unique<Task<BasicData>>(std::move(basic_data_ptr)));
         }
         auto whole_size = global_computation_task_vec_ptr_->size();
@@ -239,10 +239,10 @@ namespace yche {
                     pthread_mutex_lock(&merge_mutex_);
                     is_any_merging = true;
 
-                    algorithm_ptr_->MergeToGlobal(std::move(result));
+                    algorithm_ptr_->MergeToGlobal(result);
                     while (local_merge_queue.size() > 0) {
-                        auto &&data = std::move(local_merge_queue.front()->data_ptr_);
-                        algorithm_ptr_->MergeToGlobal(std::move(data));
+                        auto data = std::move(local_merge_queue.front()->data_ptr_);
+                        algorithm_ptr_->MergeToGlobal(data);
                         local_merge_queue.erase(local_merge_queue.begin());
                     }
                     is_any_merging = false;
@@ -310,8 +310,8 @@ namespace yche {
             for (auto i = 0; i < thread_count_; i++) {
                 auto &local_merge_queue = merge_task_vecs_[i];
                 while (local_merge_queue.size() > 0) {
-                    auto &&data = std::move(local_merge_queue.front()->data_ptr_);
-                    algorithm_ptr_->MergeToGlobal(std::move(data));
+                    auto data = std::move(local_merge_queue.front()->data_ptr_);
+                    algorithm_ptr_->MergeToGlobal(data);
                     local_merge_queue.erase(local_merge_queue.begin());
                 }
             }

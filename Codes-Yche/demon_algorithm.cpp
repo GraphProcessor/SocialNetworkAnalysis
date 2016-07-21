@@ -272,7 +272,7 @@ namespace yche {
         return std::move(result);
     }
 
-    void Demon::MergeToGlobal(unique_ptr<MergeData> &&result) {
+    void Demon::MergeToGlobal(unique_ptr<MergeData> &result) {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
