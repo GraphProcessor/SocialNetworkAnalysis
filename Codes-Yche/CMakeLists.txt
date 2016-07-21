@@ -13,7 +13,7 @@ message(${CMAKE_THREAD_LIBS_INIT})
 
 set(ParallelUtilFiles include_header.h parallelizer.h reducer.h configuration.h)
 set(GraphIOUtilFiles input_output_handler.h)
-set(DemonFiles test_daemon.cpp damon_algorithm.cpp damon_algorithm.h)
+set(DemonFiles test_daemon.cpp demon_algorithm.cpp demon_algorithm.h)
 set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)
 set(GCEFiles test_gce.cpp gce_algorithm.cpp gce_algorithm.h)
 

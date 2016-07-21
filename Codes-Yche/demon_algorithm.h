@@ -29,22 +29,23 @@ namespace boost {
 }
 
 namespace yche {
-    class Daemon {
+    class Demon {
     public:
+        using IndexType = unsigned long;
         using VertexProperties = property<vertex_weight_t, double,
-                property<vertex_index_t, unsigned long>>;
+                property<vertex_index_t, IndexType >>;
         //Edge Vertex
         using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties>;
 
         using SubGraphVertexProperties = property<vertex_weight_t, double,
-                property<vertex_id_t, unsigned long,
-                        property<vertex_label_t, array<unsigned long, 2>>>>;
+                property<vertex_id_t, IndexType,
+                        property<vertex_label_t, array<IndexType, 2>>>>;
 
         using SubGraph = adjacency_list<setS, vecS, undirectedS, SubGraphVertexProperties>;
 
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
-        using CommunityPtr = unique_ptr<set<unsigned long>>;
+        using CommunityPtr = unique_ptr<vector<IndexType>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
         //Start Implementation Interfaces For Parallelizer Traits
@@ -73,7 +74,7 @@ namespace yche {
         [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
 
-        Daemon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
+        Demon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
                 epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
             ;
             graph_ptr_ = std::move(graph_ptr);
