@@ -41,6 +41,7 @@ namespace yche {
     //Cache the Previous Computation Results for a Single Vertex
     struct MemberInfo {
         MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) {}
+
         MemberInfo(const MemberInfo &member_info) {
             this->member_index_ = member_info.member_index_;
             this->w_in_ = member_info.w_in_;
@@ -170,7 +171,6 @@ namespace yche {
 
         void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
                                         unique_ptr<MergeData> &result);
-
     };
 }
 

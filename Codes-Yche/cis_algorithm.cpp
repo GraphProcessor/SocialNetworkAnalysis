@@ -59,7 +59,6 @@ namespace yche {
                 community_ptr->erase(expand_vertex_index);
                 frontier.pop();
             }
-
             community_info_ptr_vec.push_back(std::move(community_info_ptr));
         }
 
@@ -109,7 +108,6 @@ namespace yche {
                     to_computed_neighbors.insert(neighbor_vertex_index);
                 }
             }
-
             members.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
         }
 
@@ -264,6 +262,7 @@ namespace yche {
         auto local_index = 0;
         for (auto &member_index:*community_info_ptr->members_) {
             community_member_vector[local_index] = member_index;
+            local_index++;
         }
         //For Later Sort-Merge-Join
         sort(community_member_vector.begin(), community_member_vector.end());
