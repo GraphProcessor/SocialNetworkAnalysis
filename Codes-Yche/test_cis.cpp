@@ -3,6 +3,8 @@
 //
 
 #include "cis_algorithm.h"
+
+#include "parallelizer.h"
 #include "input_output_handler.h"
 
 using namespace yche;

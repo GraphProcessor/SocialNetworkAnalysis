@@ -5,7 +5,13 @@
 #ifndef CODES_YCHE_REDUCER_H
 #define CODES_YCHE_REDUCER_H
 
-#include "include_header.h"
+#include "semaphore.h"
+#include <pthread.h>
+#include <ctime>
+#include <iostream>
+#include <memory>
+#include <vector>
+
 #include "configuration.h"
 
 namespace yche {

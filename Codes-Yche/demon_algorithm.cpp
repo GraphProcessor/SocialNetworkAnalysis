@@ -3,6 +3,7 @@
 //
 
 #include "demon_algorithm.h"
+
 #include "configuration.h"
 
 namespace yche {

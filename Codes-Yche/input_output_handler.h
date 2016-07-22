@@ -5,8 +5,12 @@
 #ifndef CODES_YCHE_INPUT_OUTPUT_HANDLER_H
 #define CODES_YCHE_INPUT_OUTPUT_HANDLER_H
 
-#include "include_header.h"
-#include "parallelizer.h"
+#include <boost/regex.hpp>
+#include <fstream>
+#include <sstream>
+#include <memory>
+#include <map>
+#include <vector>
 
 namespace yche {
     using namespace std;
@@ -65,7 +69,7 @@ namespace yche {
         cout << "comm_size:" << communities_ptr_vec->size() << endl;
         for (auto &&community_ptr:*communities_ptr_vec) {
             for (auto member_id:*community_ptr) {
-                cout << index_name_map[member_id] << "("<<member_id<<"),";
+                cout << index_name_map[member_id] << "(" << member_id << "),";
             }
             cout << endl;
         }

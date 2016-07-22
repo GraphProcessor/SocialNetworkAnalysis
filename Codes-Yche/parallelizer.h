@@ -5,12 +5,14 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
-
-#include "include_header.h"
 #include "reducer.h"
 
 namespace yche {
     using namespace std;
+
+    //Define Tags For Template Specialization In parallelizer.h
+    struct MergeWithReduce;
+    struct MergeSequential;
 
     template<typename Data>
     struct Task {

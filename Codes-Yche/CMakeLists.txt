@@ -9,7 +9,7 @@ find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
 
-set(ParallelUtilFiles include_header.h parallelizer.h reducer.h configuration.h)
+set(ParallelUtilFiles parallelizer.h reducer.h configuration.h)
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_demon.cpp demon_algorithm.cpp demon_algorithm.h)
 set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)

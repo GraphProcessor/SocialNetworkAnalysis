@@ -5,7 +5,11 @@
 #ifndef CODES_YCHE_DAMON_ALGORITHM_H
 #define CODES_YCHE_DAMON_ALGORITHM_H
 
-#include "include_header.h"
+#include <boost/graph/adjacency_list.hpp>
+#include <memory>
+#include <vector>
+#include <random>
+#include <iostream>
 
 using namespace boost;
 using namespace std;
@@ -120,37 +124,9 @@ namespace yche {
 
         void MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
-                                        unique_ptr<MergeData> &result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,unique_ptr<MergeData> &result);
 
     };
 }
 
 #endif //CODES_YCHE_DAMON_ALGORITHM_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

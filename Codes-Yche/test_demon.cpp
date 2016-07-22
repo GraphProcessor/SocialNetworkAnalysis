@@ -1,4 +1,5 @@
 #include "demon_algorithm.h"
+#include "parallelizer.h"
 #include "input_output_handler.h"
 
 using namespace yche;
@@ -50,10 +51,10 @@ int main(int argc, char *argv[]) {
     auto min_community_size = 3;
     auto max_iteration = 100;
     auto daemon_ptr = make_unique<Demon>(epsilon, min_community_size, std::move(graph_ptr),
-                                          max_iteration);
+                                         max_iteration);
 
     ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, is_reduce_in_merge_str, daemon_ptr,
-                                                              index_name_map);
+                                                             index_name_map);
 
     return 0;
 }
