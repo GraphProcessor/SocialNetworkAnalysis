@@ -6,6 +6,8 @@
 #define CODES_YCHE_INCLUDE_HEADER_H
 
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 #include <set>
 #include <map>
 #include <memory>
