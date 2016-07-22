@@ -33,6 +33,7 @@ namespace yche {
         vector<vector<unique_ptr<Data>>> local_data_vec_;
         vector<sem_t> sem_mail_boxes_;
         vector<bool> is_rec_mail_empty_;
+        bool is_reduce_task_only_one;
 
         pthread_mutex_t counter_mutex_;
         pthread_mutex_t task_taking_mutex_;
@@ -75,6 +76,7 @@ namespace yche {
             local_data_vec_.resize(thread_count_);
             is_end_of_loop_ = false;
             is_end_of_reduce_ = false;
+            is_reduce_task_only_one=false;
             is_rec_mail_empty_.resize(thread_count_, true);
             idle_count_ = 0;
             //InitLocalData
@@ -98,6 +100,12 @@ namespace yche {
     void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InitDataPerThread(
             DataCollection &data_collection) {
         data_count_ = data_collection.size();
+        if(data_count_==1)
+        {
+            is_reduce_task_only_one=true;
+            global_reduce_data_vec_.push_back(std::move(*data_collection.begin()));
+            return;
+        }
         auto task_per_thread = data_collection.size() / thread_count_;
         cout << task_per_thread << " !!!task per thread" << endl;
         //Average Partitioning Tasks
@@ -230,13 +238,13 @@ namespace yche {
                 }
                 pthread_mutex_unlock(&task_taking_mutex_);
                 //Do the computation After release the lock
-                if(is_end_of_reduce_)
+                if (is_end_of_reduce_)
                     break;
                 local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
                                                                               std::move(local_reduce_data_vec[1])));
                 local_reduce_data_vec.resize(1);
             }
-            //Judge Whether The Whole Computation Finished
+                //Judge Whether The Whole Computation Finished
             else {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_reduce_ = true;
@@ -272,6 +280,9 @@ namespace yche {
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     unique_ptr<Data> Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::ParallelExecute() {
+        if(is_reduce_task_only_one){
+            return std::move(global_reduce_data_vec_[0]);
+        }
         vector<BundleInput *> input_bundle_vec(thread_count_);
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
