@@ -3,6 +3,7 @@
 //
 
 #include "demon_algorithm.h"
+#include "configuration.h"
 
 namespace yche {
 
@@ -138,8 +139,8 @@ namespace yche {
         for (auto iter = label_indices_map.begin(); iter != label_indices_map.end(); ++iter) {
             //Add Ego Vertex
             //Make The Community Vector Sorted
-            sort(iter->second->begin(), iter->second->end());
             iter->second->push_back(vertex_index_map[ego_vertex]);
+            sort(iter->second->begin(), iter->second->end());
             communities_vec_ptr->push_back(std::move(iter->second));
         }
         if (label_indices_map.size() == 0) {
@@ -201,11 +202,32 @@ namespace yche {
 
     void Demon::MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community) {
         //Executed After GetTwoCommunitiesCoverRate with Sorted left_community & right_community
+#ifdef DEBUG
+        cout << "Debug-Left:";
+        for (auto integer:*left_community) {
+            cout << integer << ",";
+        }
+        cout << endl;
+        cout << "Debug-Right:";
+        for (auto integer:*left_community) {
+            cout << integer << ",";
+        }
+        cout << endl;
+#endif
+
         vector<IndexType> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
         union_set.resize(iter_end - union_set.begin());
         left_community = make_unique<vector<IndexType>>(std::move(union_set));
+#ifdef  DEBUG
+
+        cout << "Debug-Merge:";
+        for (auto integer:*left_community) {
+            cout << integer << ",";
+        }
+        cout << endl;
+#endif
     }
 
     void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
@@ -269,6 +291,15 @@ namespace yche {
         auto ego_vertex = *seed_member_ptr;
         auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
         auto result = std::move(DoLabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
+#ifdef DEBUG
+        for (auto &communtiy_ptr:*result) {
+            cout << "Comm:";
+            for (auto vertex_id:*communtiy_ptr) {
+                cout << vertex_id << ",";
+            }
+            cout << endl;
+        }
+#endif
         return std::move(result);
     }
 

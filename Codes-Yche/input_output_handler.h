@@ -65,7 +65,7 @@ namespace yche {
         cout << "comm_size:" << communities_ptr_vec->size() << endl;
         for (auto &&community_ptr:*communities_ptr_vec) {
             for (auto member_id:*community_ptr) {
-                cout << index_name_map[member_id] << ",";
+                cout << index_name_map[member_id] << "("<<member_id<<"),";
             }
             cout << endl;
         }
