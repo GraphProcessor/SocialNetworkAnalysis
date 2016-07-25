@@ -1,11 +1,14 @@
-.idea/*
-CMakeFiles/*
+#no jetbrain ide dir
+.idea
+
+#no cmake and make files
+CMakeFiles
 CMakeCache.txt
-Makefile
 cmake_install.cmake
-CISTest
-Daemon_Test
-GceTest
-OCD/*
-hello
-build/*
+Makefile
+
+#no vtune dir
+OCD
+
+#no build target dir
+build
