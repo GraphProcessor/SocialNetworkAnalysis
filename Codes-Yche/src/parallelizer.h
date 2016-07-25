@@ -234,8 +234,6 @@ namespace yche {
                 auto result = algorithm_ptr_->LocalComputation(
                         std::move((*global_computation_task_vec_ptr_)[local_computation_range_pair.first]->data_ptr_));
                 local_computation_range_pair.first++;
-                //Directly Put into Merge Task Vector
-
 
 #ifdef  ENABLE_OVERLAP_MERGE_TO_GLOBAL
                 if (is_any_merging) {
@@ -263,6 +261,7 @@ namespace yche {
                     }
                 }
 #else
+                //Directly Put into Merge Task Vector
                 local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
 #endif
             }
