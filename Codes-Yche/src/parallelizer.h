@@ -223,7 +223,7 @@ namespace yche {
                         neighbor_computation_range_pair.second = local_computation_range_pair.second;
                         neighbor_computation_range_pair.first =
                                 neighbor_computation_range_pair.second - local_computation_task_size / 2 + 1;
-                        local_computation_range_pair.second= neighbor_computation_range_pair.first-1;
+                        local_computation_range_pair.second = neighbor_computation_range_pair.first - 1;
 
                         is_rec_mail_empty_[thread_index] = true;
 
@@ -234,22 +234,37 @@ namespace yche {
                 auto result = algorithm_ptr_->LocalComputation(
                         std::move((*global_computation_task_vec_ptr_)[local_computation_range_pair.first]->data_ptr_));
                 local_computation_range_pair.first++;
+                //Directly Put into Merge Task Vector
+
+
+#ifdef  ENABLE_OVERLAP_MERGE_TO_GLOBAL
                 if (is_any_merging) {
                     local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
                 }
                 else {
+                    //The instruction in the mutex lock should be minimized
                     pthread_mutex_lock(&merge_mutex_);
-                    is_any_merging = true;
-
-                    algorithm_ptr_->MergeToGlobal(result);
-                    while (local_merge_queue.size() > 0) {
-                        auto data = std::move(local_merge_queue.front()->data_ptr_);
-                        algorithm_ptr_->MergeToGlobal(data);
-                        local_merge_queue.erase(local_merge_queue.begin());
+                    if (!is_any_merging) {
+                        is_any_merging = true;
+                        pthread_mutex_unlock(&merge_mutex_);
+                        algorithm_ptr_->MergeToGlobal(result);
+                        while (local_merge_queue.size() > 0) {
+                            auto data = std::move(local_merge_queue.front()->data_ptr_);
+                            algorithm_ptr_->MergeToGlobal(data);
+                            local_merge_queue.erase(local_merge_queue.begin());
+                        }
+                        //The instruction in the mutex lock should be minimized
+                        pthread_mutex_lock(&merge_mutex_);
+                        is_any_merging = false;
+                        pthread_mutex_unlock(&merge_mutex_);
                     }
-                    is_any_merging = false;
-                    pthread_mutex_unlock(&merge_mutex_);
+                    else{
+                        pthread_mutex_unlock(&merge_mutex_);
+                    }
                 }
+#else
+                local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
+#endif
             }
         }
 
@@ -302,7 +317,7 @@ namespace yche {
             }
 
             cout << "Before Reducer" << endl;
-            cout << "Reduce Data Size:"<<reduce_data_ptr_vec.size()<<endl;
+            cout << "Reduce Data Size:" << reduce_data_ptr_vec.size() << endl;
             Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
                     thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
                     algorithm_ptr_->ReduceComputation);
