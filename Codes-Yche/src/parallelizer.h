@@ -173,22 +173,17 @@ namespace yche {
                     pthread_mutex_unlock(&counter_mutex_);
 
                     is_rec_mail_empty_[dst_index] = false;
-                    cout <<"Reduce Que Size:"<<local_reduce_queue.size()<<endl;
-                    cout << idle_count_<<endl;
 
                     while (!is_rec_mail_empty_[dst_index]) {
-//                        cout <<"Data-Flow-Compute"<<endl;
                         if (local_reduce_queue.size() > 1) {
                             local_reduce_queue.front() = algorithm_ptr_->ReduceComputation(local_reduce_queue.front(),
                                                                                            local_reduce_queue.back());
                             local_reduce_queue.erase(local_reduce_queue.end() - 1);
                         }
                         if (is_end_of_local_computation) {
+                            cout <<"Finish Local Computation"<<thread_index<<endl;
                             break;
                         }
-                    }
-                    if (is_end_of_local_computation) {
-                        break;
                     }
                     pthread_mutex_lock(&counter_mutex_);
                     idle_count_--;
@@ -219,7 +214,7 @@ namespace yche {
                 local_reduce_queue.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(result)));
             }
         }
-        cout <<"Exit:"<<thread_index<<endl;
+
         //Barrier
         pthread_barrier_wait(&timestamp_barrier);
 
@@ -227,7 +222,7 @@ namespace yche {
             clock_gettime(CLOCK_MONOTONIC, &end);
             elapsed = end.tv_sec - begin.tv_sec;
             elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-            cout << "Elpased Time In Parallel Computation:" << elapsed << endl;
+            cout << "Elapsed Time In Parallel Computation:" << elapsed << endl;
         }
 
     }
