@@ -257,16 +257,16 @@ namespace yche {
             algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
 
         }
-        else if (std::is_same<MergeType, yche::MergeSequential>::value) {
-            for (auto i = 0; i < thread_count_; i++) {
-                auto &local_merge_queue = merge_task_vecs_[i];
-                while (local_merge_queue.size() > 0) {
-                    auto data = std::move(local_merge_queue.front());
-                    algorithm_ptr_->MergeToGlobal(data);
-                    local_merge_queue.erase(local_merge_queue.begin());
-                }
-            }
-        }
+//        else if (std::is_same<MergeType, yche::MergeSequential>::value) {
+//            for (auto i = 0; i < thread_count_; i++) {
+//                auto &local_merge_queue = merge_task_vecs_[i];
+//                while (local_merge_queue.size() > 0) {
+//                    auto data = std::move(local_merge_queue.front());
+//                    algorithm_ptr_->MergeToGlobal(data);
+//                    local_merge_queue.erase(local_merge_queue.begin());
+//                }
+//            }
+//        }
         else {
             cout << "Specialization Error" << endl;
         }
