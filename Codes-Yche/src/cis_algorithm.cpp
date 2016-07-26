@@ -348,7 +348,7 @@ namespace yche {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr) {
         auto reduce_data_ptr = make_unique<ReduceData>();
         reduce_data_ptr->push_back(std::move(merge_data_ptr));
         return std::move(reduce_data_ptr);

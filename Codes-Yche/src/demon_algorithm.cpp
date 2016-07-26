@@ -203,13 +203,13 @@ namespace yche {
 
     void Demon::MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community) {
         //Executed After GetTwoCommunitiesCoverRate with Sorted left_community & right_community
-#ifdef DEBUG
-        cout << "Debug-Left:";
+#ifdef DEBUG_DEMON
+        cout << "DEBUG_DEMON-Left:";
         for (auto integer:*left_community) {
             cout << integer << ",";
         }
         cout << endl;
-        cout << "Debug-Right:";
+        cout << "DEBUG_DEMON-Right:";
         for (auto integer:*left_community) {
             cout << integer << ",";
         }
@@ -221,9 +221,9 @@ namespace yche {
                                   right_community->end(), union_set.begin());
         union_set.resize(iter_end - union_set.begin());
         left_community = make_unique<vector<IndexType>>(std::move(union_set));
-#ifdef  DEBUG
+#ifdef  DEBUG_DEMON
 
-        cout << "Debug-Merge:";
+        cout << "DEBUG_DEMON-Merge:";
         for (auto integer:*left_community) {
             cout << integer << ",";
         }
@@ -292,7 +292,7 @@ namespace yche {
         auto ego_vertex = *seed_member_ptr;
         auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
         auto result = std::move(DoLabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
-#ifdef DEBUG
+#ifdef DEBUG_DEMON
         for (auto &communtiy_ptr:*result) {
             cout << "Comm:";
             for (auto vertex_id:*communtiy_ptr) {
@@ -308,7 +308,7 @@ namespace yche {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr) {
+    unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr) {
         return std::move(merge_data_ptr);
     }
 }

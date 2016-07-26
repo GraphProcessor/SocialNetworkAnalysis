@@ -65,12 +65,12 @@ namespace yche {
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = vector<CommunityPtr>;
 
-        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr);
+        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr);
 
         function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
 
-        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
-                                        unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
+        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>&,
+                                        unique_ptr<ReduceData>& right_data_ptr)> ReduceComputation;
 
         [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
@@ -90,11 +90,10 @@ namespace yche {
                 return (*iter1)->size() > (*iter2)->size();
             };
 
-            ReduceComputation = [this](
-                    unique_ptr<ReduceData> left_data_ptr,
-                    unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
+            ReduceComputation = [this](unique_ptr<ReduceData>& left_data_ptr,
+                    unique_ptr<ReduceData>& right_data_ptr) -> unique_ptr<ReduceData> {
                 MergeToCommunityCollection(left_data_ptr, right_data_ptr);
-                return left_data_ptr;
+                return std::move(left_data_ptr);
             };
         }
 

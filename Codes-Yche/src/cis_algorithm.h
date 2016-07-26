@@ -103,12 +103,12 @@ namespace yche {
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = OverlappingCommunityVec;
 
-        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> merge_data_ptr);
+        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr);
 
         function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
 
-        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>,
-                                        unique_ptr<ReduceData> right_data_ptr)> ReduceComputation;
+        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>&,
+                                        unique_ptr<ReduceData>& right_data_ptr)> ReduceComputation;
 
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
@@ -136,12 +136,12 @@ namespace yche {
             };
 
             ReduceComputation = [this](
-                    unique_ptr<ReduceData> left_data_ptr,
-                    unique_ptr<ReduceData> right_data_ptr) -> unique_ptr<ReduceData> {
+                    unique_ptr<ReduceData>& left_data_ptr,
+                    unique_ptr<ReduceData>& right_data_ptr) -> unique_ptr<ReduceData> {
                 for (auto &right_merge_data:*right_data_ptr) {
                     MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
-                return left_data_ptr;
+                return std::move(left_data_ptr);
             };
         }
 

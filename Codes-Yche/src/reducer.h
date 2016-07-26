@@ -51,9 +51,9 @@ namespace yche {
         DataCmpFunction data_cmp_function_;
         ComputationFunction reduce_compute_function_;
 
-        void LoopCommThreadFunction(unsigned long thread_id);
+        void RingCommThreadFunction(unsigned long thread_id);
 
-        static void *InvokeLoopCommThreadFunction(void *bundle_input_ptr);
+        static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
 
         void InitDataPerThread(DataCollection &data_collection);
 
@@ -136,7 +136,7 @@ namespace yche {
     }
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::LoopCommThreadFunction(
+    void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::RingCommThreadFunction(
             unsigned long thread_id) {
 
         unsigned long thread_index = thread_id;
@@ -193,9 +193,8 @@ namespace yche {
                         }
                     }
                     //Do reduce computation, use the first max one and the last min one
-                    local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
-                                                                                  std::move(
-                                                                                          local_reduce_data_vec.back())));
+                    local_reduce_data_vec[0] = std::move(reduce_compute_function_(local_reduce_data_vec[0],
+                                                                                          local_reduce_data_vec.back()));
                     local_reduce_data_vec.erase(local_reduce_data_vec.end() - 1);
                 }
             }
@@ -246,8 +245,8 @@ namespace yche {
                 //Do the computation After release the lock
                 if (is_end_of_reduce_)
                     break;
-                local_reduce_data_vec[0] = std::move(reduce_compute_function_(std::move(local_reduce_data_vec[0]),
-                                                                              std::move(local_reduce_data_vec[1])));
+                local_reduce_data_vec[0] = std::move(reduce_compute_function_(local_reduce_data_vec[0],
+                                                                             local_reduce_data_vec[1]));
                 local_reduce_data_vec.resize(1);
             }
                 //Judge Whether The Whole Computation Finished
@@ -277,10 +276,10 @@ namespace yche {
     }
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    void *Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InvokeLoopCommThreadFunction(
+    void *Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InvokeRingCommThreadFunction(
             void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
-        my_bundle_input_ptr->reducer_ptr_->LoopCommThreadFunction(my_bundle_input_ptr->thread_id_);
+        my_bundle_input_ptr->reducer_ptr_->RingCommThreadFunction(my_bundle_input_ptr->thread_id_);
         return NULL;
     }
 
@@ -294,7 +293,7 @@ namespace yche {
             input_bundle_vec[thread_id] = new BundleInput();
             input_bundle_vec[thread_id]->reducer_ptr_ = this;
             input_bundle_vec[thread_id]->thread_id_ = thread_id;
-            pthread_create(&thread_handles[thread_id], NULL, this->InvokeLoopCommThreadFunction,
+            pthread_create(&thread_handles[thread_id], NULL, this->InvokeRingCommThreadFunction,
                            (void *) input_bundle_vec[thread_id]);
         }
 
@@ -312,8 +311,8 @@ namespace yche {
         auto global_reduce_data_vec_size =global_reduce_data_vec_.size();
         while(global_reduce_data_vec_size>1){
             global_reduce_data_vec_[global_reduce_data_vec_size-2]=
-                    std::move(reduce_compute_function_(std::move(global_reduce_data_vec_[global_reduce_data_vec_size-1]),
-                                                       std::move(global_reduce_data_vec_[global_reduce_data_vec_size-2])));
+                    std::move(reduce_compute_function_(global_reduce_data_vec_[global_reduce_data_vec_size-1],
+                                                       global_reduce_data_vec_[global_reduce_data_vec_size-2]));
             global_reduce_data_vec_size--;
         }
 #endif
