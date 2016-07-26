@@ -23,7 +23,6 @@ namespace yche {
         }
     };
 
-
     template<typename Algorithm, typename MergeType>
     class Parallelizer {
         struct BundleInput {
@@ -34,23 +33,23 @@ namespace yche {
     private:
         unsigned long thread_count_;
         unsigned long idle_count_;
-        unsigned long barrier_count_;
 
         using BasicData = typename Algorithm::BasicData;
         using MergeData = typename Algorithm::MergeData;
         using ReduceData = typename Algorithm::ReduceData;
 
-        pthread_t *thread_handles;
+
         unique_ptr<vector<unique_ptr<Task<BasicData>>>> global_computation_task_vec_ptr_;
-        vector<vector<unique_ptr<Task<MergeData>>>> merge_task_vecs_;
         vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
 
-        vector<sem_t> sem_mail_boxes_;
-        sem_t sem_barrier_;
-        sem_t sem_counter_;
-        sem_t sem_barrier_counter_;
+        vector<vector<unique_ptr<Task<MergeData>>>> merge_task_vecs_;
 
+        vector<sem_t> sem_mail_boxes_;
+
+        pthread_t *thread_handles;
+        pthread_mutex_t counter_mutex_;
         pthread_mutex_t merge_mutex_;
+        pthread_barrier_t timestamp_barrier;
 
         vector<bool> is_rec_mail_empty_;
 
@@ -83,11 +82,10 @@ namespace yche {
             }
 
 
-            sem_init(&sem_counter_, 0, 1);
-            sem_init(&sem_barrier_, 0, 0);
-            sem_init(&sem_barrier_counter_, 0, 1);
-
+            pthread_mutex_init(&counter_mutex_, NULL);
             pthread_mutex_init(&merge_mutex_, NULL);
+
+            pthread_barrier_init(&timestamp_barrier, NULL, thread_count);
 
             is_rec_mail_empty_.resize(thread_count_, true);
             is_end_of_local_computation = false;
@@ -95,7 +93,6 @@ namespace yche {
             local_computation_range_index_vec_.resize(thread_count);
             merge_task_vecs_.resize(thread_count_);
             idle_count_ = 0;
-            barrier_count_ = 0;
         }
 
 
@@ -104,9 +101,7 @@ namespace yche {
                 sem_destroy(&sem_mail_boxes_[i]);
             }
 
-            sem_destroy(&sem_counter_);
-            sem_destroy(&sem_barrier_);
-            sem_destroy(&sem_barrier_counter_);
+            pthread_mutex_destroy(&counter_mutex_);
             pthread_mutex_destroy(&merge_mutex_);
             delete[]thread_handles;
         }
@@ -140,7 +135,6 @@ namespace yche {
         }
 
         DoLeftMerging();
-
 
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];
@@ -184,7 +178,6 @@ namespace yche {
         auto &local_computation_range_pair = local_computation_range_index_vec_[thread_index];
         auto &local_merge_queue = merge_task_vecs_[thread_index];
         while (true) {
-
             auto local_computation_task_size =
                     local_computation_range_pair.second - local_computation_range_pair.first + 1;
             if (local_computation_task_size == 0) {
@@ -198,20 +191,19 @@ namespace yche {
                     break;
                 }
                 else {
-                    sem_wait(&sem_counter_);
+                    pthread_mutex_lock(&counter_mutex_);
                     idle_count_++;
-                    sem_post(&sem_counter_);
+                    pthread_mutex_unlock(&counter_mutex_);
 
                     is_rec_mail_empty_[dst_index] = false;
                     sem_wait(&sem_mail_boxes_[dst_index]);
                     if (is_end_of_local_computation) {
                         break;
                     }
-                    sem_wait(&sem_counter_);
+                    pthread_mutex_lock(&counter_mutex_);
                     idle_count_--;
-                    sem_post(&sem_counter_);
+                    pthread_mutex_unlock(&counter_mutex_);
                 }
-
             }
 
             else {
@@ -235,53 +227,13 @@ namespace yche {
                         std::move((*global_computation_task_vec_ptr_)[local_computation_range_pair.first]->data_ptr_));
                 local_computation_range_pair.first++;
 
-#ifdef  ENABLE_OVERLAP_MERGE_TO_GLOBAL
-                if (is_any_merging) {
-                    local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
-                }
-                else {
-                    //The instruction in the mutex lock should be minimized
-                    pthread_mutex_lock(&merge_mutex_);
-                    if (!is_any_merging) {
-                        is_any_merging = true;
-                        pthread_mutex_unlock(&merge_mutex_);
-                        algorithm_ptr_->MergeToGlobal(result);
-                        while (local_merge_queue.size() > 0) {
-                            auto data = std::move(local_merge_queue.front()->data_ptr_);
-                            algorithm_ptr_->MergeToGlobal(data);
-                            local_merge_queue.erase(local_merge_queue.begin());
-                        }
-                        //The instruction in the mutex lock should be minimized
-                        pthread_mutex_lock(&merge_mutex_);
-                        is_any_merging = false;
-                        pthread_mutex_unlock(&merge_mutex_);
-                    }
-                    else{
-                        pthread_mutex_unlock(&merge_mutex_);
-                    }
-                }
-#else
                 //Directly Put into Merge Task Vector
                 local_merge_queue.push_back(std::move(make_unique<Task<MergeData>>(std::move(result))));
-#endif
             }
         }
 
         //Barrier
-        sem_wait(&sem_barrier_counter_);
-        if (barrier_count_ == thread_count_ - 1) {
-            barrier_count_ = 0;
-            sem_post(&sem_barrier_counter_);
-            for (auto thread = 0; thread < thread_count_ - 1; thread++) {
-                sem_post(&sem_barrier_);
-            }
-        }
-        else {
-            barrier_count_++;
-            sem_post(&sem_barrier_counter_);
-            sem_wait(&sem_barrier_);
-        }
-
+        pthread_barrier_wait(&timestamp_barrier);
 
         if (thread_index == 0) {
             clock_gettime(CLOCK_MONOTONIC, &end);

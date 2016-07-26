@@ -82,7 +82,7 @@ namespace yche {
         //Graph Representation Related Types
         using EdgeProperties = property<edge_weight_t, double>;
         using VertexProperties = property<vertex_index_t, IndexType>;
-        using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
+        using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
 

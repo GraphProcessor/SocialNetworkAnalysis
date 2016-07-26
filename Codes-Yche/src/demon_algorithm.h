@@ -37,14 +37,14 @@ namespace yche {
         using IndexType = unsigned long;
         using VertexProperties = property<vertex_weight_t, double,
                 property<vertex_index_t, IndexType >>;
-        using Graph = adjacency_list<setS, vecS, undirectedS, VertexProperties>;
+        using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
 
         //Label Propagation Related Types
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, IndexType,
                         property<vertex_label_t, array<IndexType, 2>>>>;
-        using SubGraph = adjacency_list<setS, vecS, undirectedS, SubGraphVertexProperties>;
+        using SubGraph = adjacency_list<hash_setS, vecS, undirectedS, SubGraphVertexProperties>;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
 
         //Overlapping Community Results Related Types
