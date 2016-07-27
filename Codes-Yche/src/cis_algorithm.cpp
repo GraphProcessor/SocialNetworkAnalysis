@@ -84,14 +84,8 @@ namespace yche {
         //Sort and Select Best CommuntiyInfo , i.e., With Largest Density
         sort(community_info_ptr_vec.begin(), community_info_ptr_vec.end(),
              [this](auto &left_comm_info_ptr, auto &right_comm_info_ptr) -> bool {
-                 double left_density = this->CalculateDensity((left_comm_info_ptr->members_)->size(),
-                                                              left_comm_info_ptr->w_in_,
-                                                              left_comm_info_ptr->w_out_, this->lambda_);
-
-                 double right_density = this->CalculateDensity((right_comm_info_ptr->members_)->size(),
-                                                               right_comm_info_ptr->w_in_,
-                                                               right_comm_info_ptr->w_out_, this->lambda_);
-
+                 double left_density = this->CalculateDensity(left_comm_info_ptr);
+                 double right_density = this->CalculateDensity(right_comm_info_ptr);
                  if (left_density != right_density) {
                      return left_density > right_density;
                  }
@@ -147,6 +141,92 @@ namespace yche {
             }
             neighbors.insert(make_pair(neighbor_info_ptr->member_index_, std::move(neighbor_info_ptr)));
         }
+    }
+
+    void Cis::UpdateMembersNeighborsCommunityInfo(const unique_ptr<Cis::Graph> &graph_ptr,
+                                                  const Cis::Vertex &mutate_vertex,
+                                                  unique_ptr<CommunityInfo> &community_info_ptr,
+                                                  MemberInfoMap &members,
+                                                  MemberInfoMap &neighbors, const MutationType &mutation_type,
+                                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                  property_map<Graph, edge_weight_t>::type &edge_weight_map) {
+        if (mutation_type == MutationType::add_neighbor) {
+            UpdateMembersNeighborsCommunityInfoForAddNeighbor(graph_ptr, mutate_vertex, community_info_ptr, members,
+                                                              neighbors, vertex_index_map, edge_weight_map);
+        }
+        else {
+            UpdateMembersNeighborsCommunityInfoForRemoveMember(graph_ptr, mutate_vertex, community_info_ptr, members,
+                                                               neighbors, vertex_index_map, edge_weight_map);
+        }
+    }
+
+    void Cis::UpdateMembersNeighborsCommunityInfoForAddNeighbor(const unique_ptr<Cis::Graph> &graph_ptr,
+                                                                const Cis::Vertex &mutate_vertex,
+                                                                unique_ptr<CommunityInfo> &community_info_ptr,
+                                                                MemberInfoMap &members,
+                                                                MemberInfoMap &neighbors,
+                                                                property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                                property_map<Graph, edge_weight_t>::type &edge_weight_map) {
+        //Update Member and Neighbor List
+        for (auto vp = adjacent_vertices(mutate_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
+            auto check_neighbor_vertex = *vp.first;
+            auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
+            auto check_neighbor_ptr = make_unique<MemberInfo>(check_neighbor_vertex_index);
+            auto edge_weight = edge_weight_map[edge(mutate_vertex, check_neighbor_vertex,
+                                                    *graph_ptr_).first];
+
+            auto iter = members.find(check_neighbor_ptr->member_index_);
+            if (iter != members.end() ||
+                (iter = neighbors.find(check_neighbor_ptr->member_index_)) != neighbors.end()) {
+                //Update Info In Members and Neighbors
+                iter->second->w_in_ += edge_weight;
+                iter->second->w_out_ -= edge_weight;
+            }
+            else {
+                //Add New Neighbor
+                auto member_info_ptr = make_unique<MemberInfo>(check_neighbor_vertex_index);
+                for (auto vp_inner = adjacent_vertices(check_neighbor_vertex, *graph_ptr_);
+                     vp_inner.first != vp_inner.second; ++vp_inner.first) {
+                    auto neighbor_neighbor_vertex_index = vertex_index_map[*vp_inner.first];
+                    edge_weight = edge_weight_map[edge(check_neighbor_vertex,
+                                                       vertices_[neighbor_neighbor_vertex_index],
+                                                       *graph_ptr_).first];
+                    if (community_info_ptr->members_->find(neighbor_neighbor_vertex_index) !=
+                        community_info_ptr->members_->end()) {
+                        member_info_ptr->w_in_ += edge_weight;
+                    }
+                    else {
+                        member_info_ptr->w_out_ += edge_weight;
+                    }
+                }
+                neighbors.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
+            }
+        }
+    }
+
+    void Cis::UpdateMembersNeighborsCommunityInfoForRemoveMember(const unique_ptr<Cis::Graph> &graph_ptr,
+                                                                 const Cis::Vertex &mutate_vertex,
+                                                                 unique_ptr<CommunityInfo> &community_info_ptr,
+                                                                 MemberInfoMap &members,
+                                                                 MemberInfoMap &neighbors,
+                                                                 property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                                 property_map<Graph, edge_weight_t>::type &edge_weight_map) {
+        //Update Member and Neighbor List
+        for (auto vp = adjacent_vertices(mutate_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
+            auto check_neighbor_vertex = *vp.first;
+            auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
+            auto check_neighbor_ptr = std::move(make_unique<MemberInfo>(check_neighbor_vertex_index));
+            auto edge_weight = edge_weight_map[edge(mutate_vertex, check_neighbor_vertex,
+                                                    *graph_ptr_).first];
+
+            auto iter = members.find(check_neighbor_ptr->member_index_);
+            if (iter != members.end() ||
+                (iter = neighbors.find(check_neighbor_ptr->member_index_)) != neighbors.end()) {
+                //Update Info In Members and Neighbors
+                iter->second->w_in_ -= edge_weight;
+                iter->second->w_out_ += edge_weight;
+            }
+        }
 
     }
 
@@ -164,11 +244,11 @@ namespace yche {
                                        vertex_index_map, edge_weight_map);
 
         bool change_flag = true;
-        //Do Iterative Scan
+        //Do Iterative Scan, Until Local-Density-Optimal
         while (change_flag) {
             change_flag = false;
 
-            //Add Neighbor to Check List
+            //First Init: Add Neighbor to Check List
             vector<unique_ptr<MemberInfo>> to_check_list;
             for (auto &neighbor_info_ptr:neighbors) {
                 to_check_list.push_back(std::move(make_unique<MemberInfo>(*neighbor_info_ptr.second)));
@@ -178,7 +258,8 @@ namespace yche {
                        degree(this->vertices_[right_ptr->member_index_], *this->graph_ptr_);
             };
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
-            //First For Add-Neighbor Iteration
+
+            //First For Add-Neighbor Iteration, Check all the neighbors in the frontier
             for (auto &neighbor_info_ptr:to_check_list) {
                 if (CalculateDensity(community_info_ptr)
                     < CalculateDensity(community_info_ptr, neighbor_info_ptr, MutationType::add_neighbor)) {
@@ -190,51 +271,19 @@ namespace yche {
                     members.insert(make_pair(neighbor_info_ptr->member_index_, std::move(neighbor_info_ptr)));
 
                     //Update Member and Neighbor List
-                    for (auto vp = adjacent_vertices(check_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
-                        auto check_neighbor_vertex = *vp.first;
-                        auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
-                        auto check_neighbor_ptr = make_unique<MemberInfo>(check_neighbor_vertex_index);
-
-                        auto iter = members.find(check_neighbor_ptr->member_index_);
-                        auto edge_weight = edge_weight_map[edge(check_vertex, check_neighbor_vertex,
-                                                                *graph_ptr_).first];
-                        if (iter != members.end() ||
-                            (iter = neighbors.find(check_neighbor_ptr->member_index_)) != neighbors.end()) {
-                            //Update Info In Members and Neighbors
-                            (*iter).second->w_in_ += edge_weight;
-                            (*iter).second->w_out_ -= edge_weight;
-                        }
-
-                        else {
-                            //Add New Neighbor
-                            auto member_info_ptr = make_unique<MemberInfo>(check_neighbor_vertex_index);
-                            for (auto vp_inner = adjacent_vertices(check_neighbor_vertex, *graph_ptr_);
-                                 vp_inner.first != vp_inner.second; ++vp_inner.first) {
-                                auto neighbor_neighbor_vertex_index = vertex_index_map[*vp_inner.first];
-                                edge_weight = edge_weight_map[edge(check_neighbor_vertex,
-                                                                   vertices_[neighbor_neighbor_vertex_index],
-                                                                   *graph_ptr_).first];
-                                if (community_info_ptr->members_->find(neighbor_neighbor_vertex_index) !=
-                                    community_info_ptr->members_->end()) {
-                                    member_info_ptr->w_in_ += edge_weight;
-                                }
-                                else {
-                                    member_info_ptr->w_out_ += edge_weight;
-                                }
-                            }
-                            neighbors.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
-                        }
-                    }
+                    UpdateMembersNeighborsCommunityInfo(graph_ptr_, check_vertex, community_info_ptr, members,
+                                                        neighbors, MutationType::add_neighbor,
+                                                        vertex_index_map, edge_weight_map);
                 }
             }
 
-            //Add Member to Check List
+            //Second Init: Add Member to Check List
             to_check_list.clear();
             for (auto &member_info_ptr:members) {
                 to_check_list.push_back(std::move(make_unique<MemberInfo>(*member_info_ptr.second)));
             }
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
-            //Second For Remove-Member Iteration
+            //Second For Remove-Member Iteration, check all the members in the current community
             for (auto &member_info_ptr:to_check_list) {
                 if (CalculateDensity(community_info_ptr)
                     < CalculateDensity(community_info_ptr, member_info_ptr, MutationType::remove_member)) {
@@ -246,20 +295,9 @@ namespace yche {
                     neighbors.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
 
                     //Update Member and Neighbor List
-                    for (auto vp = adjacent_vertices(check_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
-                        auto check_neighbor_vertex = *vp.first;
-                        auto check_neighbor_vertex_index = vertex_index_map[check_neighbor_vertex];
-                        auto check_neighbor_ptr = std::move(make_unique<MemberInfo>(check_neighbor_vertex_index));
-                        auto iter = members.find(check_neighbor_ptr->member_index_);
-                        auto edge_weight = edge_weight_map[edge(check_vertex, check_neighbor_vertex,
-                                                                *graph_ptr_).first];
-                        if (iter != members.end() ||
-                            (iter = neighbors.find(check_neighbor_ptr->member_index_)) != neighbors.end()) {
-                            //Update Info In Members and Neighbors
-                            (*iter).second->w_in_ -= edge_weight;
-                            (*iter).second->w_out_ += edge_weight;
-                        }
-                    }
+                    UpdateMembersNeighborsCommunityInfo(graph_ptr_, check_vertex, community_info_ptr, members,
+                                                        neighbors, MutationType::remove_member,
+                                                        vertex_index_map, edge_weight_map);
                 }
             }
 //            following line commented because the process make the community connected
@@ -272,6 +310,7 @@ namespace yche {
             community_member_vector[local_index] = member_index;
             local_index++;
         }
+
         //For Later Sort-Merge-Join
         sort(community_member_vector.begin(), community_member_vector.end());
         return std::move(make_unique<CommunityMemberVec>(std::move(community_member_vector)));
@@ -360,14 +399,6 @@ namespace yche {
         auto reduce_data_ptr = make_unique<ReduceData>();
         reduce_data_ptr->push_back(std::move(merge_data_ptr));
         return std::move(reduce_data_ptr);
-    }
-
-    void Cis::UpdateMembersNeighborsCommunityInfo(const unique_ptr<Cis::Graph> &graph_ptr,
-                                                  const Cis::Vertex &mutate_vertex,
-                                                  unique_ptr<CommunityInfo> &community_info_ptr,
-                                                  CommunityMemberSet &members,
-                                                  CommunityMemberSet &neighbors, const MutationType &mutation_type) {
-
     }
 
 

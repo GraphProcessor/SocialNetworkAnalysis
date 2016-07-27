@@ -14,20 +14,11 @@
 #include <limits>
 #include <iostream>
 
-#define DOUBLE_ACCURACY 0.00001
-
 using namespace std;
 using namespace boost;
 
-//Add User-Defined Tags For Boost Graph Library Usage
-enum vertex_id_t {
-    vertex_id
-};
-namespace boost {
-    BOOST_INSTALL_PROPERTY(vertex, id);
-}
-
 namespace yche {
+    constexpr double DOUBLE_ACCURACY = 0.00001;
 
     //Iterative Scan Related Types
     using IndexType = unsigned long;
@@ -58,15 +49,6 @@ namespace yche {
         IndexType member_index_;
         double w_in_;
         double w_out_;
-
-//        inline void UpdateInfoForMutation(unique_ptr<>
-//                                          const MutationType &mutation_type) {
-//            if (mutation_type == MutationType::add_neighbor) {
-//                this->w_in_ += w_in_;
-//                community_info_ptr->w_out_ += neighbor_info_ptr->w_out_;
-//                community_info_ptr->members_->insert(neighbor_info_ptr->member_index_);
-//            }
-//        }
     };
 
     //Cache the Previous Computation Results for a Community
@@ -178,8 +160,27 @@ namespace yche {
 
         void UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
                                                  unique_ptr<CommunityInfo> &community_info_ptr,
-                                                 CommunityMemberSet &members,
-                                                 CommunityMemberSet &neighbors, const MutationType &mutation_type);
+                                                 MemberInfoMap &members,
+                                                 MemberInfoMap &neighbors, const MutationType &mutation_type,
+                                                 property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                 property_map<Graph, edge_weight_t>::type &edge_weight_map);
+
+        inline void UpdateMembersNeighborsCommunityInfoForAddNeighbor(const unique_ptr<Graph> &graph_ptr,
+                                                                      const Vertex &mutate_vertex,
+                                                                      unique_ptr<CommunityInfo> &community_info_ptr,
+                                                                      MemberInfoMap &members,
+                                                                      MemberInfoMap &neighbors,
+                                                                      property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                                      property_map<Graph, edge_weight_t>::type &edge_weight_map);
+
+        inline void UpdateMembersNeighborsCommunityInfoForRemoveMember(const unique_ptr<Graph> &graph_ptr,
+                                                                       const Vertex &mutate_vertex,
+                                                                       unique_ptr<CommunityInfo> &community_info_ptr,
+                                                                       MemberInfoMap &members,
+                                                                       MemberInfoMap &neighbors,
+                                                                       property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                                       property_map<Graph, edge_weight_t>::type &edge_weight_map);
+
 
         void InitializationForSeedExpansion(const unique_ptr<CommunityMemberSet> &seed_member_ptr,
                                             unique_ptr<CommunityInfo> &community_info_ptr, MemberInfoMap &members,
