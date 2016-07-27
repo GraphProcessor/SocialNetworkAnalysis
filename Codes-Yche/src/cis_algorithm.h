@@ -59,9 +59,14 @@ namespace yche {
         double w_in_;
         double w_out_;
 
-        void UpdateInfoForMutation(double edge_weight, MutationType mutation_type) {
-
-        }
+//        inline void UpdateInfoForMutation(unique_ptr<>
+//                                          const MutationType &mutation_type) {
+//            if (mutation_type == MutationType::add_neighbor) {
+//                this->w_in_ += w_in_;
+//                community_info_ptr->w_out_ += neighbor_info_ptr->w_out_;
+//                community_info_ptr->members_->insert(neighbor_info_ptr->member_index_);
+//            }
+//        }
     };
 
     //Cache the Previous Computation Results for a Community
@@ -72,8 +77,17 @@ namespace yche {
         double w_in_;
         double w_out_;
 
-        void UpdateInfoForMutation(const MemberInfo &member_info, MutationType mutation_type) {
-
+        inline void UpdateInfoForMutation(const MemberInfo &member_info, MutationType mutation_type) {
+            if (mutation_type == MutationType::add_neighbor) {
+                this->w_in_ += member_info.w_in_;
+                this->w_out_ += member_info.w_out_;
+                this->members_->insert(member_info.member_index_);
+            }
+            else {
+                this->w_in_ -= member_info.w_in_;
+                this->w_out_ -= member_info.w_out_;
+                this->members_->erase(member_info.member_index_);
+            }
         }
     };
 
@@ -103,12 +117,12 @@ namespace yche {
         //Start Implementation Interfaces For Reducer Traits
         using ReduceData = OverlappingCommunityVec;
 
-        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr);
+        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr);
 
         function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
 
-        function<unique_ptr<ReduceData>(unique_ptr<ReduceData>&,
-                                        unique_ptr<ReduceData>& right_data_ptr)> ReduceComputation;
+        function<unique_ptr<ReduceData>(unique_ptr<ReduceData> &,
+                                        unique_ptr<ReduceData> &right_data_ptr)> ReduceComputation;
 
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
@@ -136,8 +150,8 @@ namespace yche {
             };
 
             ReduceComputation = [this](
-                    unique_ptr<ReduceData>& left_data_ptr,
-                    unique_ptr<ReduceData>& right_data_ptr) -> unique_ptr<ReduceData> {
+                    unique_ptr<ReduceData> &left_data_ptr,
+                    unique_ptr<ReduceData> &right_data_ptr) -> unique_ptr<ReduceData> {
                 for (auto &right_merge_data:*right_data_ptr) {
                     MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
@@ -154,6 +168,11 @@ namespace yche {
         double lambda_;
 
         double CalculateDensity(const IndexType &size, const double &w_in, const double &w_out, const double &lambda);
+
+        inline double CalculateDensity(unique_ptr<CommunityInfo> &community_info_ptr);
+
+        inline double CalculateDensity(unique_ptr<CommunityInfo> &community_info_ptr,
+                                       unique_ptr<MemberInfo> &member_info_ptr, const MutationType &mutation_type);
 
         unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMemberSet> &community_ptr);
 

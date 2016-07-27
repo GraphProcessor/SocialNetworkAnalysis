@@ -13,6 +13,25 @@ namespace yche {
         return partA + partB;
     }
 
+    double Cis::CalculateDensity(unique_ptr<CommunityInfo> &community_info_ptr) {
+        return CalculateDensity((community_info_ptr->members_)->size(),
+                                community_info_ptr->w_in_,
+                                community_info_ptr->w_out_, this->lambda_);
+    }
+
+    double Cis::CalculateDensity(unique_ptr<CommunityInfo> &community_info_ptr,
+                                 unique_ptr<MemberInfo> &member_info_ptr, const MutationType &mutation_type) {
+        if (mutation_type == MutationType::add_neighbor)
+            return CalculateDensity((community_info_ptr->members_)->size() + 1,
+                                    community_info_ptr->w_in_ + member_info_ptr->w_in_,
+                                    community_info_ptr->w_out_ + member_info_ptr->w_out_, this->lambda_);
+        else
+            return CalculateDensity((community_info_ptr->members_)->size() - 1,
+                                    community_info_ptr->w_in_ - member_info_ptr->w_in_,
+                                    community_info_ptr->w_out_ - member_info_ptr->w_out_, this->lambda_);
+
+    }
+
     //Now Replace the set(RBTree) with unordered_set(HashTable) to improve the memory access efficiency
     unique_ptr<CommunityInfo> Cis::SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMemberSet> &community_ptr) {
         cout << "Split" << endl;
@@ -159,21 +178,14 @@ namespace yche {
                        degree(this->vertices_[right_ptr->member_index_], *this->graph_ptr_);
             };
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
-            //First For Neighbors Iteration
+            //First For Add-Neighbor Iteration
             for (auto &neighbor_info_ptr:to_check_list) {
-                if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
-                                     community_info_ptr->w_out_,
-                                     lambda_)
-                    < CalculateDensity(community_info_ptr->members_->size() + 1,
-                                       community_info_ptr->w_in_ + neighbor_info_ptr->w_in_,
-                                       community_info_ptr->w_out_ + neighbor_info_ptr->w_out_, lambda_)) {
-                    //Change Neighbor to Member
+                if (CalculateDensity(community_info_ptr)
+                    < CalculateDensity(community_info_ptr, neighbor_info_ptr, MutationType::add_neighbor)) {
+                    //Add Neighbor
                     change_flag = true;
-                    community_info_ptr->w_in_ += neighbor_info_ptr->w_in_;
-                    community_info_ptr->w_out_ += neighbor_info_ptr->w_out_;
-                    community_info_ptr->members_->insert(neighbor_info_ptr->member_index_);
+                    community_info_ptr->UpdateInfoForMutation(*neighbor_info_ptr, MutationType::add_neighbor);
                     neighbors.erase(neighbor_info_ptr->member_index_);
-
                     auto check_vertex = vertices_[neighbor_info_ptr->member_index_];
                     members.insert(make_pair(neighbor_info_ptr->member_index_, std::move(neighbor_info_ptr)));
 
@@ -222,17 +234,13 @@ namespace yche {
                 to_check_list.push_back(std::move(make_unique<MemberInfo>(*member_info_ptr.second)));
             }
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
+            //Second For Remove-Member Iteration
             for (auto &member_info_ptr:to_check_list) {
-                if (CalculateDensity(community_info_ptr->members_->size(), community_info_ptr->w_in_,
-                                     community_info_ptr->w_out_,
-                                     lambda_)
-                    < CalculateDensity(community_info_ptr->members_->size() - 1,
-                                       community_info_ptr->w_in_ - member_info_ptr->w_in_,
-                                       community_info_ptr->w_out_ - member_info_ptr->w_out_, lambda_)) {
+                if (CalculateDensity(community_info_ptr)
+                    < CalculateDensity(community_info_ptr, member_info_ptr, MutationType::remove_member)) {
+                    //Remove Member
                     change_flag = true;
-                    community_info_ptr->w_in_ -= member_info_ptr->w_in_;
-                    community_info_ptr->w_out_ -= member_info_ptr->w_out_;
-                    community_info_ptr->members_->erase(member_info_ptr->member_index_);
+                    community_info_ptr->UpdateInfoForMutation(*member_info_ptr, MutationType::add_neighbor);
                     members.erase(member_info_ptr->member_index_);
                     auto check_vertex = vertices_[member_info_ptr->member_index_];
                     neighbors.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
@@ -348,7 +356,7 @@ namespace yche {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr) {
+    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr) {
         auto reduce_data_ptr = make_unique<ReduceData>();
         reduce_data_ptr->push_back(std::move(merge_data_ptr));
         return std::move(reduce_data_ptr);
