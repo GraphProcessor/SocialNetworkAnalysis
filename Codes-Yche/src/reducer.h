@@ -29,9 +29,7 @@ namespace yche {
         unsigned long thread_count_;
         unsigned long data_count_;
         unsigned long idle_count_;
-        unsigned long barrier_count_;
-        sem_t sem_barrier_counter_;
-        sem_t sem_barrier_;
+        pthread_barrier_t timestamp_barrier;
 
         pthread_t *thread_handles;
 
@@ -61,16 +59,15 @@ namespace yche {
 
         unique_ptr<Data> ParallelExecute();
 
-        Reducer(unsigned long thread_count_, DataCollection &reduce_data_collection, DataCmpFunction data_cmp_function,
+        Reducer(unsigned long thread_count, DataCollection &reduce_data_collection, DataCmpFunction data_cmp_function,
                 ComputationFunction compute_function)
-                : thread_count_(thread_count_), data_cmp_function_(data_cmp_function),
+                : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
                   reduce_compute_function_(compute_function) {
             thread_handles = new pthread_t[thread_count_];
             data_count_ = 0;
             sem_mail_boxes_.resize(thread_count_);
 
-            sem_init(&sem_barrier_, 0, 0);
-            sem_init(&sem_barrier_counter_, 0, 1);
+            pthread_barrier_init(&timestamp_barrier, NULL, thread_count);
 
             for (auto i = 0; i < thread_count_; ++i) {
                 sem_init(&sem_mail_boxes_[i], 0, 0);
@@ -82,7 +79,7 @@ namespace yche {
             local_data_vec_.resize(thread_count_);
             is_end_of_loop_ = false;
             is_end_of_reduce_ = false;
-            is_reduce_task_only_one=false;
+            is_reduce_task_only_one = false;
             is_rec_mail_empty_.resize(thread_count_, true);
             idle_count_ = 0;
             //InitLocalData
@@ -96,8 +93,7 @@ namespace yche {
             pthread_mutex_destroy(&task_taking_mutex_);
             pthread_mutex_destroy(&counter_mutex_);
             pthread_cond_destroy(&task_taking_cond_var);
-            sem_destroy(&sem_barrier_);
-            sem_destroy(&sem_barrier_counter_);
+            pthread_barrier_destroy(&timestamp_barrier);
             delete[]thread_handles;
         }
     };
@@ -106,9 +102,8 @@ namespace yche {
     void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InitDataPerThread(
             DataCollection &data_collection) {
         data_count_ = data_collection.size();
-        if(data_count_==1)
-        {
-            is_reduce_task_only_one=true;
+        if (data_count_ == 1) {
+            is_reduce_task_only_one = true;
             global_reduce_data_vec_.push_back(std::move(*data_collection.begin()));
             return;
         }
@@ -127,7 +122,9 @@ namespace yche {
                     local_data_vec_[i].push_back(std::move((*iter)));
             }
         }
-
+#ifdef DEBUG
+        cout << "Reduce Task Init Finished" << endl;
+#endif
         //Sort From Greatest to Least
         for (auto i = 0; i < thread_count_; i++) {
             sort(local_data_vec_[i].begin(), local_data_vec_[i].end(), data_cmp_function_);
@@ -138,7 +135,6 @@ namespace yche {
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::RingCommThreadFunction(
             unsigned long thread_id) {
-
         unsigned long thread_index = thread_id;
         auto dst_index = (thread_index + 1) % thread_count_;
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
@@ -150,6 +146,9 @@ namespace yche {
         if (thread_count_ < data_count_) {
             while (true) {
                 auto reduce_data_size = local_reduce_data_vec.size();
+//#ifdef DEBUG
+//                cout << reduce_data_size << endl;
+//#endif
                 //Not able to conduct reduce operation
                 if (reduce_data_size == 1) {
                     if (idle_count_ == thread_count_ - 1) {
@@ -194,7 +193,7 @@ namespace yche {
                     }
                     //Do reduce computation, use the first max one and the last min one
                     local_reduce_data_vec[0] = std::move(reduce_compute_function_(local_reduce_data_vec[0],
-                                                                                          local_reduce_data_vec.back()));
+                                                                                  local_reduce_data_vec.back()));
                     local_reduce_data_vec.erase(local_reduce_data_vec.end() - 1);
                 }
             }
@@ -203,19 +202,7 @@ namespace yche {
 
         double elapsed;
         //Barrier
-        sem_wait(&sem_barrier_counter_);
-        if (barrier_count_ == thread_count_ - 1) {
-            barrier_count_ = 0;
-            sem_post(&sem_barrier_counter_);
-            for (auto thread = 0; thread < thread_count_ - 1; thread++) {
-                sem_post(&sem_barrier_);
-            }
-        }
-        else {
-            barrier_count_++;
-            sem_post(&sem_barrier_counter_);
-            sem_wait(&sem_barrier_);
-        }
+        pthread_barrier_wait(&timestamp_barrier);
 
         if (thread_index == 0) {
             clock_gettime(CLOCK_MONOTONIC, &end);
@@ -246,7 +233,7 @@ namespace yche {
                 if (is_end_of_reduce_)
                     break;
                 local_reduce_data_vec[0] = std::move(reduce_compute_function_(local_reduce_data_vec[0],
-                                                                             local_reduce_data_vec[1]));
+                                                                              local_reduce_data_vec[1]));
                 local_reduce_data_vec.resize(1);
             }
                 //Judge Whether The Whole Computation Finished
@@ -285,7 +272,7 @@ namespace yche {
 
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     unique_ptr<Data> Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::ParallelExecute() {
-        if(is_reduce_task_only_one){
+        if (is_reduce_task_only_one) {
             return std::move(global_reduce_data_vec_[0]);
         }
         vector<BundleInput *> input_bundle_vec(thread_count_);

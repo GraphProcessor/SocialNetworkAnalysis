@@ -10,11 +10,7 @@
 namespace yche {
     using namespace std;
 
-    //Define Tags For Template Specialization In parallelizer.h
-    struct MergeWithReduce;
-    struct MergeSequential;
-
-    template<typename Algorithm, typename MergeType>
+    template<typename Algorithm>
     class Parallelizer {
         struct BundleInput {
             Parallelizer *parallelizer_ptr_;
@@ -43,8 +39,6 @@ namespace yche {
 
         vector<bool> is_rec_mail_empty_;
 
-        bool is_any_merging;
-
         bool is_end_of_local_computation;
 
         void RingCommThreadFunction(unsigned long thread_id);
@@ -72,7 +66,6 @@ namespace yche {
 
             is_rec_mail_empty_.resize(thread_count_, true);
             is_end_of_local_computation = false;
-            is_any_merging = false;
             local_computation_range_index_vec_.resize(thread_count);
             merge_task_vecs_.resize(thread_count_);
             reduce_task_vectors_.resize(thread_count_);
@@ -83,13 +76,15 @@ namespace yche {
         virtual ~Parallelizer() {
             pthread_mutex_destroy(&counter_mutex_);
             pthread_mutex_destroy(&merge_mutex_);
+            pthread_barrier_destroy(&timestamp_barrier);
+
             delete[]thread_handles;
         }
     };
 
 
-    template<typename Algorithm, typename MergeType>
-    void Parallelizer<Algorithm, MergeType>::ParallelExecute() {
+    template<typename Algorithm>
+    void Parallelizer<Algorithm>::ParallelExecute() {
         struct timespec begin, end;
         double elapsed;
         clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -127,8 +122,8 @@ namespace yche {
 
     }
 
-    template<typename Algorithm, typename MergeType>
-    void Parallelizer<Algorithm, MergeType>::InitTasks() {
+    template<typename Algorithm>
+    void Parallelizer<Algorithm>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
         global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<BasicData>>>();
         for (auto &basic_data_ptr:*basic_data_vec_ptr) {
@@ -144,8 +139,8 @@ namespace yche {
         local_computation_range_index_vec_[thread_count_ - 1].second = whole_size - 1;
     }
 
-    template<typename Algorithm, typename MergeType>
-    void Parallelizer<Algorithm, MergeType>::RingCommThreadFunction(unsigned long thread_id) {
+    template<typename Algorithm>
+    void Parallelizer<Algorithm>::RingCommThreadFunction(unsigned long thread_id) {
         struct timespec begin, end;
         double elapsed;
 
@@ -181,7 +176,7 @@ namespace yche {
                             local_reduce_queue.erase(local_reduce_queue.end() - 1);
                         }
                         if (is_end_of_local_computation) {
-                            cout <<"Finish Local Computation"<<thread_index<<endl;
+                            cout << "Finish Local Computation" << thread_index << endl;
                             break;
                         }
                     }
@@ -227,49 +222,32 @@ namespace yche {
 
     }
 
-    template<typename Algorithm, typename MergeType>
-    void *Parallelizer<Algorithm, MergeType>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
+    template<typename Algorithm>
+    void *Parallelizer<Algorithm>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->parallelizer_ptr_->RingCommThreadFunction(my_bundle_input_ptr->thread_id_);
         return NULL;
     }
 
-    template<typename Algorithm, typename MergeType>
-    void Parallelizer<Algorithm, MergeType>::DoLeftMerging() {
+    template<typename Algorithm>
+    void Parallelizer<Algorithm>::DoLeftMerging() {
         vector<unique_ptr<ReduceData>> reduce_data_ptr_vec;
         //Do Left Merging, Current Impl Do not care about the branch cost since it is only called once
-        if (std::is_same<MergeType, yche::MergeWithReduce>::value) {
-            reduce_data_ptr_vec.push_back(std::move(algorithm_ptr_->overlap_community_vec_));
-            for (auto i = 0; i < thread_count_; i++) {
-                auto &local_reduce_queue = reduce_task_vectors_[i];
-                while (local_reduce_queue.size() > 0) {
-                    unique_ptr<ReduceData> reduce_data_ptr = std::move(local_reduce_queue.back());
-                    local_reduce_queue.erase(local_reduce_queue.end() - 1);
-                    reduce_data_ptr_vec.push_back(std::move(reduce_data_ptr));
-                }
+        for (auto i = 0; i < thread_count_; i++) {
+            auto &local_reduce_queue = reduce_task_vectors_[i];
+            while (local_reduce_queue.size() > 0) {
+                unique_ptr<ReduceData> reduce_data_ptr = std::move(local_reduce_queue.back());
+                local_reduce_queue.erase(local_reduce_queue.end() - 1);
+                reduce_data_ptr_vec.push_back(std::move(reduce_data_ptr));
             }
-
-            cout << "Before Reducer" << endl;
-            cout << "Reduce Data Size:" << reduce_data_ptr_vec.size() << endl;
-            Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
-                    thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
-                    algorithm_ptr_->ReduceComputation);
-            algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
-
         }
-//        else if (std::is_same<MergeType, yche::MergeSequential>::value) {
-//            for (auto i = 0; i < thread_count_; i++) {
-//                auto &local_merge_queue = merge_task_vecs_[i];
-//                while (local_merge_queue.size() > 0) {
-//                    auto data = std::move(local_merge_queue.front());
-//                    algorithm_ptr_->MergeToGlobal(data);
-//                    local_merge_queue.erase(local_merge_queue.begin());
-//                }
-//            }
-//        }
-        else {
-            cout << "Specialization Error" << endl;
-        }
+
+        cout << "Before Reducer" << endl;
+        cout << "Reduce Data Size:" << reduce_data_ptr_vec.size() << endl;
+        Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
+                thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
+                algorithm_ptr_->ReduceComputation);
+        algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
     }
 }
 

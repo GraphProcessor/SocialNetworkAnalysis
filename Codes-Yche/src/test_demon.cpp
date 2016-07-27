@@ -35,8 +35,6 @@ void ConstructGraphWithEdgeVecForDemon(unique_ptr<Demon::Graph> &graph_ptr,
 int main(int argc, char *argv[]) {
     long thread_num = atol(argv[1]);
     char *file_name_ptr = argv[2];
-    char *is_reduce_in_merge = argv[3];
-    string is_reduce_in_merge_str(is_reduce_in_merge);
 
     using VertexIndexType =int;
     vector<pair<VertexIndexType, VertexIndexType>> edges_vec;
@@ -53,7 +51,7 @@ int main(int argc, char *argv[]) {
     auto daemon_ptr = make_unique<Demon>(epsilon, min_community_size, std::move(graph_ptr),
                                          max_iteration);
 
-    ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, is_reduce_in_merge_str, daemon_ptr,
+    ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, daemon_ptr,
                                                              index_name_map);
 
     return 0;

@@ -258,7 +258,6 @@ namespace yche {
                        degree(this->vertices_[right_ptr->member_index_], *this->graph_ptr_);
             };
             sort(to_check_list.begin(), to_check_list.end(), degree_cmp);
-
             //First For Add-Neighbor Iteration, Check all the neighbors in the frontier
             for (auto &neighbor_info_ptr:to_check_list) {
                 if (CalculateDensity(community_info_ptr)
@@ -269,7 +268,6 @@ namespace yche {
                     neighbors.erase(neighbor_info_ptr->member_index_);
                     auto check_vertex = vertices_[neighbor_info_ptr->member_index_];
                     members.insert(make_pair(neighbor_info_ptr->member_index_, std::move(neighbor_info_ptr)));
-
                     //Update Member and Neighbor List
                     UpdateMembersNeighborsCommunityInfo(graph_ptr_, check_vertex, community_info_ptr, members,
                                                         neighbors, MutationType::add_neighbor,
@@ -293,7 +291,6 @@ namespace yche {
                     members.erase(member_info_ptr->member_index_);
                     auto check_vertex = vertices_[member_info_ptr->member_index_];
                     neighbors.insert(make_pair(member_info_ptr->member_index_, std::move(member_info_ptr)));
-
                     //Update Member and Neighbor List
                     UpdateMembersNeighborsCommunityInfo(graph_ptr_, check_vertex, community_info_ptr, members,
                                                         neighbors, MutationType::remove_member,

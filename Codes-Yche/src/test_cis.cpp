@@ -42,8 +42,6 @@ int main(int argc, char *argv[]) {
     std::ios_base::sync_with_stdio(false);
     long thread_num = atol(argv[1]);
     char *file_name_ptr = argv[2];
-    char *is_reduce_in_merge = argv[3];
-    string is_reduce_in_merge_str(is_reduce_in_merge);
 
     using VertexIndexType =int;
     vector<pair<VertexIndexType, VertexIndexType>> edges_vec;
@@ -55,7 +53,7 @@ int main(int argc, char *argv[]) {
     ConstructGraphWithEdgeVecForCIS<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
 
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
-    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, is_reduce_in_merge_str, cis_ptr, index_name_map);
+    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
 
     return 0;
 }

@@ -46,23 +46,15 @@ namespace yche {
     }
 
     template<typename Algorithm, typename VertexIndexType>
-    void ExecuteAlgorithmWithParallelizer(const unsigned long &thread_num, const string &is_reduce_in_merge_str,
+    void ExecuteAlgorithmWithParallelizer(const unsigned long &thread_num,
                                           unique_ptr<Algorithm> &algorithm_ptr,
                                           map<VertexIndexType, VertexIndexType> &index_name_map) {
 
-        if (!is_reduce_in_merge_str.compare("reduce")) {
-            cout << "Reduce Enabled" << endl;
-            Parallelizer<Algorithm, yche::MergeWithReduce> parallelizer(thread_num, std::move(algorithm_ptr));
-            parallelizer.ParallelExecute();
-            algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
-        }
-        else {
-            cout << "Reduce Not Enabled" << endl;
-            Parallelizer<Algorithm, yche::MergeSequential> parallelizer(thread_num, std::move(algorithm_ptr));
-            parallelizer.ParallelExecute();
-            algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
+        cout << "Reduce Enabled" << endl;
+        Parallelizer<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
+        parallelizer.ParallelExecute();
+        algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
 
-        }
         //Print the result
 #ifndef NOT_COUT_COMMUNITY_RESULT
         auto communities_ptr_vec = std::move(algorithm_ptr->overlap_community_vec_);

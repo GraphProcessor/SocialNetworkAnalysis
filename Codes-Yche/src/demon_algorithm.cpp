@@ -11,7 +11,6 @@ namespace yche {
     unique_ptr<Demon::SubGraph> Demon::ExtractEgoMinusEgo(Demon::Vertex ego_vertex) {
         unique_ptr<SubGraph> ego_net_ptr = make_unique<SubGraph>();
         auto origin_sub_index_map = map<int, int>();
-
         property_map<SubGraph, vertex_id_t>::type sub_vertex_id_map =
                 get(vertex_id, *ego_net_ptr);
         property_map<SubGraph, vertex_index_t>::type sub_vertex_index_map =
@@ -152,7 +151,6 @@ namespace yche {
         }
         return std::move(communities_vec_ptr);
     }
-
 
     Demon::CommunityVecPtr Demon::DoLabelPropagationOnSubGraph
             (unique_ptr<Demon::SubGraph> sub_graph_ptr, Demon::Vertex ego_vertex) {
@@ -308,7 +306,7 @@ namespace yche {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData>& merge_data_ptr) {
+    unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr) {
         return std::move(merge_data_ptr);
     }
 }
