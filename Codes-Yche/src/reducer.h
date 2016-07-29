@@ -63,8 +63,8 @@ namespace yche {
         pthread_t *thread_handles_;
 
         using IndexType = unsigned long;
-        vector<unique_ptr<Data>> reduce_data_pool_vec_;
-        vector<unique_ptr<Data>> global_reduce_data_vector;
+        vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
+        vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
         vector<ReduceTaskIndices<IndexType>> reduce_data_indices_vec_;
         vector<bool> is_rec_mail_empty_;
 
@@ -139,13 +139,13 @@ namespace yche {
         data_count_ = data_collection.size();
         if (data_count_ == 1) {
             is_reduce_task_only_one_ = true;
-            reduce_data_pool_vec_.push_back(std::move(*data_collection.begin()));
+            first_phase_reduce_data_pool_vec_.push_back(std::move(*data_collection.begin()));
             return;
         }
-        reduce_data_pool_vec_.resize(data_collection.size());
+        first_phase_reduce_data_pool_vec_.resize(data_collection.size());
         int i = 0;
         for (auto &data:data_collection) {
-            reduce_data_pool_vec_[i] = std::move(data);
+            first_phase_reduce_data_pool_vec_[i] = std::move(data);
             i++;
         }
         auto task_per_thread = data_collection.size() / thread_count_;
@@ -159,8 +159,9 @@ namespace yche {
                                                                     data_collection.size() - 1);
         //Sort From Greatest to Least
         for (auto i = 0; i < thread_count_; i++) {
-            sort(reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitStartIndex(),
-                 reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitEndIndex(), data_cmp_function_);
+            sort(first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitStartIndex(),
+                 first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitEndIndex(),
+                 data_cmp_function_);
         }
         cout << "Reduce Task Init Finished" << endl;
 #ifdef DEBUG
@@ -190,7 +191,7 @@ namespace yche {
                 if (reduce_data_size == 0) {
                     if (idle_count_ == thread_count_ - 1) {
                         is_end_of_loop_ = true;
-                        idle_count_=0;
+                        idle_count_ = 0;
                         for (auto i = 0; i < thread_count_; ++i) {
                             if (i != dst_index)
                                 sem_post(&sem_mail_boxes_[i]);
@@ -227,9 +228,10 @@ namespace yche {
                     }
 
                     //Do reduce computation, use the first max one and the last min one
-                    reduce_data_pool_vec_[local_reduce_data_indices.result_index_] = std::move(
-                            reduce_compute_function_(reduce_data_pool_vec_[local_reduce_data_indices.result_index_],
-                                                     reduce_data_pool_vec_[local_reduce_data_indices.end_computation_index_]));
+                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_] = std::move(
+                            reduce_compute_function_(
+                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_],
+                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.end_computation_index_]));
                     local_reduce_data_indices.end_computation_index_--;
                 }
             }
@@ -250,21 +252,21 @@ namespace yche {
         //Reduce Data Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         unique_ptr<Data> result_data_ptr = std::move(
-                reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
+                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
         unique_ptr<Data> input_data_ptr;
         pthread_barrier_wait(&timestamp_barrier_);
-        cout << "Thread Index:"<<thread_index<<endl;
+        cout << "Thread Index:" << thread_index << endl;
 
         while (!is_end_of_reduce_) {
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
-            global_reduce_data_vector.push_back(std::move(result_data_ptr));
+            second_phase_global_reduce_data_vector.push_back(std::move(result_data_ptr));
             //Fetch Data : Busy Worker
-            if (global_reduce_data_vector.size() >= 2) {
-                result_data_ptr = std::move(global_reduce_data_vector.back());
-                global_reduce_data_vector.erase(global_reduce_data_vector.end()-1);
-                input_data_ptr = std::move(global_reduce_data_vector.back());
-                global_reduce_data_vector.erase(global_reduce_data_vector.end()-1);
+            if (second_phase_global_reduce_data_vector.size() >= 2) {
+                result_data_ptr = std::move(second_phase_global_reduce_data_vector.back());
+                second_phase_global_reduce_data_vector.erase(second_phase_global_reduce_data_vector.end() - 1);
+                input_data_ptr = std::move(second_phase_global_reduce_data_vector.back());
+                second_phase_global_reduce_data_vector.erase(second_phase_global_reduce_data_vector.end() - 1);
                 pthread_mutex_unlock(&task_taking_mutex_);
 
                 //Do the computation After release the lock
@@ -286,16 +288,13 @@ namespace yche {
                 pthread_mutex_unlock(&task_taking_mutex_);
             }
         }
-
-#endif
-
+#else
         //Send Back And Ask Corresponding One to Finish
-#ifdef REDUCE_2ND_PHASE_SEQUENTIAL
         pthread_mutex_lock(&task_taking_mutex_);
-        global_reduce_data_vector.resize(thread_count_);
+        second_phase_global_reduce_data_vector.resize(thread_count_);
         pthread_mutex_unlock(&task_taking_mutex_);
-        global_reduce_data_vector[thread_index] = std::move(
-                reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
+        second_phase_global_reduce_data_vector[thread_index] = std::move(
+                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
         pthread_barrier_wait(&timestamp_barrier_);
         cout << "Finished Send Back 2 Global" << endl;
 #endif
@@ -312,7 +311,7 @@ namespace yche {
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     unique_ptr<Data> Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
-            return std::move(reduce_data_pool_vec_[0]);
+            return std::move(first_phase_reduce_data_pool_vec_[0]);
         }
         else {
             std::vector<BundleInput *> input_bundle_vec(thread_count_);
@@ -336,21 +335,18 @@ namespace yche {
 #ifdef REDUCE_2ND_PHASE_SEQUENTIAL
             cout << "Do Left Reduce In Single Core" << endl;
             //Do Left Reduce
-            while (global_reduce_data_vector.size() > 1) {
-                cout << global_reduce_data_vector.size() << endl;
-                global_reduce_data_vector[0] =
-                        std::move(reduce_compute_function_(global_reduce_data_vector[0],
-                                                           global_reduce_data_vector.back()));
-                global_reduce_data_vector.erase(global_reduce_data_vector.end()-1);
+            while (second_phase_global_reduce_data_vector.size() > 1) {
+                cout << second_phase_global_reduce_data_vector.size() << endl;
+                second_phase_global_reduce_data_vector[0] =
+                        std::move(reduce_compute_function_(second_phase_global_reduce_data_vector[0],
+                                                           second_phase_global_reduce_data_vector.back()));
+                second_phase_global_reduce_data_vector.erase(second_phase_global_reduce_data_vector.end()-1);
             }
 
 #endif
-            return std::move(global_reduce_data_vector[0]);
+            return std::move(second_phase_global_reduce_data_vector[0]);
         }
     }
-
-
 }
-
 
 #endif //CODES_YCHE_REDUCER_H
