@@ -136,6 +136,7 @@ namespace yche {
     template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
     void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InitDataPerThread(
             DataCollection &data_collection) {
+        data_count_ = data_collection.size();
         if (data_count_ == 1) {
             is_reduce_task_only_one_ = true;
             reduce_data_pool_vec_.push_back(std::move(*data_collection.begin()));
@@ -186,7 +187,6 @@ namespace yche {
         if (thread_count_ < data_count_) {
             while (true) {
                 auto reduce_data_size = local_reduce_data_indices.GetReduceTaskSize();
-                cout << reduce_data_size << endl;
                 if (reduce_data_size == 0) {
                     if (idle_count_ == thread_count_ - 1) {
                         is_end_of_loop_ = true;
@@ -252,6 +252,9 @@ namespace yche {
         unique_ptr<Data> result_data_ptr = std::move(
                 reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
         unique_ptr<Data> input_data_ptr;
+        pthread_barrier_wait(&timestamp_barrier_);
+        cout << "Thread Index:"<<thread_index<<endl;
+
         while (!is_end_of_reduce_) {
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
@@ -259,15 +262,15 @@ namespace yche {
             //Fetch Data : Busy Worker
             if (global_reduce_data_vector.size() >= 2) {
                 result_data_ptr = std::move(global_reduce_data_vector.back());
-                global_reduce_data_vector.erase(reduce_data_pool_vec_.end()-1);
+                global_reduce_data_vector.erase(global_reduce_data_vector.end()-1);
                 input_data_ptr = std::move(global_reduce_data_vector.back());
-                global_reduce_data_vector.erase(reduce_data_pool_vec_.end()-1);
+                global_reduce_data_vector.erase(global_reduce_data_vector.end()-1);
                 pthread_mutex_unlock(&task_taking_mutex_);
 
                 //Do the computation After release the lock
                 if (is_end_of_reduce_)
                     break;
-                result_data_ptr = reduce_compute_function_(result_data_ptr, input_data_ptr);
+                result_data_ptr = std::move(reduce_compute_function_(result_data_ptr, input_data_ptr));
             }
                 //Judge Whether The Whole Computation Finished
             else {
