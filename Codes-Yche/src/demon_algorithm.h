@@ -51,7 +51,7 @@ namespace yche {
         using CommunityPtr = unique_ptr<vector<IndexType>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
-        //Start Implementation Interfaces For Parallelizer Traits
+        //Start Implementation Interfaces For DataFlowScheduler Traits
         CommunityVecPtr overlap_community_vec_;
         using BasicData = Vertex;
         using MergeData = vector<CommunityPtr>;

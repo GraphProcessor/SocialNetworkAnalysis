@@ -11,9 +11,9 @@ namespace yche {
     using namespace std;
 
     template<typename Algorithm>
-    class Parallelizer {
+    class DataFlowScheduler {
         struct BundleInput {
-            Parallelizer *parallelizer_ptr_;
+            DataFlowScheduler *parallelizer_ptr_;
             unsigned long thread_id_;
         };
 
@@ -25,23 +25,21 @@ namespace yche {
         using MergeData = typename Algorithm::MergeData;
         using ReduceData = typename Algorithm::ReduceData;
 
-
         unique_ptr<vector<unique_ptr<BasicData>>> global_computation_task_vec_ptr_;
         vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
 
-        vector<vector<unique_ptr<MergeData>>> merge_task_vecs_;
+        vector<vector<unique_ptr<MergeData>>> merge_task_vectors_;
         vector<vector<unique_ptr<ReduceData>>> reduce_task_vectors_;
 
         pthread_t *thread_handles;
-        pthread_mutex_t counter_mutex_;
-        pthread_mutex_t merge_mutex_;
+        pthread_mutex_t counter_mutex_lock_;
         pthread_barrier_t timestamp_barrier;
 
         vector<bool> is_rec_mail_empty_;
 
         bool is_end_of_local_computation;
 
-        void RingCommThreadFunction(unsigned long thread_id);
+        void RingCommTaskRequestThreadFunction(unsigned long thread_id);
 
         static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
 
@@ -54,37 +52,34 @@ namespace yche {
 
         void ParallelExecute();
 
-        Parallelizer(unsigned long thread_count,
-                     unique_ptr<Algorithm> algorithm_ptr)
+        DataFlowScheduler(unsigned long thread_count,
+                          unique_ptr<Algorithm> algorithm_ptr)
                 : thread_count_(thread_count) {
             algorithm_ptr_ = std::move(algorithm_ptr);
             thread_handles = new pthread_t[thread_count_];
 
-            pthread_mutex_init(&counter_mutex_, NULL);
-            pthread_mutex_init(&merge_mutex_, NULL);
+            pthread_mutex_init(&counter_mutex_lock_, NULL);
             pthread_barrier_init(&timestamp_barrier, NULL, thread_count);
 
             is_rec_mail_empty_.resize(thread_count_, true);
             is_end_of_local_computation = false;
             local_computation_range_index_vec_.resize(thread_count);
-            merge_task_vecs_.resize(thread_count_);
+            merge_task_vectors_.resize(thread_count_);
             reduce_task_vectors_.resize(thread_count_);
             idle_count_ = 0;
         }
 
 
-        virtual ~Parallelizer() {
-            pthread_mutex_destroy(&counter_mutex_);
-            pthread_mutex_destroy(&merge_mutex_);
+        virtual ~DataFlowScheduler() {
+            pthread_mutex_destroy(&counter_mutex_lock_);
             pthread_barrier_destroy(&timestamp_barrier);
-
             delete[]thread_handles;
         }
     };
 
 
     template<typename Algorithm>
-    void Parallelizer<Algorithm>::ParallelExecute() {
+    void DataFlowScheduler<Algorithm>::ParallelExecute() {
         struct timespec begin, end;
         double elapsed;
         clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -123,7 +118,7 @@ namespace yche {
     }
 
     template<typename Algorithm>
-    void Parallelizer<Algorithm>::InitTasks() {
+    void DataFlowScheduler<Algorithm>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
         global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<BasicData>>>();
         for (auto &basic_data_ptr:*basic_data_vec_ptr) {
@@ -140,7 +135,7 @@ namespace yche {
     }
 
     template<typename Algorithm>
-    void Parallelizer<Algorithm>::RingCommThreadFunction(unsigned long thread_id) {
+    void DataFlowScheduler<Algorithm>::RingCommTaskRequestThreadFunction(unsigned long thread_id) {
         struct timespec begin, end;
         double elapsed;
 
@@ -163,12 +158,11 @@ namespace yche {
                     break;
                 }
                 else {
-                    pthread_mutex_lock(&counter_mutex_);
+                    pthread_mutex_lock(&counter_mutex_lock_);
                     idle_count_++;
-                    pthread_mutex_unlock(&counter_mutex_);
+                    pthread_mutex_unlock(&counter_mutex_lock_);
 
                     is_rec_mail_empty_[dst_index] = false;
-
                     while (!is_rec_mail_empty_[dst_index]) {
                         if (local_reduce_queue.size() > 1) {
                             local_reduce_queue.front() = algorithm_ptr_->ReduceComputation(local_reduce_queue.front(),
@@ -180,12 +174,11 @@ namespace yche {
                             break;
                         }
                     }
-                    pthread_mutex_lock(&counter_mutex_);
+                    pthread_mutex_lock(&counter_mutex_lock_);
                     idle_count_--;
-                    pthread_mutex_unlock(&counter_mutex_);
+                    pthread_mutex_unlock(&counter_mutex_lock_);
                 }
             }
-
             else {
                 if (local_computation_task_size > 1) {
                     //Check Flag
@@ -223,14 +216,14 @@ namespace yche {
     }
 
     template<typename Algorithm>
-    void *Parallelizer<Algorithm>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
+    void *DataFlowScheduler<Algorithm>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
-        my_bundle_input_ptr->parallelizer_ptr_->RingCommThreadFunction(my_bundle_input_ptr->thread_id_);
+        my_bundle_input_ptr->parallelizer_ptr_->RingCommTaskRequestThreadFunction(my_bundle_input_ptr->thread_id_);
         return NULL;
     }
 
     template<typename Algorithm>
-    void Parallelizer<Algorithm>::DoLeftMerging() {
+    void DataFlowScheduler<Algorithm>::DoLeftMerging() {
         vector<unique_ptr<ReduceData>> reduce_data_ptr_vec;
         //Do Left Merging, Current Impl Do not care about the branch cost since it is only called once
         for (auto i = 0; i < thread_count_; i++) {

@@ -1,5 +1,5 @@
 #include "demon_algorithm.h"
-#include "parallelizer.h"
+#include "dataflow_scheduler.h"
 #include "input_output_handler.h"
 
 using namespace yche;

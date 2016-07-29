@@ -51,7 +51,7 @@ namespace yche {
                                           map<VertexIndexType, VertexIndexType> &index_name_map) {
 
         cout << "Reduce Enabled" << endl;
-        Parallelizer<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
+        DataFlowScheduler<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
         parallelizer.ParallelExecute();
         algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
 

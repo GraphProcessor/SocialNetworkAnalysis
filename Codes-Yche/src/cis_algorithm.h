@@ -85,7 +85,7 @@ namespace yche {
         //Overlapping Community Results Related Types
         using OverlappingCommunityVec=vector<unique_ptr<CommunityMemberVec>>;
 
-        //Start Implementation Interfaces For Parallelizer Traits
+        //Start Implementation Interfaces For DataFlowScheduler Traits
         unique_ptr<OverlappingCommunityVec> overlap_community_vec_;
         using BasicData = CommunityMemberSet;
         using MergeData = CommunityMemberVec;
