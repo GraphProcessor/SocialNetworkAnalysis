@@ -9,7 +9,7 @@ find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
 
-set(ParallelUtilFiles dataflow_scheduler.h reducer.h configuration.h)
+set(ParallelUtilFiles dataflow_scheduler.h reduce_scheduler.h configuration.h)
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_demon.cpp demon_algorithm.cpp demon_algorithm.h)
 set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)

@@ -5,7 +5,7 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
-#include "reducer.h"
+#include "reduce_scheduler.h"
 
 namespace yche {
     using namespace std;

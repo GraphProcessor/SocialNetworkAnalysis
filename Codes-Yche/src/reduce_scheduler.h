@@ -69,12 +69,13 @@ namespace yche {
         vector<bool> is_rec_mail_empty_;
 
         vector<sem_t> sem_mail_boxes_;
+        vector<pthread_mutex_t> check_indices_mutex_lock_vector_;
         pthread_mutex_t counter_mutex_lock_;
         pthread_mutex_t task_taking_mutex_;
         pthread_cond_t task_taking_cond_var_;
         pthread_barrier_t timestamp_barrier_;
 
-        vector<bool> is_zero_or_one_task_left_vec_;
+        vector<bool> is_busy_working_;
         bool is_reduce_task_only_one_;
         bool is_end_of_loop_;
         bool is_end_of_reduce_;
@@ -103,6 +104,11 @@ namespace yche {
             for (auto i = 0; i < thread_count_; i++) {
                 sem_init(&sem_mail_boxes_[i], 0, 0);
             }
+            check_indices_mutex_lock_vector_.resize(thread_count_);
+            for (auto i = 0; i < thread_count_; i++) {
+                pthread_mutex_init(&check_indices_mutex_lock_vector_[i], NULL);
+            }
+
             pthread_barrier_init(&timestamp_barrier_, NULL, thread_count_);
             pthread_mutex_init(&task_taking_mutex_, NULL);
             pthread_mutex_init(&counter_mutex_lock_, NULL);
@@ -114,7 +120,7 @@ namespace yche {
             is_end_of_reduce_ = false;
             is_reduce_task_only_one_ = false;
             is_rec_mail_empty_.resize(thread_count_, true);
-            is_zero_or_one_task_left_vec_.resize(thread_count_, false);
+            is_busy_working_.resize(thread_count_, false);
             idle_count_ = 0;
             //InitLocalData
             InitDataPerThread(reduce_data_collection);
@@ -124,6 +130,9 @@ namespace yche {
             sem_mail_boxes_.resize(thread_count_);
             for (auto i = 0; i < thread_count_; i++) {
                 sem_destroy(&sem_mail_boxes_[i]);
+            }
+            for (auto i = 0; i < thread_count_; i++) {
+                pthread_mutex_destroy(&check_indices_mutex_lock_vector_[i]);
             }
             pthread_mutex_destroy(&task_taking_mutex_);
             pthread_mutex_destroy(&counter_mutex_lock_);
@@ -203,8 +212,26 @@ namespace yche {
                         idle_count_++;
                         pthread_mutex_unlock(&counter_mutex_lock_);
 
-                        is_rec_mail_empty_[dst_index] = false;
-                        sem_wait(&sem_mail_boxes_[dst_index]);
+                        bool is_going_to_request = false;
+                        pthread_mutex_lock(&check_indices_mutex_lock_vector_[dst_index]);
+                        auto available_task = reduce_data_indices_vec_[dst_index].GetReduceTaskSize();
+                        if (available_task == 0 ||
+                            (available_task == 1 && is_busy_working_[dst_index] == false)) {
+                            is_going_to_request = true;
+                        } else {
+                            //Steal The Task when Dst is Busy Working
+                            pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
+                            //Update Current Index and Dst Index
+
+                            pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
+                        }
+                        pthread_mutex_unlock(&check_indices_mutex_lock_vector_[dst_index]);
+
+                        if (is_going_to_request) {
+                            is_rec_mail_empty_[dst_index] = false;
+                            sem_wait(&sem_mail_boxes_[dst_index]);
+                        }
+
                         if (is_end_of_loop_) {
                             break;
                         }
@@ -227,12 +254,18 @@ namespace yche {
                         }
                     }
 
+                    is_busy_working_[thread_index] = true;
                     //Do reduce computation, use the first max one and the last min one
                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_] = std::move(
                             reduce_compute_function_(
                                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_],
                                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.end_computation_index_]));
+
+
+                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                     local_reduce_data_indices.end_computation_index_--;
+                    is_busy_working_[thread_index] = false;
+                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
                 }
             }
         }
