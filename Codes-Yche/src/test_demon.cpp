@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     map<int, int> index_name_map;
     ConstructGraphWithEdgeVecForDemon<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
 
-    auto epsilon = 0.5;
+    auto epsilon = 0.25;
     auto min_community_size = 3;
     auto max_iteration = 100;
     auto daemon_ptr = make_unique<Demon>(epsilon, min_community_size, std::move(graph_ptr),

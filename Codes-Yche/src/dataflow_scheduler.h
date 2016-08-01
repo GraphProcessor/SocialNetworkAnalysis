@@ -12,12 +12,14 @@ namespace yche {
 
     template<typename AlgorithmType>
     class DataFlowScheduler {
+
+
+    private:
         struct BundleInput {
             DataFlowScheduler *parallelizer_ptr_;
             unsigned long thread_id_;
         };
 
-    private:
         unsigned long thread_count_;
         unsigned long idle_count_;
 

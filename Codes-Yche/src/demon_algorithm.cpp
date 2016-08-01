@@ -231,32 +231,27 @@ namespace yche {
 
     void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
                                            unique_ptr<MergeDataType> &result) {
+        //Initial Insert, No Need to Compare
         if (community_collection->size() == 0) {
-            for (auto iter_inner = result->begin();
-                 iter_inner != result->end(); ++iter_inner) {
+            for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
                 if ((*iter_inner)->size() > min_community_size_)
                     community_collection->push_back(std::move(*iter_inner));
             }
         }
         else {
             for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
-                CommunityPtr tmp_copy_ptr;
-                bool first_access_flag = false;
                 for (auto iter = community_collection->begin(); iter != community_collection->end(); ++iter) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
                     if (cover_rate_result > epsilon_) {
                         MergeTwoCommunitiesToLeftOne(*iter, *iter_inner);
                         break;
                     }
-                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
-                        tmp_copy_ptr = make_unique<vector<IndexType>>();
-                        for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
-                            tmp_copy_ptr->push_back(*tmp_iter);
-                        }
-                        first_access_flag = true;
-                    }
                 }
-                if (first_access_flag) {
+                if ((*iter_inner)->size() > min_community_size_) {
+                    auto tmp_copy_ptr = make_unique<vector<IndexType>>();
+                    for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
+                        tmp_copy_ptr->push_back(*tmp_iter);
+                    }
                     community_collection->push_back(std::move(tmp_copy_ptr));
                 }
             }
