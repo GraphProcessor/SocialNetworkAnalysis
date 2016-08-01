@@ -215,7 +215,6 @@ namespace yche {
                         bool is_going_to_request = false;
 
 #ifdef STEAL_ENABLE
-                        pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                         pthread_mutex_lock(&check_indices_mutex_lock_vector_[dst_index]);
                         auto available_task_num = reduce_data_indices_vec_[dst_index].GetReduceTaskSize();
                         if (available_task_num == 0 ||
@@ -226,22 +225,25 @@ namespace yche {
                                 //Index Should Consider Dst Current Computation
                                 auto current_end_index = reduce_data_indices_vec_[dst_index].end_computation_index_-1;
                                 auto current_start_index = current_end_index - (reduce_data_size + 1) / 2 + 1;
+                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                                 reduce_data_indices_vec_[thread_index].RescheduleTaskIndices(current_start_index,
                                                                                              current_end_index);
+                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
                                 reduce_data_indices_vec_[dst_index].end_computation_index_=current_start_index;
                             }
                             else {
                                 //Not Required to Consider Dst Current Computation, since it not enter critical section
                                 auto current_end_index = reduce_data_indices_vec_[dst_index].end_computation_index_;
                                 auto current_start_index = current_end_index - (reduce_data_size + 1) / 2 + 1;
+                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                                 reduce_data_indices_vec_[thread_index].RescheduleTaskIndices(current_start_index,
                                                                                              current_end_index);
+                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
                                 reduce_data_indices_vec_[dst_index].end_computation_index_=current_start_index-1;
                             }
                             //Update Current Thread Index and Dst Index
                         }
                         pthread_mutex_unlock(&check_indices_mutex_lock_vector_[dst_index]);
-                        pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
 
                         if (is_going_to_request) {
                             is_rec_mail_empty_[dst_index] = false;
@@ -275,12 +277,12 @@ namespace yche {
 
                     //To Avoid Enter into Computation when the neighbor is stealing
 #ifdef STEAL_ENABLE
-                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[src_index]);
+                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                     is_busy_working_[thread_index] = true;
                     //Task Has been Steal
                     if (local_reduce_data_indices.GetReduceTaskSize() == 0)
                         continue;
-                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[src_index]);
+                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
 #endif
                     //Do reduce computation, use the first max one and the last min one
                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_] = std::move(
@@ -288,7 +290,6 @@ namespace yche {
                                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_],
                                     first_phase_reduce_data_pool_vec_[local_reduce_data_indices.end_computation_index_]));
 #ifdef STEAL_ENABLE
-
                     pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
                     is_busy_working_[thread_index] = false;
                     local_reduce_data_indices.end_computation_index_--;
