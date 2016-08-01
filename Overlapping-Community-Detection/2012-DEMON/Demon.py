@@ -227,11 +227,11 @@ class Demon(object):
 
 #################################
 g = nx.Graph()
-fin = open("/home/cheyulin/gitrepos/SocialNetworkAnalysis/Codes-Yche/karate_edges_input.csv")
+fin = open("/home/cheyulin/GitRepos/SocialNetworkAnalysis/Codes-Yche/demo_input_files/karate_edges_input.csv")
 for l in fin:
     l = l.rstrip().split(" ")
     print  l[0] + ' ,' + l[1]
     g.add_edge(l[0], l[1])
 
 d = Demon()
-d.execute(g, epsilon=0.5)
+d.execute(g, epsilon=0.25)

@@ -240,14 +240,19 @@ namespace yche {
         }
         else {
             for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
+                bool first_access_flag = false;
                 for (auto iter = community_collection->begin(); iter != community_collection->end(); ++iter) {
                     auto cover_rate_result = GetTwoCommunitiesCoverRate(*iter, *iter_inner);
                     if (cover_rate_result > epsilon_) {
                         MergeTwoCommunitiesToLeftOne(*iter, *iter_inner);
                         break;
                     }
+                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
+
+                        first_access_flag = true;
+                    }
                 }
-                if ((*iter_inner)->size() > min_community_size_) {
+                if (first_access_flag) {
                     auto tmp_copy_ptr = make_unique<vector<IndexType>>();
                     for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
                         tmp_copy_ptr->push_back(*tmp_iter);
@@ -255,7 +260,6 @@ namespace yche {
                     community_collection->push_back(std::move(tmp_copy_ptr));
                 }
             }
-
         }
     }
 
