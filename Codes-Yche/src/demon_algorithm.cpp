@@ -253,11 +253,7 @@ namespace yche {
                     }
                 }
                 if (first_access_flag) {
-                    auto tmp_copy_ptr = make_unique<vector<IndexType>>();
-                    for (auto tmp_iter = (*iter_inner)->begin(); tmp_iter != (*iter_inner)->end(); ++tmp_iter) {
-                        tmp_copy_ptr->push_back(*tmp_iter);
-                    }
-                    community_collection->push_back(std::move(tmp_copy_ptr));
+                    community_collection->push_back(std::move(*iter_inner));
                 }
             }
         }
