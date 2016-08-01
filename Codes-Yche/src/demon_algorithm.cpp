@@ -230,7 +230,7 @@ namespace yche {
     }
 
     void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
-                                           unique_ptr<MergeData> &result) {
+                                           unique_ptr<MergeDataType> &result) {
         if (community_collection->size() == 0) {
             for (auto iter_inner = result->begin();
                  iter_inner != result->end(); ++iter_inner) {
@@ -277,8 +277,8 @@ namespace yche {
         }
     }
 
-    unique_ptr<vector<unique_ptr<Demon::BasicData>>> Demon::InitBasicComputationData() {
-        unique_ptr<vector<unique_ptr<BasicData>>> basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
+    unique_ptr<vector<unique_ptr<Demon::BasicDataType>>> Demon::InitBasicComputationData() {
+        unique_ptr<vector<unique_ptr<BasicDataType>>> basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicDataType>>>();
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             basic_data_vec_ptr->push_back(make_unique<Vertex>(ego_vertex));
@@ -286,7 +286,7 @@ namespace yche {
         return std::move(basic_data_vec_ptr);
     }
 
-    unique_ptr<Demon::MergeData> Demon::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
+    unique_ptr<Demon::MergeDataType> Demon::LocalComputation(unique_ptr<BasicDataType> seed_member_ptr) {
         auto ego_vertex = *seed_member_ptr;
         auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
         auto result = std::move(DoLabelPropagationOnSubGraph(std::move(sub_graph_ptr), ego_vertex));
@@ -302,11 +302,11 @@ namespace yche {
         return std::move(result);
     }
 
-    void Demon::MergeToGlobal(unique_ptr<MergeData> &result) {
+    void Demon::MergeToGlobal(unique_ptr<MergeDataType> &result) {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Demon::ReduceData> Demon::WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr) {
+    unique_ptr<Demon::ReduceDataType> Demon::WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr) {
         return std::move(merge_data_ptr);
     }
 }

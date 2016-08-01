@@ -9,4 +9,5 @@
 //#define NOT_COUT_COMMUNITY_RESULT
 //#define STEAL_ENABLE
 #define DEBUG
+
 #endif //CODES_YCHE_CONFIGURATION_H

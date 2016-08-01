@@ -48,7 +48,7 @@ namespace yche {
         }
     };
 
-    template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
+    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
     class Reducer {
     private:
 
@@ -63,8 +63,8 @@ namespace yche {
         pthread_t *thread_handles_;
 
         using IndexType = unsigned long;
-        vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
-        vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
+        vector<unique_ptr<DataType>> first_phase_reduce_data_pool_vec_;
+        vector<unique_ptr<DataType>> second_phase_global_reduce_data_vector;
         vector<ReduceTaskIndices<IndexType>> reduce_data_indices_vec_;
         vector<bool> is_rec_mail_empty_;
 
@@ -80,21 +80,21 @@ namespace yche {
         bool is_end_of_loop_;
         bool is_end_of_reduce_;
 
-        DataCmpFunction data_cmp_function_;
-        ComputationFunction reduce_compute_function_;
+        DataCmpFunctionType data_cmp_function_;
+        ComputationFunctionType reduce_compute_function_;
 
         void RingCommTaskStealAndRequestThreadFunction(unsigned long thread_id);
 
         static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
 
-        void InitDataPerThread(DataCollection &data_collection);
+        void InitDataPerThread(DataCollectionType &data_collection);
 
     public:
 
-        unique_ptr<Data> ParallelExecute();
+        unique_ptr<DataType> ParallelExecute();
 
-        Reducer(unsigned long thread_count, DataCollection &reduce_data_collection, DataCmpFunction data_cmp_function,
-                ComputationFunction compute_function)
+        Reducer(unsigned long thread_count, DataCollectionType &reduce_data_collection, DataCmpFunctionType data_cmp_function,
+                ComputationFunctionType compute_function)
                 : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
                   reduce_compute_function_(compute_function) {
             thread_handles_ = new pthread_t[thread_count_];
@@ -142,9 +142,9 @@ namespace yche {
         }
     };
 
-    template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InitDataPerThread(
-            DataCollection &data_collection) {
+    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
+    void Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InitDataPerThread(
+            DataCollectionType &data_collection) {
         data_count_ = data_collection.size();
         if (data_count_ == 1) {
             is_reduce_task_only_one_ = true;
@@ -182,8 +182,8 @@ namespace yche {
 #endif
     }
 
-    template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    void Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::RingCommTaskStealAndRequestThreadFunction(
+    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
+    void Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
             unsigned long thread_id) {
         unsigned long thread_index = thread_id;
         auto dst_index = (thread_index + 1) % thread_count_;
@@ -312,11 +312,11 @@ namespace yche {
         }
 
 #ifndef REDUCE_2ND_PHASE_SEQUENTIAL
-        //Reduce Data Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
+        //Reduce DataType Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
-        unique_ptr<Data> result_data_ptr = std::move(
+        unique_ptr<DataType> result_data_ptr = std::move(
                 first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
-        unique_ptr<Data> input_data_ptr;
+        unique_ptr<DataType> input_data_ptr;
         pthread_barrier_wait(&timestamp_barrier_);
         cout << "Thread Index:" << thread_index << endl;
 
@@ -324,7 +324,7 @@ namespace yche {
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
             second_phase_global_reduce_data_vector.push_back(std::move(result_data_ptr));
-            //Fetch Data : Busy Worker
+            //Fetch DataType : Busy Worker
             if (second_phase_global_reduce_data_vector.size() >= 2) {
                 result_data_ptr = std::move(second_phase_global_reduce_data_vector.back());
                 second_phase_global_reduce_data_vector.erase(second_phase_global_reduce_data_vector.end() - 1);
@@ -363,16 +363,16 @@ namespace yche {
 #endif
     }
 
-    template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    void *Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::InvokeRingCommThreadFunction(
+    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
+    void *Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
             void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->reducer_ptr_->RingCommTaskStealAndRequestThreadFunction(my_bundle_input_ptr->thread_id_);
         return NULL;
     }
 
-    template<typename DataCollection, typename Data, typename DataCmpFunction, typename ComputationFunction>
-    unique_ptr<Data> Reducer<DataCollection, Data, DataCmpFunction, ComputationFunction>::ParallelExecute() {
+    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
+    unique_ptr<DataType> Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
             return std::move(first_phase_reduce_data_pool_vec_[0]);
         }

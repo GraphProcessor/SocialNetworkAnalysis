@@ -334,7 +334,7 @@ namespace yche {
     }
 
     void Cis::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
-                                         unique_ptr<MergeData> &result) {
+                                         unique_ptr<MergeDataType> &result) {
         if (community_collection->size() == 0) {
             community_collection->push_back(std::move(result));
         }
@@ -371,8 +371,8 @@ namespace yche {
         return std::move(overlapping_communities_ptr);
     }
 
-    unique_ptr<vector<unique_ptr<Cis::BasicData>>> Cis::InitBasicComputationData() {
-        auto basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicData>>>();
+    unique_ptr<vector<unique_ptr<Cis::BasicDataType>>> Cis::InitBasicComputationData() {
+        auto basic_data_vec_ptr = make_unique<vector<unique_ptr<BasicDataType>>>();
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
             Vertex vertex = *vp.first;
@@ -383,17 +383,17 @@ namespace yche {
         return std::move(basic_data_vec_ptr);
     }
 
-    unique_ptr<CommunityMemberVec> Cis::LocalComputation(unique_ptr<BasicData> seed_member_ptr) {
+    unique_ptr<CommunityMemberVec> Cis::LocalComputation(unique_ptr<BasicDataType> seed_member_ptr) {
         auto result_community = std::move(ExpandSeed(seed_member_ptr));
         return result_community;
     }
 
-    void Cis::MergeToGlobal(unique_ptr<MergeData> &result) {
+    void Cis::MergeToGlobal(unique_ptr<MergeDataType> &result) {
         MergeToCommunityCollection(overlap_community_vec_, result);
     }
 
-    unique_ptr<Cis::ReduceData> Cis::WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr) {
-        auto reduce_data_ptr = make_unique<ReduceData>();
+    unique_ptr<Cis::ReduceDataType> Cis::WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr) {
+        auto reduce_data_ptr = make_unique<ReduceDataType>();
         reduce_data_ptr->push_back(std::move(merge_data_ptr));
         return std::move(reduce_data_ptr);
     }

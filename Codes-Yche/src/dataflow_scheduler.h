@@ -10,7 +10,7 @@
 namespace yche {
     using namespace std;
 
-    template<typename Algorithm>
+    template<typename AlgorithmType>
     class DataFlowScheduler {
         struct BundleInput {
             DataFlowScheduler *parallelizer_ptr_;
@@ -21,15 +21,15 @@ namespace yche {
         unsigned long thread_count_;
         unsigned long idle_count_;
 
-        using BasicData = typename Algorithm::BasicData;
-        using MergeData = typename Algorithm::MergeData;
-        using ReduceData = typename Algorithm::ReduceData;
+        using BasicDataType = typename AlgorithmType::BasicDataType;
+        using MergeDataType = typename AlgorithmType::MergeDataType;
+        using ReduceDataType = typename AlgorithmType::ReduceDataType;
 
-        unique_ptr<vector<unique_ptr<BasicData>>> global_computation_task_vec_ptr_;
+        unique_ptr<vector<unique_ptr<BasicDataType>>> global_computation_task_vec_ptr_;
         vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
 
-        vector<vector<unique_ptr<MergeData>>> merge_task_vectors_;
-        vector<vector<unique_ptr<ReduceData>>> reduce_task_vectors_;
+        vector<vector<unique_ptr<MergeDataType>>> merge_task_vectors_;
+        vector<vector<unique_ptr<ReduceDataType>>> reduce_task_vectors_;
 
         pthread_t *thread_handles;
         pthread_mutex_t counter_mutex_lock_;
@@ -48,12 +48,12 @@ namespace yche {
         void DoLeftMerging();
 
     public:
-        unique_ptr<Algorithm> algorithm_ptr_;
+        unique_ptr<AlgorithmType> algorithm_ptr_;
 
         void ParallelExecute();
 
         DataFlowScheduler(unsigned long thread_count,
-                          unique_ptr<Algorithm> algorithm_ptr)
+                          unique_ptr<AlgorithmType> algorithm_ptr)
                 : thread_count_(thread_count) {
             algorithm_ptr_ = std::move(algorithm_ptr);
             thread_handles = new pthread_t[thread_count_];
@@ -78,8 +78,8 @@ namespace yche {
     };
 
 
-    template<typename Algorithm>
-    void DataFlowScheduler<Algorithm>::ParallelExecute() {
+    template<typename AlgorithmType>
+    void DataFlowScheduler<AlgorithmType>::ParallelExecute() {
         struct timespec begin, end;
         double elapsed;
         clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -117,10 +117,10 @@ namespace yche {
 
     }
 
-    template<typename Algorithm>
-    void DataFlowScheduler<Algorithm>::InitTasks() {
+    template<typename AlgorithmType>
+    void DataFlowScheduler<AlgorithmType>::InitTasks() {
         auto basic_data_vec_ptr = algorithm_ptr_->InitBasicComputationData();
-        global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<BasicData>>>();
+        global_computation_task_vec_ptr_ = make_unique<vector<unique_ptr<BasicDataType>>>();
         for (auto &basic_data_ptr:*basic_data_vec_ptr) {
             global_computation_task_vec_ptr_->push_back(std::move(basic_data_ptr));
         }
@@ -134,8 +134,8 @@ namespace yche {
         local_computation_range_index_vec_[thread_count_ - 1].second = whole_size - 1;
     }
 
-    template<typename Algorithm>
-    void DataFlowScheduler<Algorithm>::RingCommTaskRequestThreadFunction(unsigned long thread_id) {
+    template<typename AlgorithmType>
+    void DataFlowScheduler<AlgorithmType>::RingCommTaskRequestThreadFunction(unsigned long thread_id) {
         struct timespec begin, end;
         double elapsed;
 
@@ -215,29 +215,29 @@ namespace yche {
 
     }
 
-    template<typename Algorithm>
-    void *DataFlowScheduler<Algorithm>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
+    template<typename AlgorithmType>
+    void *DataFlowScheduler<AlgorithmType>::InvokeRingCommThreadFunction(void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->parallelizer_ptr_->RingCommTaskRequestThreadFunction(my_bundle_input_ptr->thread_id_);
         return NULL;
     }
 
-    template<typename Algorithm>
-    void DataFlowScheduler<Algorithm>::DoLeftMerging() {
-        vector<unique_ptr<ReduceData>> reduce_data_ptr_vec;
+    template<typename AlgorithmType>
+    void DataFlowScheduler<AlgorithmType>::DoLeftMerging() {
+        vector<unique_ptr<ReduceDataType>> reduce_data_ptr_vec;
         //Do Left Merging, Current Impl Do not care about the branch cost since it is only called once
         for (auto i = 0; i < thread_count_; i++) {
             auto &local_reduce_queue = reduce_task_vectors_[i];
             while (local_reduce_queue.size() > 0) {
-                unique_ptr<ReduceData> reduce_data_ptr = std::move(local_reduce_queue.back());
+                unique_ptr<ReduceDataType> reduce_data_ptr = std::move(local_reduce_queue.back());
                 local_reduce_queue.erase(local_reduce_queue.end() - 1);
                 reduce_data_ptr_vec.push_back(std::move(reduce_data_ptr));
             }
         }
 
         cout << "Before Reducer" << endl;
-        cout << "Reduce Data Size:" << reduce_data_ptr_vec.size() << endl;
-        Reducer<decltype(reduce_data_ptr_vec), ReduceData, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
+        cout << "Reduce DataType Size:" << reduce_data_ptr_vec.size() << endl;
+        Reducer<decltype(reduce_data_ptr_vec), ReduceDataType, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
                 thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
                 algorithm_ptr_->ReduceComputation);
         algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());

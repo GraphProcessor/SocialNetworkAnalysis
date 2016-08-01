@@ -87,24 +87,24 @@ namespace yche {
 
         //Start Implementation Interfaces For DataFlowScheduler Traits
         unique_ptr<OverlappingCommunityVec> overlap_community_vec_;
-        using BasicData = CommunityMemberSet;
-        using MergeData = CommunityMemberVec;
+        using BasicDataType = CommunityMemberSet;
+        using MergeDataType = CommunityMemberVec;
 
-        unique_ptr<vector<unique_ptr<BasicData>>> InitBasicComputationData();
+        unique_ptr<vector<unique_ptr<BasicDataType>>> InitBasicComputationData();
 
-        unique_ptr<MergeData> LocalComputation(unique_ptr<BasicData> seed_member_ptr);
+        unique_ptr<MergeDataType> LocalComputation(unique_ptr<BasicDataType> seed_member_ptr);
 
-        void MergeToGlobal(unique_ptr<MergeData> &result);
+        void MergeToGlobal(unique_ptr<MergeDataType> &result);
 
         //Start Implementation Interfaces For Reducer Traits
-        using ReduceData = OverlappingCommunityVec;
+        using ReduceDataType = OverlappingCommunityVec;
 
-        unique_ptr<ReduceData> WrapMergeDataToReduceData(unique_ptr<MergeData> &merge_data_ptr);
+        unique_ptr<ReduceDataType> WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr);
 
-        function<bool(unique_ptr<ReduceData> &, unique_ptr<ReduceData> &)> CmpReduceData;
+        function<bool(unique_ptr<ReduceDataType> &, unique_ptr<ReduceDataType> &)> CmpReduceData;
 
-        function<unique_ptr<ReduceData>(unique_ptr<ReduceData> &,
-                                        unique_ptr<ReduceData> &right_data_ptr)> ReduceComputation;
+        function<unique_ptr<ReduceDataType>(unique_ptr<ReduceDataType> &,
+                                        unique_ptr<ReduceDataType> &right_data_ptr)> ReduceComputation;
 
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
@@ -122,7 +122,7 @@ namespace yche {
 
             overlap_community_vec_ = make_unique<OverlappingCommunityVec>();
 
-            CmpReduceData = [](unique_ptr<ReduceData> &left, unique_ptr<ReduceData> &right) -> bool {
+            CmpReduceData = [](unique_ptr<ReduceDataType> &left, unique_ptr<ReduceDataType> &right) -> bool {
                 auto cmp = [](auto &tmp_left, auto &tmp_right) -> bool {
                     return tmp_left->size() < tmp_right->size();
                 };
@@ -132,8 +132,8 @@ namespace yche {
             };
 
             ReduceComputation = [this](
-                    unique_ptr<ReduceData> &left_data_ptr,
-                    unique_ptr<ReduceData> &right_data_ptr) -> unique_ptr<ReduceData> {
+                    unique_ptr<ReduceDataType> &left_data_ptr,
+                    unique_ptr<ReduceDataType> &right_data_ptr) -> unique_ptr<ReduceDataType> {
                 for (auto &right_merge_data:*right_data_ptr) {
                     MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
@@ -197,7 +197,7 @@ namespace yche {
                                                            unique_ptr<CommunityMemberVec> &right_community);
 
         void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
-                                        unique_ptr<MergeData> &result);
+                                        unique_ptr<MergeDataType> &result);
     };
 }
 
