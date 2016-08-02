@@ -49,11 +49,11 @@ namespace yche {
     };
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    class Reducer {
+    class ReduceScheduler {
     private:
 
         struct BundleInput {
-            Reducer *reducer_ptr_;
+            ReduceScheduler *reducer_ptr_;
             unsigned long thread_id_;
         };
 
@@ -93,7 +93,7 @@ namespace yche {
 
         unique_ptr<DataType> ParallelExecute();
 
-        Reducer(unsigned long thread_count, DataCollectionType &reduce_data_collection, DataCmpFunctionType data_cmp_function,
+        ReduceScheduler(unsigned long thread_count, DataCollectionType &reduce_data_collection, DataCmpFunctionType data_cmp_function,
                 ComputationFunctionType compute_function)
                 : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
                   reduce_compute_function_(compute_function) {
@@ -126,8 +126,7 @@ namespace yche {
             InitDataPerThread(reduce_data_collection);
         }
 
-        virtual ~Reducer() {
-            sem_mail_boxes_.resize(thread_count_);
+        virtual ~ReduceScheduler() {
             for (auto i = 0; i < thread_count_; i++) {
                 sem_destroy(&sem_mail_boxes_[i]);
             }
@@ -143,7 +142,7 @@ namespace yche {
     };
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InitDataPerThread(
+    void ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InitDataPerThread(
             DataCollectionType &data_collection) {
         data_count_ = data_collection.size();
         if (data_count_ == 1) {
@@ -183,7 +182,7 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
+    void ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
             unsigned long thread_id) {
         unsigned long thread_index = thread_id;
         auto dst_index = (thread_index + 1) % thread_count_;
@@ -365,7 +364,7 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void *Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
+    void *ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
             void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->reducer_ptr_->RingCommTaskStealAndRequestThreadFunction(my_bundle_input_ptr->thread_id_);
@@ -373,7 +372,7 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    unique_ptr<DataType> Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
+    unique_ptr<DataType> ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
             return std::move(first_phase_reduce_data_pool_vec_[0]);
         }

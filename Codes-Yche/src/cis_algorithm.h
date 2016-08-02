@@ -96,7 +96,7 @@ namespace yche {
 
         void MergeToGlobal(unique_ptr<MergeDataType> &result);
 
-        //Start Implementation Interfaces For Reducer Traits
+        //Start Implementation Interfaces For ReduceScheduler Traits
         using ReduceDataType = OverlappingCommunityVec;
 
         unique_ptr<ReduceDataType> WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr);
