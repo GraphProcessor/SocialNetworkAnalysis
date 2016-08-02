@@ -70,7 +70,6 @@ private:
     bool is_end_of_loop_;
 
     vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
-    vector<ElementValueType> global_tasks_vec_;
 
     ComputationFuncType pair_computation_func_;
     ActionFuncType success_action_func_;
@@ -108,14 +107,6 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     }
     local_computation_range_index_vec_[thread_count_ - 1].first = avg_size * (thread_count_ - 1);
     local_computation_range_index_vec_[thread_count_ - 1].second = whole_size - 1;
-
-    //Second, initialize the global tasks
-    global_tasks_vec_.resize(reduce_data_ptr_vector_[0]->size());
-    auto i = 0;
-    for (auto &element_ptr:*reduce_data_ptr_vector_[0]) {
-        global_tasks_vec_[i] = std::move(element_ptr);
-        i++;
-    }
 
 }
 
@@ -218,7 +209,8 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                     sem_post(&sem_mail_boxes_[thread_index]);
                 }
             }
-            auto &right_element_ptr = global_tasks_vec_[local_computation_data_indices.second];
+            auto& global_tasks_vec = *reduce_data_ptr_vector_[0];
+            auto &right_element_ptr = global_tasks_vec[local_computation_data_indices.second];
             if (left_element_ptr_ == nullptr)
                 cout << "Left element null" << endl;
             if (right_element_ptr == nullptr)
@@ -226,6 +218,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
             local_computation_data_indices.second--;
+            cout << "ThreadId:"<<thread_index<<","<<local_computation_data_indices.second<<endl;
             if (is_going_to_terminate) {
                 pthread_mutex_lock(&terminate_in_advance_mutex_lock_);
                 if (!is_terminate_in_advance_) {
