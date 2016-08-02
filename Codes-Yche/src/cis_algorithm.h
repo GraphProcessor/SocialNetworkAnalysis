@@ -6,7 +6,9 @@
 #define CODES_YCHE_CIS_ALGORITHM_H
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/range.hpp>
 #include <memory>
+#include <functional>
 #include <unordered_set>
 #include <unordered_map>
 #include <queue>
@@ -104,7 +106,16 @@ namespace yche {
         function<bool(unique_ptr<ReduceDataType> &, unique_ptr<ReduceDataType> &)> CmpReduceData;
 
         function<unique_ptr<ReduceDataType>(unique_ptr<ReduceDataType> &,
-                                        unique_ptr<ReduceDataType> &right_data_ptr)> ReduceComputation;
+                                            unique_ptr<ReduceDataType> &right_data_ptr)> ReduceComputation;
+
+        //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
+        using ElementReferenceType = typename boost::range_reference<ReduceDataType>::type;
+
+        function<bool(ElementReferenceType, ElementReferenceType)> PairMergeComputation;
+
+        function<void(ElementReferenceType, ElementReferenceType)> SuccessAction;
+
+        function<void(ElementReferenceType, unique_ptr<ReduceDataType>&)> FailAction;
 
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
@@ -138,6 +149,23 @@ namespace yche {
                     MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
                 return std::move(left_data_ptr);
+            };
+
+            //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
+            PairMergeComputation = [this](ElementReferenceType left_element_ptr,
+                                          ElementReferenceType right_element_ptr) -> bool {
+                if (GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > 1 - DOUBLE_ACCURACY)
+                    return true;
+                else
+                    return false;
+            };
+
+            SuccessAction = [this](ElementReferenceType left_element_ptr, ElementReferenceType right_element_ptr) {
+                right_element_ptr = std::move(MergeTwoCommunities(right_element_ptr, left_element_ptr));
+            };
+
+            FailAction = [](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType>& reduce_data_ptr) {
+                reduce_data_ptr->push_back(std::move(left_element_ptr));
             };
         }
 

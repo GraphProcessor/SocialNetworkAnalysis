@@ -17,12 +17,32 @@ template<typename ReduceDataType, typename ComputationFuncType, typename ActionF
 class FineGrainedMergeScheduler {
 public:
     FineGrainedMergeScheduler(unsigned long thread_count,
-                              const vector<unique_ptr<ReduceDataType>> &reduce_data_ptr_vector,
-                              ActionFuncType success_action_func, FailActionFuncType fail_action_func);
+                              vector<unique_ptr<ReduceDataType>> reduce_data_ptr_vector,
+                              ComputationFuncType pair_computation_func, ActionFuncType success_action_func,
+                              FailActionFuncType fail_action_func) :
+            thread_count_(thread_count), pair_computation_func_(
+            pair_computation_func), success_action_func_(success_action_func), fail_action_func_(fail_action_func) {
+        reduce_data_ptr_vector_= std::move(reduce_data_ptr_vector);
+        sem_mail_boxes_.resize(thread_count);
+        for (auto i = 0; i < thread_count; i++) {
+            sem_init(&sem_mail_boxes_[i], 0, 0);
+        }
+        pthread_mutex_init(&terminate_in_advance_mutex_lock_, NULL);
+        pthread_mutex_init(&counter_mutex_lock_, NULL);
+        pthread_barrier_init(&timestamp_barrier_, NULL, thread_count);
+
+        local_computation_range_index_vec_.resize(thread_count);
+    }
 
     unique_ptr<ReduceDataType> Execute();
 
-    virtual ~FineGrainedMergeScheduler();
+    virtual  ~FineGrainedMergeScheduler() {
+        for (auto i = 0; i < thread_count_; i++) {
+            sem_destroy(&sem_mail_boxes_[i]);
+        }
+        pthread_mutex_destroy(&terminate_in_advance_mutex_lock_);
+        pthread_mutex_destroy(&counter_mutex_lock_);
+    }
 
 private:
     struct BundleInput {
@@ -59,41 +79,12 @@ private:
 
     void RingCommThreadFunction(unsigned long thread_id);
 
-    void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
+    static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
 
     inline void ResetStatesBeforeNextInnerForLoop();
 
     void ReduceComputation();
 };
-
-template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
-FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
-        ActionFuncType, FailActionFuncType>::FineGrainedMergeScheduler(
-        unsigned long thread_count, const vector<unique_ptr<ReduceDataType>> &reduce_data_ptr_vector,
-        ActionFuncType success_action_func, FailActionFuncType fail_action_func)
-        : thread_count_(thread_count), reduce_data_ptr_vector_(reduce_data_ptr_vector),
-          success_action_func_(success_action_func), fail_action_func_(fail_action_func) {
-    is_terminate_in_advance_ = false;
-    sem_mail_boxes_.resize(thread_count_);
-    for (auto i = 0; i < thread_count_; i++) {
-        sem_init(&sem_mail_boxes_[i], 0, 0);
-    }
-    pthread_mutex_init(&terminate_in_advance_mutex_lock_, NULL);
-    pthread_mutex_init(&counter_mutex_lock_, NULL);
-    pthread_barrier_init(&timestamp_barrier_, NULL, thread_count_);
-
-    local_computation_range_index_vec_.resize(thread_count_);
-}
-
-template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
-FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
-        ActionFuncType, FailActionFuncType>::~FineGrainedMergeScheduler() {
-    for (auto i = 0; i < thread_count_; i++) {
-        sem_destroy(&sem_mail_boxes_[i]);
-    }
-    pthread_mutex_destroy(&terminate_in_advance_mutex_lock_);
-    pthread_mutex_destroy(&counter_mutex_lock_);
-}
 
 template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
 void *FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
@@ -120,7 +111,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     //Second, initialize the global tasks
     global_tasks_vec_.resize(reduce_data_ptr_vector_[0]->size());
     auto i = 0;
-    for (auto &element_ptr:reduce_data_ptr_vector_[0]) {
+    for (auto &element_ptr:*reduce_data_ptr_vector_[0]) {
         global_tasks_vec_[i] = std::move(element_ptr);
         i++;
     }
@@ -175,7 +166,7 @@ unique_ptr<ReduceDataType> FineGrainedMergeScheduler<ReduceDataType, Computation
         ReduceComputation();
         reduce_data_ptr_vector_.erase(reduce_data_ptr_vector_.end() - 1);
     }
-    return reduce_data_ptr_vector_[0];
+    return std::move(reduce_data_ptr_vector_[0]);
 }
 
 template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
@@ -226,7 +217,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                     sem_post(&sem_mail_boxes_[thread_index]);
                 }
             }
-            auto right_element_ptr = global_tasks_vec_[local_computation_data_indices.second];
+            auto &right_element_ptr = global_tasks_vec_[local_computation_data_indices.second];
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
             local_computation_data_indices.second--;
@@ -235,7 +226,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                 if (!is_terminate_in_advance_) {
                     is_terminate_in_advance_ = true;
                     is_end_of_loop_ = true;
-                    //Do action
+                    //Do action, e.g, Merge left to right one
                     success_action_func_(left_element_ptr_, right_element_ptr);
                 }
                 pthread_mutex_lock(&terminate_in_advance_mutex_lock_);

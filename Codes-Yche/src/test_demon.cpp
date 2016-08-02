@@ -51,8 +51,7 @@ int main(int argc, char *argv[]) {
     auto daemon_ptr = make_unique<Demon>(epsilon, min_community_size, std::move(graph_ptr),
                                          max_iteration);
 
-    ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, daemon_ptr,
-                                                             index_name_map);
+    ExecuteAlgorithmWithParallelizer<Demon, VertexIndexType>(thread_num, daemon_ptr, index_name_map);
 
     return 0;
 }

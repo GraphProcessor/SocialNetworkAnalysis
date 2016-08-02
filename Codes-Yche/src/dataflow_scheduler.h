@@ -5,6 +5,7 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
+#include "fine_grained_merge_scheduler.h"
 #include "reduce_scheduler.h"
 
 namespace yche {
@@ -239,10 +240,19 @@ namespace yche {
 
         cout << "Before ReduceScheduler" << endl;
         cout << "Reduce DataType Size:" << reduce_data_ptr_vec.size() << endl;
+#ifndef FINE_GRAINED_REDUCE_ENABLE
         ReduceScheduler<decltype(reduce_data_ptr_vec), ReduceDataType, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
                 thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
                 algorithm_ptr_->ReduceComputation);
         algorithm_ptr_->overlap_community_vec_ = std::move(reducer.ParallelExecute());
+#else
+        FineGrainedMergeScheduler<ReduceDataType, decltype(algorithm_ptr_->PairMergeComputation), decltype(algorithm_ptr_->SuccessAction),
+                decltype(algorithm_ptr_->FailAction)>
+                fine_grained_scheduler(thread_count_, reduce_data_ptr_vec, algorithm_ptr_->PairMergeComputation,
+                                       algorithm_ptr_->SuccessAction, algorithm_ptr_->FailAction);
+
+        algorithm_ptr_->overlap_community_vec_ = std::move(fine_grained_scheduler.Execute());
+#endif
     }
 }
 

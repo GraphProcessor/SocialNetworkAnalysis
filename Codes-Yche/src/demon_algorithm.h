@@ -6,7 +6,9 @@
 #define CODES_YCHE_DAMON_ALGORITHM_H
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/range.hpp>
 #include <memory>
+#include <functional>
 #include <vector>
 #include <random>
 #include <iostream>
@@ -65,12 +67,22 @@ namespace yche {
         //Start Implementation Interfaces For ReduceScheduler Traits
         using ReduceDataType = vector<CommunityPtr>;
 
-        unique_ptr<ReduceDataType> WrapMergeDataToReduceData(unique_ptr<MergeDataType>& merge_data_ptr);
+        unique_ptr<ReduceDataType> WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr);
 
         function<bool(unique_ptr<ReduceDataType> &, unique_ptr<ReduceDataType> &)> CmpReduceData;
 
-        function<unique_ptr<ReduceDataType>(unique_ptr<ReduceDataType>&,
-                                        unique_ptr<ReduceDataType>& right_data_ptr)> ReduceComputation;
+        function<unique_ptr<ReduceDataType>(unique_ptr<ReduceDataType> &,
+                                            unique_ptr<ReduceDataType> &right_data_ptr)> ReduceComputation;
+
+
+        //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
+        using ElementReferenceType = typename boost::range_reference<ReduceDataType>::type;
+
+        function<bool(ElementReferenceType, ElementReferenceType)> PairMergeComputation;
+
+        function<void(ElementReferenceType, ElementReferenceType)> SuccessAction;
+
+        function<void(ElementReferenceType, unique_ptr<ReduceDataType>&)> FailAction;
 
         [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
@@ -90,10 +102,27 @@ namespace yche {
                 return (*iter1)->size() > (*iter2)->size();
             };
 
-            ReduceComputation = [this](unique_ptr<ReduceDataType>& left_data_ptr,
-                    unique_ptr<ReduceDataType>& right_data_ptr) -> unique_ptr<ReduceDataType> {
+            ReduceComputation = [this](unique_ptr<ReduceDataType> &left_data_ptr,
+                                       unique_ptr<ReduceDataType> &right_data_ptr) -> unique_ptr<ReduceDataType> {
                 MergeToCommunityCollection(left_data_ptr, right_data_ptr);
                 return std::move(left_data_ptr);
+            };
+
+            //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
+            PairMergeComputation = [this](ElementReferenceType left_element_ptr,
+                                          ElementReferenceType right_element_ptr) -> bool {
+                if (GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > this->epsilon_)
+                    return true;
+                else
+                    return false;
+            };
+
+            SuccessAction = [this](ElementReferenceType left_element_ptr, ElementReferenceType right_element_ptr) {
+                MergeTwoCommunitiesToLeftOne(right_element_ptr, left_element_ptr);
+            };
+
+            FailAction = [](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType>& reduce_data_ptr) {
+                reduce_data_ptr->push_back(std::move(left_element_ptr));
             };
         }
 
@@ -123,7 +152,8 @@ namespace yche {
 
         void MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community);
 
-        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,unique_ptr<MergeDataType> &result);
+        void MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
+                                        unique_ptr<MergeDataType> &result);
 
     };
 }
