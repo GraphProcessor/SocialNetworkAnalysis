@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include "semaphore.h"
+#include <iostream>
 #include <pthread.h>
 
 using namespace std;
@@ -24,15 +25,15 @@ public:
             pair_computation_func), success_action_func_(success_action_func), fail_action_func_(fail_action_func) {
         reduce_data_ptr_vector_ = std::move(reduce_data_ptr_vector);
         thread_handles_ = new pthread_t[thread_count_];
-        sem_mail_boxes_.resize(thread_count);
-        for (auto i = 0; i < thread_count; i++) {
+        sem_mail_boxes_.resize(thread_count_);
+        for (auto i = 0; i < thread_count_; i++) {
             sem_init(&sem_mail_boxes_[i], 0, 0);
         }
         pthread_mutex_init(&terminate_in_advance_mutex_lock_, NULL);
         pthread_mutex_init(&counter_mutex_lock_, NULL);
-        pthread_barrier_init(&timestamp_barrier_, NULL, thread_count);
+        pthread_barrier_init(&timestamp_barrier_, NULL, thread_count_);
 
-        local_computation_range_index_vec_.resize(thread_count);
+        local_computation_range_index_vec_.resize(thread_count_);
     }
 
     unique_ptr<ReduceDataType> Execute();
@@ -124,7 +125,9 @@ template<typename ReduceDataType, typename ComputationFuncType, typename ActionF
 void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
         ActionFuncType, FailActionFuncType>::ReduceComputation() {
     std::vector<BundleInput *> input_bundle_vec(thread_count_);
+    int round_num = 0;
     for (auto &left_element_ptr:*reduce_data_ptr_vector_[right_reduce_data_index_]) {
+        cout << "Round:" << (++round_num) << endl;
         left_element_ptr_ = std::move(left_element_ptr);
         InitInnerForLoopComputationTasks();
         //Reset Value To Prepare for Next Iteration
@@ -154,8 +157,10 @@ template<typename ReduceDataType, typename ComputationFuncType, typename ActionF
 unique_ptr<ReduceDataType> FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
         ActionFuncType, FailActionFuncType>::Execute() {
     while (reduce_data_ptr_vector_.size() > 1) {
+        cout << "LeftReduceData:" << reduce_data_ptr_vector_.size() << endl;
         right_reduce_data_index_ = reduce_data_ptr_vector_.size() - 1;
         ReduceComputation();
+        cout << "Finish One" << endl;
         reduce_data_ptr_vector_.erase(reduce_data_ptr_vector_.end() - 1);
     }
     return std::move(reduce_data_ptr_vector_[0]);
@@ -170,7 +175,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
     auto &local_computation_data_indices = local_computation_range_index_vec_[thread_index];
     //Execute Tasks From end_index to start_index
-    while (true) {
+    while (!is_end_of_loop_) {
         auto computation_data_size = local_computation_data_indices.second - local_computation_data_indices.first + 1;
         if (computation_data_size == 0) {
             if (idle_count_ == thread_count_ - 1) {
@@ -209,7 +214,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                     sem_post(&sem_mail_boxes_[thread_index]);
                 }
             }
-            auto& global_tasks_vec = *reduce_data_ptr_vector_[0];
+            auto &global_tasks_vec = *reduce_data_ptr_vector_[0];
             auto &right_element_ptr = global_tasks_vec[local_computation_data_indices.second];
             if (left_element_ptr_ == nullptr)
                 cout << "Left element null" << endl;
@@ -218,7 +223,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
             local_computation_data_indices.second--;
-            cout << "ThreadId:"<<thread_index<<","<<local_computation_data_indices.second<<endl;
+
             if (is_going_to_terminate) {
                 pthread_mutex_lock(&terminate_in_advance_mutex_lock_);
                 if (!is_terminate_in_advance_) {
@@ -227,7 +232,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                     //Do action, e.g, Merge left to right one
                     success_action_func_(left_element_ptr_, right_element_ptr);
                 }
-                pthread_mutex_lock(&terminate_in_advance_mutex_lock_);
+                pthread_mutex_unlock(&terminate_in_advance_mutex_lock_);
             }
         }
     }

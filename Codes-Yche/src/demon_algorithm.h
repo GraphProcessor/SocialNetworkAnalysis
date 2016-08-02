@@ -82,7 +82,7 @@ namespace yche {
 
         function<void(ElementReferenceType, ElementReferenceType)> SuccessAction;
 
-        function<void(ElementReferenceType, unique_ptr<ReduceDataType>&)> FailAction;
+        function<void(ElementReferenceType, unique_ptr<ReduceDataType> &)> FailAction;
 
         [[deprecated("Replaced With Parallel Execution")]]
         void ExecuteDaemon();
@@ -121,8 +121,11 @@ namespace yche {
                 MergeTwoCommunitiesToLeftOne(right_element_ptr, left_element_ptr);
             };
 
-            FailAction = [](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType>& reduce_data_ptr) {
-                reduce_data_ptr->push_back(std::move(left_element_ptr));
+            FailAction = [this](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType> &reduce_data_ptr) {
+                if (left_element_ptr->size() > this->min_community_size_) {
+//                    cout << "left_element_size:" << left_element_ptr->size() << endl;
+                    reduce_data_ptr->push_back(std::move(left_element_ptr));
+                }
             };
         }
 
