@@ -17,12 +17,13 @@ template<typename ReduceDataType, typename ComputationFuncType, typename ActionF
 class FineGrainedMergeScheduler {
 public:
     FineGrainedMergeScheduler(unsigned long thread_count,
-                              vector<unique_ptr<ReduceDataType>> reduce_data_ptr_vector,
+                              vector<unique_ptr<ReduceDataType>> &&reduce_data_ptr_vector,
                               ComputationFuncType pair_computation_func, ActionFuncType success_action_func,
                               FailActionFuncType fail_action_func) :
             thread_count_(thread_count), pair_computation_func_(
             pair_computation_func), success_action_func_(success_action_func), fail_action_func_(fail_action_func) {
-        reduce_data_ptr_vector_= std::move(reduce_data_ptr_vector);
+        reduce_data_ptr_vector_ = std::move(reduce_data_ptr_vector);
+        thread_handles_ = new pthread_t[thread_count_];
         sem_mail_boxes_.resize(thread_count);
         for (auto i = 0; i < thread_count; i++) {
             sem_init(&sem_mail_boxes_[i], 0, 0);
@@ -218,6 +219,10 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                 }
             }
             auto &right_element_ptr = global_tasks_vec_[local_computation_data_indices.second];
+            if (left_element_ptr_ == nullptr)
+                cout << "Left element null" << endl;
+            if (right_element_ptr == nullptr)
+                cout << "Right element null" << endl;
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
             local_computation_data_indices.second--;

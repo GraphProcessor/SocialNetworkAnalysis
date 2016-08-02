@@ -248,7 +248,7 @@ namespace yche {
 #else
         FineGrainedMergeScheduler<ReduceDataType, decltype(algorithm_ptr_->PairMergeComputation), decltype(algorithm_ptr_->SuccessAction),
                 decltype(algorithm_ptr_->FailAction)>
-                fine_grained_scheduler(thread_count_, reduce_data_ptr_vec, algorithm_ptr_->PairMergeComputation,
+                fine_grained_scheduler(thread_count_, std::move(reduce_data_ptr_vec), algorithm_ptr_->PairMergeComputation,
                                        algorithm_ptr_->SuccessAction, algorithm_ptr_->FailAction);
 
         algorithm_ptr_->overlap_community_vec_ = std::move(fine_grained_scheduler.Execute());

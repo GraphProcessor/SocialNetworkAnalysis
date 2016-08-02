@@ -15,9 +15,9 @@ set(DemonFiles test_demon.cpp demon_algorithm.cpp demon_algorithm.h)
 set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)
 set(GCEFiles test_gce.cpp gce_algorithm.cpp gce_algorithm.h)
 
-#add_executable(Demon_Test  ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
-#target_link_libraries(Demon_Test ${CMAKE_THREAD_LIBS_INIT})
-#target_link_libraries(Demon_Test ${Boost_LIBRARIES})
+add_executable(Demon_Test  ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
+target_link_libraries(Demon_Test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Demon_Test ${Boost_LIBRARIES})
 
 add_executable(CISTest ${ParallelUtilFiles} ${GraphIOUtilFiles} ${CISFiles})
 target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
