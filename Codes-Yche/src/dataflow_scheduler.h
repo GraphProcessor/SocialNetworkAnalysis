@@ -5,8 +5,12 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
+#include "configuration.h"
+#ifdef FINE_GRAINED_REDUCE_ENABLE
 #include "fine_grained_merge_scheduler.h"
+#else
 #include "reduce_scheduler.h"
+#endif
 
 namespace yche {
     using namespace std;

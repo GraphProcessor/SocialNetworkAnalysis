@@ -12,6 +12,8 @@
 #include <iostream>
 #include <pthread.h>
 
+#include "configuration.h"
+
 using namespace std;
 
 template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
@@ -23,8 +25,8 @@ public:
                               FailActionFuncType fail_action_func) :
             thread_count_(thread_count), pair_computation_func_(
             pair_computation_func), success_action_func_(success_action_func), fail_action_func_(fail_action_func) {
-        reduce_data_ptr_vector_ = std::move(reduce_data_ptr_vector);
         thread_handles_ = new pthread_t[thread_count_];
+        reduce_data_ptr_vector_ = std::move(reduce_data_ptr_vector);
         sem_mail_boxes_.resize(thread_count_);
         for (auto i = 0; i < thread_count_; i++) {
             sem_init(&sem_mail_boxes_[i], 0, 0);
@@ -39,6 +41,7 @@ public:
     unique_ptr<ReduceDataType> Execute();
 
     virtual  ~FineGrainedMergeScheduler() {
+        delete[]thread_handles_;
         for (auto i = 0; i < thread_count_; i++) {
             sem_destroy(&sem_mail_boxes_[i]);
         }
@@ -70,7 +73,7 @@ private:
     bool is_terminate_in_advance_;
     bool is_end_of_loop_;
 
-    vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
+    vector<pair< long,  long>> local_computation_range_index_vec_;
 
     ComputationFuncType pair_computation_func_;
     ActionFuncType success_action_func_;
@@ -108,7 +111,12 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     }
     local_computation_range_index_vec_[thread_count_ - 1].first = avg_size * (thread_count_ - 1);
     local_computation_range_index_vec_[thread_count_ - 1].second = whole_size - 1;
-
+#ifdef DEBUG
+    for (auto i = 0; i < thread_count_; i++) {
+        cout << "Task Tid" << i << ":\t" << local_computation_range_index_vec_[i].first << ","
+             << local_computation_range_index_vec_[i].second << endl;
+    }
+#endif
 }
 
 template<typename ReduceDataType, typename ComputationFuncType, typename ActionFuncType, typename FailActionFuncType>
@@ -127,11 +135,14 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     std::vector<BundleInput *> input_bundle_vec(thread_count_);
     int round_num = 0;
     for (auto &left_element_ptr:*reduce_data_ptr_vector_[right_reduce_data_index_]) {
-        cout << "Round:" << (++round_num) << endl;
+#ifdef DEBUG
+        cout << "Round:" << (++round_num) << endl << endl;
+#endif
         left_element_ptr_ = std::move(left_element_ptr);
-        InitInnerForLoopComputationTasks();
         //Reset Value To Prepare for Next Iteration
         ResetStatesBeforeNextInnerForLoop();
+        InitInnerForLoopComputationTasks();
+
         //Fork-join Boss-Worker Model
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
@@ -187,39 +198,54 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                 break;
             }
             else {
-                pthread_mutex_lock(&counter_mutex_lock_);
-                idle_count_++;
-                pthread_mutex_unlock(&counter_mutex_lock_);
+                //Deal With the case that thread wants to wait for tasks after is_end_of_loop
+                if (!is_end_of_loop_) {
+                    pthread_mutex_lock(&counter_mutex_lock_);
+                    idle_count_++;
+                    pthread_mutex_unlock(&counter_mutex_lock_);
 
-                is_rec_mail_empty_[dst_index] = false;
-                sem_wait(&sem_mail_boxes_[dst_index]);
-                if (is_end_of_loop_) {
-                    break;
+                    is_rec_mail_empty_[dst_index] = false;
+                    sem_wait(&sem_mail_boxes_[dst_index]);
+                    if (is_end_of_loop_) {
+                        break;
+                    }
+                    pthread_mutex_lock(&counter_mutex_lock_);
+                    idle_count_--;
+                    pthread_mutex_unlock(&counter_mutex_lock_);
+
                 }
-                pthread_mutex_lock(&counter_mutex_lock_);
-                idle_count_--;
-                pthread_mutex_unlock(&counter_mutex_lock_);
             }
         }
         else {
             if (computation_data_size > 1) {
                 //Check Flag and Assign Tasks To Left Neighbor
                 if (is_rec_mail_empty_[thread_index] == false) {
-                    auto neighbor_end_index = local_computation_range_index_vec_[thread_index].second;
-                    auto neighbor_start_index = neighbor_end_index - computation_data_size / 2 + 1;
-                    local_computation_range_index_vec_[src_index].first = neighbor_start_index;
-                    local_computation_range_index_vec_[src_index].second = neighbor_end_index;
-                    local_computation_data_indices.second = neighbor_start_index - 1;
+                    computation_data_size=local_computation_data_indices.second - local_computation_data_indices.first + 1;
+                    local_computation_range_index_vec_[src_index].second = local_computation_data_indices.second;
+                    local_computation_range_index_vec_[src_index].first =
+                            local_computation_data_indices.second - computation_data_size / 2 + 1;;
+                    local_computation_data_indices.second = local_computation_range_index_vec_[src_index].first - 1;
                     is_rec_mail_empty_[thread_index] = true;
+#ifdef DEBUG
+#pragma omp critical
+                    cout << "Update Cur:" << local_computation_data_indices.first << ","
+                         << local_computation_data_indices.second << ",Neighbor"
+                         << local_computation_range_index_vec_[src_index].first << "," <<
+                         local_computation_range_index_vec_[src_index].second << endl;
+#endif
                     sem_post(&sem_mail_boxes_[thread_index]);
                 }
             }
             auto &global_tasks_vec = *reduce_data_ptr_vector_[0];
             auto &right_element_ptr = global_tasks_vec[local_computation_data_indices.second];
-            if (left_element_ptr_ == nullptr)
+            if (left_element_ptr_ == nullptr) {
+#pragma omp critical
                 cout << "Left element null" << endl;
-            if (right_element_ptr == nullptr)
+            }
+            if (right_element_ptr == nullptr) {
+#pragma omp critical
                 cout << "Right element null" << endl;
+            }
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
             local_computation_data_indices.second--;

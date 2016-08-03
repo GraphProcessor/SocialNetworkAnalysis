@@ -280,7 +280,10 @@ namespace yche {
                     is_busy_working_[thread_index] = true;
                     //Task Has been Steal
                     if (local_reduce_data_indices.GetReduceTaskSize() == 0)
+                    {
+                        is_busy_working_[thread_index]= false;
                         continue;
+                    }
                     pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
 #endif
                     //Do reduce computation, use the first max one and the last min one
