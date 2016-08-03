@@ -73,7 +73,7 @@ private:
     bool is_terminate_in_advance_;
     bool is_end_of_loop_;
 
-    vector<pair< long,  long>> local_computation_range_index_vec_;
+    vector<pair<long, long>> local_computation_range_index_vec_;
 
     ComputationFuncType pair_computation_func_;
     ActionFuncType success_action_func_;
@@ -158,6 +158,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];
         }
+
         if (!is_terminate_in_advance_) {
             fail_action_func_(left_element_ptr_, reduce_data_ptr_vector_[0]);
         }
@@ -188,6 +189,9 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     //Execute Tasks From end_index to start_index
     while (!is_end_of_loop_) {
         auto computation_data_size = local_computation_data_indices.second - local_computation_data_indices.first + 1;
+#pragma omp critical
+        cout << "TID:" << thread_index << "\t" << local_computation_data_indices.first
+             << "," << local_computation_data_indices.second << "," << computation_data_size << endl;
         if (computation_data_size == 0) {
             if (idle_count_ == thread_count_ - 1) {
                 is_end_of_loop_ = true;
@@ -220,7 +224,11 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
             if (computation_data_size > 1) {
                 //Check Flag and Assign Tasks To Left Neighbor
                 if (is_rec_mail_empty_[thread_index] == false) {
-                    computation_data_size=local_computation_data_indices.second - local_computation_data_indices.first + 1;
+//                    computation_data_size =
+//                            local_computation_data_indices.second - local_computation_data_indices.first + 1;
+#pragma omp critical
+                    cout << local_computation_data_indices.first << "," << local_computation_data_indices.second << ","
+                         << computation_data_size << endl;
                     local_computation_range_index_vec_[src_index].second = local_computation_data_indices.second;
                     local_computation_range_index_vec_[src_index].first =
                             local_computation_data_indices.second - computation_data_size / 2 + 1;;
