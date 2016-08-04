@@ -172,7 +172,7 @@ unique_ptr<ReduceDataType> FineGrainedMergeScheduler<ReduceDataType, Computation
         cout << "LeftReduceData:" << reduce_data_ptr_vector_.size() << endl;
         right_reduce_data_index_ = reduce_data_ptr_vector_.size() - 1;
         ReduceComputation();
-        cout << "Finish One" << endl;
+//        cout << "Finish One" << endl;
         reduce_data_ptr_vector_.erase(reduce_data_ptr_vector_.end() - 1);
     }
     return std::move(reduce_data_ptr_vector_[0]);
@@ -188,7 +188,8 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
     auto &local_computation_data_indices = local_computation_range_index_vec_[thread_index];
     //Execute Tasks From end_index to start_index
     while (!is_end_of_loop_) {
-        auto computation_data_size = local_computation_data_indices.second - local_computation_data_indices.first + 1;
+        long computation_data_size =
+                local_computation_data_indices.second - local_computation_data_indices.first + 1;
 #pragma omp critical
         cout << "TID:" << thread_index << "\t" << local_computation_data_indices.first
              << "," << local_computation_data_indices.second << "," << computation_data_size << endl;
@@ -196,7 +197,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
             if (idle_count_ == thread_count_ - 1) {
                 is_end_of_loop_ = true;
                 for (auto i = 0; i < thread_count_; ++i) {
-                    if (i != dst_index)
+                    if (is_rec_mail_empty_[i] == false)
                         sem_post(&sem_mail_boxes_[i]);
                 }
                 break;
@@ -205,9 +206,17 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                 //Deal With the case that thread wants to wait for tasks after is_end_of_loop
                 if (!is_end_of_loop_) {
                     pthread_mutex_lock(&counter_mutex_lock_);
+                    if (idle_count_ == thread_count_ - 1) {
+                        pthread_mutex_unlock(&counter_mutex_lock_);
+                        is_end_of_loop_ = true;
+                        for (auto i = 0; i < thread_count_; ++i) {
+                            if (is_rec_mail_empty_[i] == false)
+                                sem_post(&sem_mail_boxes_[i]);
+                        }
+                        break;
+                    }
                     idle_count_++;
                     pthread_mutex_unlock(&counter_mutex_lock_);
-
                     is_rec_mail_empty_[dst_index] = false;
                     sem_wait(&sem_mail_boxes_[dst_index]);
                     if (is_end_of_loop_) {
@@ -219,16 +228,19 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
 
                 }
             }
+
         }
         else {
             if (computation_data_size > 1) {
                 //Check Flag and Assign Tasks To Left Neighbor
                 if (is_rec_mail_empty_[thread_index] == false) {
-//                    computation_data_size =
-//                            local_computation_data_indices.second - local_computation_data_indices.first + 1;
 #pragma omp critical
-                    cout << local_computation_data_indices.first << "," << local_computation_data_indices.second << ","
-                         << computation_data_size << endl;
+                    cout << "Tid:" << thread_index << "\tReady Change:" << local_computation_data_indices.first << ","
+                         << local_computation_data_indices.second << ","
+                         << computation_data_size << "|"
+                         << local_computation_data_indices.second - local_computation_data_indices.first + 1 << endl
+                         << endl;
+
                     local_computation_range_index_vec_[src_index].second = local_computation_data_indices.second;
                     local_computation_range_index_vec_[src_index].first =
                             local_computation_data_indices.second - computation_data_size / 2 + 1;;
@@ -236,7 +248,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                     is_rec_mail_empty_[thread_index] = true;
 #ifdef DEBUG
 #pragma omp critical
-                    cout << "Update Cur:" << local_computation_data_indices.first << ","
+                    cout <<"Tid:"<<thread_index<< "\tUpdate Cur:" << local_computation_data_indices.first << ","
                          << local_computation_data_indices.second << ",Neighbor"
                          << local_computation_range_index_vec_[src_index].first << "," <<
                          local_computation_range_index_vec_[src_index].second << endl;
@@ -245,7 +257,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
                 }
             }
             auto &global_tasks_vec = *reduce_data_ptr_vector_[0];
-            auto &right_element_ptr = global_tasks_vec[local_computation_data_indices.second];
+            auto &right_element_ptr = global_tasks_vec[local_computation_data_indices.first];
             if (left_element_ptr_ == nullptr) {
 #pragma omp critical
                 cout << "Left element null" << endl;
@@ -256,7 +268,7 @@ void FineGrainedMergeScheduler<ReduceDataType, ComputationFuncType,
             }
             bool is_going_to_terminate = pair_computation_func_(left_element_ptr_, right_element_ptr);
             //Update Task Index
-            local_computation_data_indices.second--;
+            local_computation_data_indices.first++;
 
             if (is_going_to_terminate) {
                 pthread_mutex_lock(&terminate_in_advance_mutex_lock_);

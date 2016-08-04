@@ -6,8 +6,11 @@
 #define CODES_YCHE_PARALLELIZER_H
 
 #include "configuration.h"
+
 #ifdef FINE_GRAINED_REDUCE_ENABLE
+
 #include "fine_grained_merge_scheduler.h"
+
 #else
 #include "reduce_scheduler.h"
 #endif
@@ -166,7 +169,11 @@ namespace yche {
                 }
                 else {
                     pthread_mutex_lock(&counter_mutex_lock_);
-                    idle_count_++;
+                    //Deal With All Finish and Enter into Idle State
+                    if (idle_count_ == thread_count_ - 1)
+                        is_end_of_local_computation = true;
+                    else
+                        idle_count_++;
                     pthread_mutex_unlock(&counter_mutex_lock_);
 
                     is_rec_mail_empty_[dst_index] = false;
@@ -252,7 +259,8 @@ namespace yche {
 #else
         FineGrainedMergeScheduler<ReduceDataType, decltype(algorithm_ptr_->PairMergeComputation), decltype(algorithm_ptr_->SuccessAction),
                 decltype(algorithm_ptr_->FailAction)>
-                fine_grained_scheduler(thread_count_, std::move(reduce_data_ptr_vec), algorithm_ptr_->PairMergeComputation,
+                fine_grained_scheduler(thread_count_, std::move(reduce_data_ptr_vec),
+                                       algorithm_ptr_->PairMergeComputation,
                                        algorithm_ptr_->SuccessAction, algorithm_ptr_->FailAction);
 
         algorithm_ptr_->overlap_community_vec_ = std::move(fine_grained_scheduler.Execute());

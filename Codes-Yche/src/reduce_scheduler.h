@@ -93,8 +93,9 @@ namespace yche {
 
         unique_ptr<DataType> ParallelExecute();
 
-        ReduceScheduler(unsigned long thread_count, DataCollectionType &reduce_data_collection, DataCmpFunctionType data_cmp_function,
-                ComputationFunctionType compute_function)
+        ReduceScheduler(unsigned long thread_count, DataCollectionType &reduce_data_collection,
+                        DataCmpFunctionType data_cmp_function,
+                        ComputationFunctionType compute_function)
                 : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
                   reduce_compute_function_(compute_function) {
             thread_handles_ = new pthread_t[thread_count_];
@@ -182,7 +183,8 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
+    void
+    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
             unsigned long thread_id) {
         unsigned long thread_index = thread_id;
         auto dst_index = (thread_index + 1) % thread_count_;
@@ -194,21 +196,27 @@ namespace yche {
             clock_gettime(CLOCK_MONOTONIC, &begin);
         }
         if (thread_count_ < data_count_) {
-            while (true) {
+            while (!is_end_of_loop_) {
                 auto reduce_data_size = local_reduce_data_indices.GetReduceTaskSize();
                 if (reduce_data_size == 0) {
                     if (idle_count_ == thread_count_ - 1) {
                         is_end_of_loop_ = true;
                         idle_count_ = 0;
-                        for (auto i = 0; i < thread_count_; ++i) {
-                            if (i != dst_index)
+                        for (auto i = 0; i < thread_count_; i++)
+                            if (is_rec_mail_empty_[i] == false)
                                 sem_post(&sem_mail_boxes_[i]);
-                        }
-                        break;
                     }
                     else {
                         pthread_mutex_lock(&counter_mutex_lock_);
-                        idle_count_++;
+                        if (idle_count_ == thread_count_ - 1) {
+                            is_end_of_loop_ = true;
+                            idle_count_ = 0;
+                            for (auto i = 0; i < thread_count_; i++)
+                                if (is_rec_mail_empty_[i] == false)
+                                    sem_post(&sem_mail_boxes_[i]);
+                        }
+                        else
+                            idle_count_++;
                         pthread_mutex_unlock(&counter_mutex_lock_);
 
                         bool is_going_to_request = false;
@@ -317,9 +325,9 @@ namespace yche {
 #ifndef REDUCE_2ND_PHASE_SEQUENTIAL
         //Reduce DataType Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
-        unique_ptr<DataType> result_data_ptr = std::move(
+        unique_ptr <DataType> result_data_ptr = std::move(
                 first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
-        unique_ptr<DataType> input_data_ptr;
+        unique_ptr <DataType> input_data_ptr;
         pthread_barrier_wait(&timestamp_barrier_);
         cout << "Thread Index:" << thread_index << endl;
 
@@ -367,7 +375,8 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void *ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
+    void *
+    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
             void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->reducer_ptr_->RingCommTaskStealAndRequestThreadFunction(my_bundle_input_ptr->thread_id_);
@@ -375,7 +384,8 @@ namespace yche {
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    unique_ptr<DataType> ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
+    unique_ptr<DataType>
+    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
             return std::move(first_phase_reduce_data_pool_vec_[0]);
         }
