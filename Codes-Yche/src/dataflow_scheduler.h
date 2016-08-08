@@ -9,7 +9,7 @@
 
 #ifdef FINE_GRAINED_REDUCE_ENABLE
 
-#include "fine_grained_merge_scheduler.h"
+#include "deprecated/fine_grained_merge_scheduler.h"
 
 #else
 #include "reduce_scheduler.h"
