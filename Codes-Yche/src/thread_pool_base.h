@@ -21,8 +21,9 @@ namespace yche {
     class ThreadPoolBase {
     private:
         thread_group thread_list_;
-        std::list<std::function<ResultType(void)>> task_queue_;
+
     protected:
+        std::list<std::function<ResultType(void)>> task_queue_;
         atomic_int left_tasks_counter_{0};
         //introduced for switch to other tasks,  which not belongs to this thread pool
         atomic_bool is_ending_{false};
@@ -42,8 +43,12 @@ namespace yche {
         virtual void DoThreadFunction() {
             while (!is_ending_) {
                 //Call NextTask to get the callable function object
-                NextTask()();
-                --left_tasks_counter_;
+                auto task_function = NextTask();
+                if (task_function != nullptr) {
+                    task_function();
+                    //only access atomic_int when it is necessary
+                    --left_tasks_counter_;
+                }
                 boss_wait_cond_var_.notify_one();
             }
         }
@@ -61,10 +66,8 @@ namespace yche {
                 resource_function_object = task_queue_.front();
                 task_queue_.pop_front();
             }
-            else { // If we're bailing out, 'inject' a job into the queue to keep jobs_left accurate.
-                //redundant operation
-                resource_function_object = [] {};
-                ++left_tasks_counter_;
+            else { // If we're bailing out, the task was taken by others, 'inject' a nullptr
+                resource_function_object = nullptr;
             }
             return resource_function_object;
         }
@@ -92,7 +95,7 @@ namespace yche {
             return task_queue_.size();
         }
 
-        void AddTask(std::function<void(void)> task) {
+        void AddTask(std::function<ResultType(void)> task) {
             auto lock = make_unique_lock(task_queue_mutex_);
             task_queue_.emplace_back(std::move(task));
             ++left_tasks_counter_;

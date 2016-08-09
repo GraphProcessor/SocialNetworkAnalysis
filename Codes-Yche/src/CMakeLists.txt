@@ -25,4 +25,6 @@ target_link_libraries(CISTest ${Boost_LIBRARIES})
 
 add_executable(ThreadPoolTest thread_pool_base.h test/thread_pool_test.cpp)
 target_link_libraries(ThreadPoolTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
-#add_executable(GceTest ${GCEFiles} include_header.h)
+
+add_executable(ThreadPoolBreakableTest thread_pool_base.h thread_pool_breakable.h test/thread_pool_breakable_test.cpp)
+target_link_libraries(ThreadPoolBreakableTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
