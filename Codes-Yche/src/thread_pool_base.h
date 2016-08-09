@@ -26,9 +26,9 @@ namespace yche {
         std::list<std::function<ResultType(void)>> task_queue_;
         atomic_int left_tasks_counter_{0};
         //introduced for switch to other tasks,  which not belongs to this thread pool
-        atomic_bool is_ending_{false};
+        atomic_bool is_go_ending_{false};
         //introduced for marking the status of thread pool, whether there is unfinished tasks
-        atomic_bool finished_{false};
+        atomic_bool is_finished_{false};
 
         mutex task_queue_mutex_;
         mutex boss_wait_mutex_;
@@ -41,8 +41,8 @@ namespace yche {
         //take the next job in the queue and run it.
         //notify the main thread that a task has completed.
         virtual void DoThreadFunction() {
-            while (!is_ending_) {
-                //Call NextTask to get the callable function object
+            while (!is_go_ending_) {
+                //possibly be bailout, not get the task
                 auto task_function = NextTask();
                 if (task_function != nullptr) {
                     task_function();
@@ -54,15 +54,16 @@ namespace yche {
         }
 
         std::function<ResultType(void)> NextTask() {
+//            std::cout <<"next_task"<<std::endl;
             std::function<ResultType(void)> resource_function_object;
             //protection for task_queue_ access
             auto lock = make_unique_lock(task_queue_mutex_);
             //enter into task_cond_queue, only if 1) task size is 0 and 2)is_ending is false
-            while (task_queue_.size() == 0 && !is_ending_)
+            while (task_queue_.size() == 0 && !is_go_ending_)
                 task_available_cond_var_.wait(lock);
 
             //get job from the queue, FIFO
-            if (!is_ending_) {
+            if (!is_go_ending_) {
                 resource_function_object = task_queue_.front();
                 task_queue_.pop_front();
             }
@@ -115,14 +116,14 @@ namespace yche {
 
         //could only be accessed in master thread, where worker-threads are joinable
         void JoinAll(bool is_wait_for_all = true) {
-            if (!finished_) {
+            if (!is_finished_) {
                 if (is_wait_for_all) {
                     WaitAll();
                 }
-                is_ending_ = true;
+                is_go_ending_ = true;
                 task_available_cond_var_.notify_all();
                 thread_list_.join_all();
-                finished_ = true;
+                is_finished_ = true;
             }
         }
     };
