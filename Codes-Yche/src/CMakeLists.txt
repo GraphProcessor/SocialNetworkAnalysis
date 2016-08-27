@@ -9,11 +9,12 @@ find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
 
-set(ParallelUtilFiles dataflow_scheduler.h reduce_scheduler.h fine_grained_merge_scheduler.h thread_pool_breakable.h thread_pool_base.h configuration.h)
+set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h parallel_utils/fine_grained_merge_scheduler.h
+        thread_pool_breakable.h thread_pool_base.h configuration.h)
 set(GraphIOUtilFiles input_output_handler.h)
-set(DemonFiles test_demon.cpp demon_algorithm.cpp demon_algorithm.h)
-set(CISFiles test_cis.cpp cis_algorithm.cpp cis_algorithm.h)
-set(GCEFiles test_gce.cpp gce_algorithm.cpp gce_algorithm.h)
+set(DemonFiles test_demon.cpp algorithm/demon_algorithm.cpp algorithm/demon_algorithm.h)
+set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h)
+set(GCEFiles test_gce.cpp algorithm/gce_algorithm.cpp algorithm/gce_algorithm.h)
 
 add_executable(Demon_Test ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
 target_link_libraries(Demon_Test ${CMAKE_THREAD_LIBS_INIT})

@@ -12,7 +12,6 @@
 #include <iostream>
 #include <pthread.h>
 
-
 #include "configuration.h"
 #include "thread_pool_breakable.h"
 

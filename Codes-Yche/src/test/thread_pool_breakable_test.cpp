@@ -13,7 +13,7 @@ int main() {
     auto integer = 0;
     bool is_break = false;
 
-    for (auto i = 0; i < 500; i++) {
+    for (auto i = 0; i < 5000; i++) {
         integer++;
         std::function<BreakWithCallBackRetType(void)> task_function = [integer]() -> BreakWithCallBackRetType {
             if (integer == 10) {
