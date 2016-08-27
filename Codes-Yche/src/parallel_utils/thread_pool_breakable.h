@@ -7,6 +7,7 @@
 
 #include "thread_pool_base.h"
 
+using namespace std;
 namespace yche {
     struct BreakWithCallBackRetType {
         bool is_break_{false};

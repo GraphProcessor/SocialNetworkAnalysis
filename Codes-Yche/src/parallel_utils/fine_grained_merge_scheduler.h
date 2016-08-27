@@ -12,7 +12,7 @@
 #include <iostream>
 #include <pthread.h>
 
-#include "configuration.h"
+#include "parallel_configuration.h"
 #include "thread_pool_breakable.h"
 
 using namespace std;

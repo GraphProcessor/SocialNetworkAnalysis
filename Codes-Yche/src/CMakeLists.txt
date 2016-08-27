@@ -9,8 +9,9 @@ find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
 
-set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h parallel_utils/fine_grained_merge_scheduler.h
-        thread_pool_breakable.h thread_pool_base.h configuration.h)
+set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h
+        parallel_utils/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
+        parallel_utils/thread_pool_breakable.h parallel_utils/thread_pool_base.h)
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_demon.cpp algorithm/demon_algorithm.cpp algorithm/demon_algorithm.h)
 set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h)
@@ -24,8 +25,8 @@ add_executable(CISTest ${ParallelUtilFiles} ${GraphIOUtilFiles} ${CISFiles})
 target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(CISTest ${Boost_LIBRARIES})
 
-add_executable(ThreadPoolTest thread_pool_base.h test/thread_pool_test.cpp)
+add_executable(ThreadPoolTest parallel_utils/thread_pool_base.h test/thread_pool_test.cpp)
 target_link_libraries(ThreadPoolTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
 
-add_executable(ThreadPoolBreakableTest thread_pool_base.h thread_pool_breakable.h test/thread_pool_breakable_test.cpp)
+add_executable(ThreadPoolBreakableTest parallel_utils/thread_pool_base.h parallel_utils/thread_pool_breakable.h test/thread_pool_breakable_test.cpp)
 target_link_libraries(ThreadPoolBreakableTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})

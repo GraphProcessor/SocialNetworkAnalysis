@@ -4,8 +4,6 @@
 
 #include "demon_algorithm.h"
 
-#include "configuration.h"
-
 namespace yche {
 
     unique_ptr<Demon::SubGraph> Demon::ExtractEgoMinusEgo(Demon::Vertex ego_vertex) {

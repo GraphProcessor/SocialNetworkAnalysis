@@ -2,7 +2,7 @@
 // Created by cheyulin on 8/8/16.
 //
 #include <thread>
-#include "../thread_pool_base.h"
+#include "../parallel_utils/thread_pool_base.h"
 
 int main() {
     using namespace yche;
