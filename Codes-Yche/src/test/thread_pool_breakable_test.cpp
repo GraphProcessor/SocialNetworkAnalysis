@@ -18,7 +18,7 @@ int main() {
         std::function<BreakWithCallBackRetType(void)> task_function = [integer]() -> BreakWithCallBackRetType {
             if (integer == 10) {
                 cout << "Go Break" << endl;
-                return BreakWithCallBackRetType(true, []() { cout << "Break" << endl; });
+                return BreakWithCallBackRetType(true, []() { cout << "Cur Break" << endl; });
             }
             else
                 return BreakWithCallBackRetType();
@@ -26,6 +26,5 @@ int main() {
         breakable_pool.AddTask(task_function);
     }
     breakable_pool.WaitForBreakOrTerminate(is_break);
-    cout << is_break << endl;
-
+    breakable_pool.JoinAll();
 }

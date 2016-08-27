@@ -18,7 +18,7 @@ namespace yche {
 
         BreakWithCallBackRetType() = default;
 
-        explicit operator bool() const {
+        operator bool() const {
             return is_break_;
         }
     };
@@ -33,9 +33,9 @@ namespace yche {
                 auto task_function = NextTask();
                 cout << "task left:" << left_tasks_counter_ << endl;
                 if (task_function != nullptr) {
-                    BreakWithCallBackRetType *call_back_ret_type_ptr;
-                    *call_back_ret_type_ptr = task_function();
-                    if (call_back_ret_type_ptr->is_break_ == true) {
+                    BreakWithCallBackRetType call_back_ret_obj;
+                    call_back_ret_obj = task_function();
+                    if (call_back_ret_obj.is_break_ == true) {
                         is_breaking_ = true;
                         if (is_breaking_) {
                             {
@@ -43,7 +43,7 @@ namespace yche {
                                 left_tasks_counter_ -= task_queue_.size();
                                 task_queue_.clear();
                             }
-                            call_back_ret_type_ptr->call_back_function_object_();
+                            call_back_ret_obj.call_back_function_object_();
                         }
                     }
                     --left_tasks_counter_;
