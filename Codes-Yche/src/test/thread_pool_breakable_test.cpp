@@ -16,18 +16,16 @@ int main() {
     for (auto i = 0; i < 500; i++) {
         integer++;
         std::function<BreakWithCallBackRetType(void)> task_function = [integer]() -> BreakWithCallBackRetType {
-//            cout << "Integer:" << integer << endl;
             if (integer == 10) {
                 cout << "Go Break" << endl;
-                return BreakWithCallBackRetType();
-//                return BreakWithCallBackRetType(true, []() { cout << "Break" << endl; });
+                return BreakWithCallBackRetType(true, []() { cout << "Break" << endl; });
             }
             else
                 return BreakWithCallBackRetType();
         };
         breakable_pool.AddTask(task_function);
     }
-//    breakable_pool.WaitForBreakOrTerminate(is_break);
-//    cout << is_break << endl;
+    breakable_pool.WaitForBreakOrTerminate(is_break);
+    cout << is_break << endl;
 
 }
