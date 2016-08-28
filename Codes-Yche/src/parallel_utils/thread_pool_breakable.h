@@ -17,6 +17,26 @@ namespace yche {
                 : is_break_(is_break), call_back_function_object_(call_back_function_object) {
         }
 
+        BreakWithCallBackRetType(const BreakWithCallBackRetType &rhs) {
+            is_break_ = rhs.is_break_;
+            if (is_break_) {
+                cout << "Good" << endl;
+            } else {
+                cout << "Bad" << endl;
+            }
+            call_back_function_object_ = rhs.call_back_function_object_;
+        }
+
+        BreakWithCallBackRetType &operator=(const BreakWithCallBackRetType &rhs) {
+            is_break_ = rhs.is_break_;
+            if (is_break_) {
+                cout << "Good" << endl;
+            } else {
+                cout << "Bad" << endl;
+            }
+            call_back_function_object_ = rhs.call_back_function_object_;
+        }
+
         BreakWithCallBackRetType() = default;
     };
 

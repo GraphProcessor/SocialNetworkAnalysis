@@ -9,7 +9,7 @@ using namespace yche;
 using namespace std;
 
 int main() {
-    ThreadPoolBreakable breakable_pool(10);
+    ThreadPoolBreakable breakable_pool(1);
     auto integer = 0;
     bool is_break = false;
 
