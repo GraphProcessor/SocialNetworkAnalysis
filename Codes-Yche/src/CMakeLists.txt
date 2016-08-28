@@ -25,8 +25,4 @@ add_executable(CISTest ${ParallelUtilFiles} ${GraphIOUtilFiles} ${CISFiles})
 target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(CISTest ${Boost_LIBRARIES})
 
-add_executable(ThreadPoolTest parallel_utils/thread_pool_base.h test/thread_pool_test.cpp)
-target_link_libraries(ThreadPoolTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
-
-add_executable(ThreadPoolBreakableTest parallel_utils/thread_pool_base.h parallel_utils/thread_pool_breakable.h test/thread_pool_breakable_test.cpp)
-target_link_libraries(ThreadPoolBreakableTest ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
+add_subdirectory(test)

@@ -54,7 +54,6 @@ namespace yche {
             return resource_function_object;
         }
 
-
     public:
         ThreadPoolBase(int thread_count) {
             for (auto i = 0; i < thread_count; i++) {

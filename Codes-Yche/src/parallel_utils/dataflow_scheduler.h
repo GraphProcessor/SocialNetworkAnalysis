@@ -20,8 +20,6 @@ namespace yche {
 
     template<typename AlgorithmType>
     class DataFlowScheduler {
-
-
     private:
         struct BundleInput {
             DataFlowScheduler *parallelizer_ptr_;
@@ -79,14 +77,12 @@ namespace yche {
             idle_count_ = 0;
         }
 
-
         virtual ~DataFlowScheduler() {
             pthread_mutex_destroy(&counter_mutex_lock_);
             pthread_barrier_destroy(&timestamp_barrier);
             delete[]thread_handles;
         }
     };
-
 
     template<typename AlgorithmType>
     void DataFlowScheduler<AlgorithmType>::ParallelExecute() {
