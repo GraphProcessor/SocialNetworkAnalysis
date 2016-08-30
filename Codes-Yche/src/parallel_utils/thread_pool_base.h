@@ -19,7 +19,7 @@ namespace yche {
     protected:
         std::list<std::function<ResultType(void)>> task_queue_;
         atomic_int left_tasks_counter_{0};
-        atomic_bool is_go_ending_{false};
+        atomic_bool is_ready_finishing_{false};
         atomic_bool is_finished_{false};
 
         mutex task_queue_mutex_;
@@ -29,7 +29,7 @@ namespace yche {
         condition_variable_any boss_wait_cond_var_;
 
         virtual void DoThreadFunction() {
-            while (!is_go_ending_) {
+            while (!is_ready_finishing_) {
                 auto task_function = NextTask();
                 if (task_function != nullptr) {
                     task_function();
@@ -42,9 +42,9 @@ namespace yche {
         std::function<ResultType(void)> NextTask() {
             std::function<ResultType(void)> resource_function_object;
             auto lock = make_unique_lock(task_queue_mutex_);
-            while (task_queue_.size() == 0 && !is_go_ending_)
+            while (task_queue_.size() == 0 && !is_ready_finishing_)
                 task_available_cond_var_.wait(lock);
-            if (!is_go_ending_) {
+            if (!is_ready_finishing_) {
                 resource_function_object = task_queue_.front();
                 task_queue_.pop_front();
             }
@@ -65,11 +65,11 @@ namespace yche {
             JoinAll();
         }
 
-        inline unsigned Size() const {
+        size_t Size() const {
             return thread_list_.size();
         }
 
-        inline unsigned TasksRemaining() {
+        size_t TasksRemaining() {
             auto lock = make_unique_lock(task_queue_mutex_);
             return task_queue_.size();
         }
@@ -89,12 +89,10 @@ namespace yche {
             }
         }
 
-        void JoinAll(bool is_wait_for_all = true) {
+        void JoinAll() {
             if (!is_finished_) {
-                if (is_wait_for_all) {
-                    WaitAll();
-                }
-                is_go_ending_ = true;
+                WaitAll();
+                is_ready_finishing_ = true;
                 task_available_cond_var_.notify_all();
                 thread_list_.join_all();
                 is_finished_ = true;

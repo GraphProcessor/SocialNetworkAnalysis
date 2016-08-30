@@ -13,8 +13,5 @@ int main() {
         pool.AddTask([i]() -> int {
             std::cout << "Hello" << i << std::endl;
             return (i * i);
-//            std::this_thread::sleep_for(std::chrono::seconds(1));
         });
-
-    //Exit This Scope will call destructor of ThreadPoolBase to Implicitly Join All
 }

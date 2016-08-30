@@ -1,4 +1,9 @@
 #Implementation Thoughts
+##Thread Pool
+###Important Status Variables
+- is_ready_finishing_, managed by master thread, set true only when all current-stage-tasks finished
+- is_finished_, manged by master thread, set true only when current worker-threads are joined
+
 ##Breakable Thread Pool
 ###Traits
 - Could not let master thread add tasks when it is break

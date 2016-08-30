@@ -17,45 +17,29 @@ namespace yche {
                 : is_break_(is_break), call_back_function_object_(call_back_function_object) {
         }
 
-        BreakWithCallBackRetType(const BreakWithCallBackRetType &rhs) {
-            is_break_ = rhs.is_break_;
-            if (is_break_) {
-                cout << "Good" << endl;
-            } else {
-                cout << "Bad" << endl;
-            }
-            call_back_function_object_ = rhs.call_back_function_object_;
-        }
-
-        BreakWithCallBackRetType &operator=(const BreakWithCallBackRetType &rhs) {
-            is_break_ = rhs.is_break_;
-            if (is_break_) {
-                cout << "Good" << endl;
-            } else {
-                cout << "Bad" << endl;
-            }
-            call_back_function_object_ = rhs.call_back_function_object_;
-        }
-
         BreakWithCallBackRetType() = default;
+    };
+
+    enum class BreakStatus {
+        NOT_BREAK,
+        IS_BREAKING,
+        FINISH_CALLBACK
     };
 
     class ThreadPoolBreakable : public ThreadPoolBase<BreakWithCallBackRetType> {
     private:
-        atomic_bool is_breaking_{false};
+        atomic<BreakStatus> breaking_status_{BreakStatus::NOT_BREAK};
 
     protected:
         virtual void DoThreadFunction() override {
-            while (!is_go_ending_) {
+            while (!is_ready_finishing_) {
                 auto task_function = NextTask();
                 cout << "task left:" << left_tasks_counter_ << endl;
                 if (task_function != nullptr) {
                     BreakWithCallBackRetType call_back_ret_obj = task_function();
                     if (call_back_ret_obj.is_break_) {
-                        cout << "break sig" << endl;
-                        is_breaking_ = true;
-                        cout << "break sig" << endl;
-                        if (is_breaking_) {
+                        breaking_status_ = BreakStatus::IS_BREAKING;
+                        if (breaking_status_ == BreakStatus::IS_BREAKING) {
                             {
                                 auto lock = make_unique_lock(task_queue_mutex_);
                                 left_tasks_counter_ -= task_queue_.size();
@@ -82,9 +66,8 @@ namespace yche {
                 while (left_tasks_counter_ != 0)
                     boss_wait_cond_var_.wait(lock);
             }
-            is_break = is_breaking_;
-//            is_breaking_ = false;
         }
+
     };
 }
 
