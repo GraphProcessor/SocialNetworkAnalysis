@@ -48,8 +48,7 @@ namespace yche {
                             call_back_ret_obj.call_back_function_object_();
                         }
                     }
-                    if (!is_break_)
-                        --left_tasks_counter_;
+                    --left_tasks_counter_;
                 }
                 boss_wait_cond_var_.notify_one();
             }
@@ -68,7 +67,12 @@ namespace yche {
         }
 
         void WaitForBreakOrTerminate(bool &is_break) {
+            cout << left_tasks_counter_ << endl;
             while (left_tasks_counter_ != 0) {
+                if (left_tasks_counter_ < 0) {
+                    left_tasks_counter_ = 0;
+                    break;
+                }
                 auto lock = make_unique_lock(boss_wait_mutex_);
                 boss_wait_cond_var_.wait(lock);
             }

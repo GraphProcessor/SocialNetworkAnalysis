@@ -75,8 +75,7 @@ namespace yche {
                         return BreakWithCallBackRetType(true, std::bind(this->success_action_func_,
                                                                         std::ref(this->left_element_ptr_),
                                                                         std::ref(right_element_ptr)));
-                    }
-                    else
+                    } else
                         return BreakWithCallBackRetType();
                 };
                 thread_pool_.AddTask(task_function);
