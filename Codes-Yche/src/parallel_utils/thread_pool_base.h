@@ -10,6 +10,8 @@
 #include <list>
 
 using namespace boost;
+using std::list;
+
 namespace yche {
     template<typename ResultType=void>
     class ThreadPoolBase {
@@ -17,7 +19,7 @@ namespace yche {
         thread_group thread_list_;
 
     protected:
-        std::list<std::function<ResultType(void)>> task_queue_;
+        list<std::function<ResultType(void)>> task_queue_;
         atomic_int left_tasks_counter_{0};
         atomic_bool is_ready_finishing_{false};
         atomic_bool is_finished_{false};
@@ -47,8 +49,7 @@ namespace yche {
             if (!is_ready_finishing_) {
                 resource_function_object = task_queue_.front();
                 task_queue_.pop_front();
-            }
-            else {
+            } else {
                 resource_function_object = nullptr;
             }
             return resource_function_object;
@@ -74,7 +75,7 @@ namespace yche {
             return task_queue_.size();
         }
 
-        void AddTask(std::function<ResultType(void)> task) {
+        virtual void AddTask(std::function<ResultType(void)> task) {
             auto lock = make_unique_lock(task_queue_mutex_);
             task_queue_.emplace_back(std::move(task));
             ++left_tasks_counter_;
@@ -82,10 +83,9 @@ namespace yche {
         }
 
         void WaitAll() {
-            if (left_tasks_counter_ > 0) {
+            while (left_tasks_counter_ != 0) {
                 auto lock = make_unique_lock(boss_wait_mutex_);
-                while (left_tasks_counter_ != 0)
-                    boss_wait_cond_var_.wait(lock);
+                boss_wait_cond_var_.wait(lock);
             }
         }
 
