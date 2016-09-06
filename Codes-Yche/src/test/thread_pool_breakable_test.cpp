@@ -9,7 +9,7 @@ using namespace yche;
 using namespace std;
 
 int main() {
-    ThreadPoolBreakable breakable_pool(1);
+    ThreadPoolBreakable breakable_pool(100);
     auto integer = 0;
     bool is_break = false;
 
@@ -24,5 +24,4 @@ int main() {
         breakable_pool.AddTask(task_function);
     }
     breakable_pool.WaitForBreakOrTerminate(is_break);
-    cout <<"Finished"<<endl;
 }

@@ -33,10 +33,8 @@ namespace yche {
             while (!is_ready_finishing_) {
                 while (is_break_) {
                     auto lock = make_unique_lock(task_queue_mutex_);
-                    cout << "Go wait" << endl;
                     task_available_cond_var_.wait(lock);
                 }
-
                 auto task_function = NextTask();
                 if (task_function != nullptr) {
                     BreakWithCallBackRetType call_back_ret_obj = task_function();
@@ -45,16 +43,14 @@ namespace yche {
                         if (!is_break_) {
                             auto lock = make_unique_lock(task_queue_mutex_);
                             is_break_ = true;
-                            left_tasks_counter_ = 1;
+                            left_tasks_counter_ = 0;
                             task_queue_.clear();
                             call_back_ret_obj.call_back_function_object_();
                         }
                     }
-                    --left_tasks_counter_;
+                    if (!is_break_)
+                        --left_tasks_counter_;
                 }
-
-                cout << "Left Tasks:" << left_tasks_counter_ << endl;
-                cout << "Notify Boss" << endl;
                 boss_wait_cond_var_.notify_one();
             }
         }
@@ -66,7 +62,6 @@ namespace yche {
             auto lock = make_unique_lock(task_queue_mutex_);
             if (!is_break_) {
                 task_queue_.emplace_back(std::move(task));
-
                 ++left_tasks_counter_;
                 task_available_cond_var_.notify_one();
             }
@@ -74,12 +69,9 @@ namespace yche {
 
         void WaitForBreakOrTerminate(bool &is_break) {
             while (left_tasks_counter_ != 0) {
-                cout << "!!sleep, remain task:" << left_tasks_counter_ << endl;
                 auto lock = make_unique_lock(boss_wait_mutex_);
                 boss_wait_cond_var_.wait(lock);
-                cout << "!!awake:" << left_tasks_counter_ << endl;
             }
-            cout << "Ready" << endl;
             is_break = is_break_;
             is_break_ = false;
             if (is_break)
