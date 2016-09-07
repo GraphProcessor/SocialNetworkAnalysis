@@ -9,7 +9,7 @@ using namespace yche;
 using namespace std;
 
 int main() {
-    ThreadPoolBreakable breakable_pool(100);
+    ThreadPoolBreakable breakable_pool(5);
     bool is_break = false;
     for (auto j = 0; j < 300; j++) {
         cout << "Round:" << j << endl;
