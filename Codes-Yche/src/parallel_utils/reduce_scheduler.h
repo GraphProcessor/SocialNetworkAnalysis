@@ -152,10 +152,10 @@ namespace yche {
             return;
         }
         first_phase_reduce_data_pool_vec_.resize(data_collection.size());
-        int i = 0;
+        int index = 0;
         for (auto &data:data_collection) {
-            first_phase_reduce_data_pool_vec_[i] = std::move(data);
-            i++;
+            first_phase_reduce_data_pool_vec_[index] = std::move(data);
+            index++;
         }
         auto task_per_thread = data_collection.size() / thread_count_;
         cout << task_per_thread << " tasks per thread" << endl;
@@ -205,8 +205,7 @@ namespace yche {
                         for (auto i = 0; i < thread_count_; i++)
                             if (is_rec_mail_empty_[i] == false)
                                 sem_post(&sem_mail_boxes_[i]);
-                    }
-                    else {
+                    } else {
                         pthread_mutex_lock(&counter_mutex_lock_);
                         if (idle_count_ == thread_count_ - 1) {
                             is_end_of_loop_ = true;
@@ -214,8 +213,7 @@ namespace yche {
                             for (auto i = 0; i < thread_count_; i++)
                                 if (is_rec_mail_empty_[i] == false)
                                     sem_post(&sem_mail_boxes_[i]);
-                        }
-                        else
+                        } else
                             idle_count_++;
                         pthread_mutex_unlock(&counter_mutex_lock_);
 
@@ -267,8 +265,7 @@ namespace yche {
                         idle_count_--;
                         pthread_mutex_unlock(&counter_mutex_lock_);
                     }
-                }
-                else {
+                } else {
                     if (reduce_data_size > 1) {
                         //Check Flag and Assign Tasks To Left Neighbor
                         if (is_rec_mail_empty_[thread_index] == false) {
@@ -353,8 +350,7 @@ namespace yche {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_reduce_ = true;
                     pthread_cond_broadcast(&task_taking_cond_var_);
-                }
-                else {
+                } else {
                     idle_count_++;
                     //Idle Worker, Go to Cond Var Buffer
                     while (pthread_cond_wait(&task_taking_cond_var_, &task_taking_mutex_) != 0);
@@ -388,8 +384,7 @@ namespace yche {
     ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
             return std::move(first_phase_reduce_data_pool_vec_[0]);
-        }
-        else {
+        } else {
             std::vector<BundleInput *> input_bundle_vec(thread_count_);
             for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
                 input_bundle_vec[thread_id] = new BundleInput();

@@ -66,8 +66,7 @@ namespace yche {
                 this->w_in_ += member_info.w_in_;
                 this->w_out_ += member_info.w_out_;
                 this->members_->insert(member_info.member_index_);
-            }
-            else {
+            } else {
                 this->w_in_ -= member_info.w_in_;
                 this->w_out_ -= member_info.w_out_;
                 this->members_->erase(member_info.member_index_);
@@ -115,7 +114,7 @@ namespace yche {
 
         function<void(ElementReferenceType, ElementReferenceType)> SuccessAction;
 
-        function<void(ElementReferenceType, unique_ptr<ReduceDataType>&)> FailAction;
+        function<void(ElementReferenceType, unique_ptr<ReduceDataType> &)> FailAction;
 
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
@@ -154,17 +153,14 @@ namespace yche {
             //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
             PairMergeComputation = [this](ElementReferenceType left_element_ptr,
                                           ElementReferenceType right_element_ptr) -> bool {
-                if (GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > 1 - DOUBLE_ACCURACY)
-                    return true;
-                else
-                    return false;
+                return GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > 1 - DOUBLE_ACCURACY;
             };
 
             SuccessAction = [this](ElementReferenceType left_element_ptr, ElementReferenceType right_element_ptr) {
                 right_element_ptr = std::move(MergeTwoCommunities(right_element_ptr, left_element_ptr));
             };
 
-            FailAction = [](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType>& reduce_data_ptr) {
+            FailAction = [](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType> &reduce_data_ptr) {
                 reduce_data_ptr->push_back(std::move(left_element_ptr));
             };
         }

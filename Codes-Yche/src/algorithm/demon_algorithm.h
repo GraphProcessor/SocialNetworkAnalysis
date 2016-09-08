@@ -111,10 +111,7 @@ namespace yche {
             //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
             PairMergeComputation = [this](ElementReferenceType& left_element_ptr,
                                           ElementReferenceType& right_element_ptr) -> bool {
-                if (GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > this->epsilon_)
-                    return true;
-                else
-                    return false;
+                return GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > this->epsilon_;
             };
 
             SuccessAction = [this](ElementReferenceType left_element_ptr, ElementReferenceType right_element_ptr) {

@@ -40,9 +40,9 @@ namespace yche {
                 if (task_function != nullptr) {
                     BreakWithCallBackRetType call_back_ret_obj = task_function();
                     if (call_back_ret_obj.is_break_) {
-                        auto lock = make_unique_lock(call_back_mutex_);
+                        auto callback_lock = make_unique_lock(call_back_mutex_);
                         if (!is_break_) {
-                            auto lock = make_unique_lock(task_queue_mutex_);
+                            auto task_lock = make_unique_lock(task_queue_mutex_);
                             is_break_ = true;
                             left_tasks_counter_ = 0;
                             task_queue_.clear();
