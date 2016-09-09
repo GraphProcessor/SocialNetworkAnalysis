@@ -15,6 +15,11 @@
 - Break in advance, but the flag is_break_ is not set, then the boss is able to add another task(Solved)
 
 ###Current Bugs
+- new finding:   
+```cpp
+boss_wait_cond_var_.wait(lock);
+```   
+not awake again...
 - after several bulk-sync-phase, dead-lock(but sharp change of left_task_counter_ is only executed after the is_break_ flag set true)
 - bug in next_task() function call
 

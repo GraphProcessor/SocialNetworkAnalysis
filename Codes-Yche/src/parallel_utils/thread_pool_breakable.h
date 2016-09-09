@@ -51,6 +51,7 @@ namespace yche {
                     }
                     --left_tasks_counter_;
                 }
+                cout <<"Notify Boss"<<endl;
                 boss_wait_cond_var_.notify_one();
             }
         }
@@ -79,6 +80,7 @@ namespace yche {
                 boss_wait_cond_var_.wait(lock);
                 cout << "Boss Awake, Remian:" << left_tasks_counter_ << endl;
             }
+            cout << "Boss Out There left tasks:" << left_tasks_counter_ << endl;
             is_break = is_break_;
             is_break_ = false;
             if (is_break)

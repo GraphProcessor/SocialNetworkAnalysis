@@ -55,6 +55,23 @@ namespace yche {
             return resource_function_object;
         }
 
+        void WaitAll() {
+            while (left_tasks_counter_ != 0) {
+                auto lock = make_unique_lock(boss_wait_mutex_);
+                boss_wait_cond_var_.wait(lock);
+            }
+        }
+
+        void JoinAll() {
+            if (!is_finished_) {
+                WaitAll();
+                is_ready_finishing_ = true;
+                task_available_cond_var_.notify_all();
+                thread_list_.join_all();
+                is_finished_ = true;
+            }
+        }
+
     public:
         ThreadPoolBase(int thread_count) {
             for (auto i = 0; i < thread_count; i++) {
@@ -80,23 +97,6 @@ namespace yche {
             task_queue_.emplace_back(std::move(task));
             ++left_tasks_counter_;
             task_available_cond_var_.notify_one();
-        }
-
-        void WaitAll() {
-            while (left_tasks_counter_ != 0) {
-                auto lock = make_unique_lock(boss_wait_mutex_);
-                boss_wait_cond_var_.wait(lock);
-            }
-        }
-
-        void JoinAll() {
-            if (!is_finished_) {
-                WaitAll();
-                is_ready_finishing_ = true;
-                task_available_cond_var_.notify_all();
-                thread_list_.join_all();
-                is_finished_ = true;
-            }
         }
     };
 }
