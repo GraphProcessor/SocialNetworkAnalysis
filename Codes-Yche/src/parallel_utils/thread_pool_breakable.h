@@ -26,7 +26,6 @@ namespace yche {
     class ThreadPoolBreakable : public ThreadPoolBase<BreakWithCallBackRetType> {
     private:
         atomic_bool is_break_{false};
-        mutex call_back_mutex_;
 
     protected:
         virtual void DoThreadFunction() override {
@@ -40,9 +39,8 @@ namespace yche {
                 if (task_function != nullptr) {
                     BreakWithCallBackRetType call_back_ret_obj = task_function();
                     if (call_back_ret_obj.is_break_) {
-                        auto callback_lock = make_unique_lock(call_back_mutex_);
+                        auto task_lock = make_unique_lock(task_queue_mutex_);
                         if (!is_break_) {
-                            auto task_lock = make_unique_lock(task_queue_mutex_);
                             is_break_ = true;
                             left_tasks_counter_ = 0;
                             task_queue_.clear();
@@ -51,7 +49,6 @@ namespace yche {
                     }
                     --left_tasks_counter_;
                 }
-//                cout <<"Notify Boss"<<endl;
                 boss_wait_cond_var_.notify_one();
             }
         }
@@ -62,7 +59,7 @@ namespace yche {
         virtual void AddTask(std::function<BreakWithCallBackRetType()> task) override {
             auto lock = make_unique_lock(task_queue_mutex_);
             if (!is_break_) {
-                task_queue_.emplace_back(std::move(task));
+                task_queue_.emplace_back(task);
                 ++left_tasks_counter_;
                 task_available_cond_var_.notify_one();
             }
@@ -75,10 +72,10 @@ namespace yche {
                     left_tasks_counter_ = 0;
                     break;
                 }
-                cout << "Boss Wait, Remian:" << left_tasks_counter_ << endl;
+                cout << "Boss Wait, Remain:" << left_tasks_counter_ << endl;
                 auto lock = make_unique_lock(boss_wait_mutex_);
                 boss_wait_cond_var_.wait(lock);
-                cout << "Boss Awake, Remian:" << left_tasks_counter_ << endl;
+                cout << "Boss Awake, Remain:" << left_tasks_counter_ << endl;
             }
             cout << "Boss Out There left tasks:" << left_tasks_counter_ << endl;
             is_break = is_break_;

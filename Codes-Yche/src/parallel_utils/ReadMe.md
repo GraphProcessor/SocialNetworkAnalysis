@@ -27,3 +27,4 @@ not awake again...
 
 ###Thinking
 - the necessity of the atomic_int left_tasks_counter_, puzzling???
+    - Answer: it is used to track whether any thread is busy with task, so maybe it is necessary
