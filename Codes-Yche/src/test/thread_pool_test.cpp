@@ -11,11 +11,9 @@ using std::endl;
 int main() {
     using namespace yche;
     ThreadPoolBase<int> pool(20);
-    int JOB_COUNT = 5000;
-
-    for (auto j = 0; j < 300; j++) {
+    for (auto j = 0; j < 3000; j++) {
         cout << "Round:" << j << endl;
-        for (int i = 0; i < JOB_COUNT; ++i) {
+        for (int i = 0; i < 5000; ++i) {
             std::function<int(void)> task_function = [i]() {
                 return i * i;
             };
