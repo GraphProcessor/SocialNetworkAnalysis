@@ -1,5 +1,7 @@
 #Implementation Thoughts
 ##Thread Pool
+- [Thread Poll Intro](ThreadPoolIntro.md)
+
 ###Important Status Variables
 - is_ready_finishing_, managed by master thread, set true only when all current-stage-tasks finished
 - is_finished_, manged by master thread, set true only when current worker-threads are joined
@@ -21,7 +23,7 @@ boss_wait_cond_var_.wait(lock);
 ```   
 not awake again...
 - after several bulk-sync-phase, dead-lock(but sharp change of left_task_counter_ is only executed after the is_break_ flag set true)
-- bug in next_task() function call
+- bug in next_ta   sk() function call
 
 ###Thinking
 - the necessity of the atomic_int left_tasks_counter_, puzzling???

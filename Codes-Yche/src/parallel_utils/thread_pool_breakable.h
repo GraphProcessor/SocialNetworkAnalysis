@@ -51,7 +51,7 @@ namespace yche {
                     }
                     --left_tasks_counter_;
                 }
-                cout <<"Notify Boss"<<endl;
+//                cout <<"Notify Boss"<<endl;
                 boss_wait_cond_var_.notify_one();
             }
         }

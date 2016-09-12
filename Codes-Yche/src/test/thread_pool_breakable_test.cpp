@@ -24,6 +24,7 @@ int main() {
             };
             breakable_pool.AddTask(task_function);
         }
+        cout <<"Finish Add"<<endl;
         breakable_pool.WaitForBreakOrTerminate(is_break);
     }
 }

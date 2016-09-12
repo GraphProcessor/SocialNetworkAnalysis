@@ -94,7 +94,7 @@ namespace yche {
 
         virtual void AddTask(std::function<ResultType(void)> task) {
             auto lock = make_unique_lock(task_queue_mutex_);
-            task_queue_.emplace_back(std::move(task));
+            task_queue_.emplace_back(task);
             ++left_tasks_counter_;
             task_available_cond_var_.notify_one();
         }
