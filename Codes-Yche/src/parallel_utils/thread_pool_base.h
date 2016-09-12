@@ -44,8 +44,7 @@ namespace yche {
         std::function<ResultType(void)> NextTask() {
             std::function<ResultType(void)> resource_function_object;
             auto lock = make_unique_lock(task_queue_mutex_);
-            while (task_queue_.size() == 0 && !is_ready_finishing_)
-                task_available_cond_var_.wait(lock);
+            task_available_cond_var_.wait(lock, [this]() { return task_queue_.size() > 0 || is_ready_finishing_; });
             if (!is_ready_finishing_) {
                 resource_function_object = task_queue_.front();
                 task_queue_.pop_front();
@@ -56,10 +55,8 @@ namespace yche {
         }
 
         void WaitAll() {
-            while (left_tasks_counter_ != 0) {
-                auto lock = make_unique_lock(boss_wait_mutex_);
-                boss_wait_cond_var_.wait(lock);
-            }
+            auto lock = make_unique_lock(boss_wait_mutex_);
+            boss_wait_cond_var_.wait(lock, [this]() { return left_tasks_counter_ == 0; });
         }
 
         void JoinAll() {

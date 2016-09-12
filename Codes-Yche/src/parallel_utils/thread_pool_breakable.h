@@ -30,10 +30,9 @@ namespace yche {
     protected:
         virtual void DoThreadFunction() override {
             while (!is_ready_finishing_) {
-                while (is_break_) {
-                    cout << "Go die..." << endl;
+                {
                     auto lock = make_unique_lock(task_queue_mutex_);
-                    task_available_cond_var_.wait(lock);
+                    task_available_cond_var_.wait(lock, [this]() { return !is_break_; });
                 }
                 auto task_function = NextTask();
                 if (task_function != nullptr) {
@@ -66,18 +65,14 @@ namespace yche {
         }
 
         void WaitForBreakOrTerminate(bool &is_break) {
-            cout << "Begin Wait, Remain:" << left_tasks_counter_ << endl;
+            auto lock = make_unique_lock(boss_wait_mutex_);
             while (left_tasks_counter_ != 0) {
                 if (left_tasks_counter_ < 0) {
                     left_tasks_counter_ = 0;
                     break;
                 }
-                cout << "Boss Wait, Remain:" << left_tasks_counter_ << endl;
-                auto lock = make_unique_lock(boss_wait_mutex_);
                 boss_wait_cond_var_.wait(lock);
-                cout << "Boss Awake, Remain:" << left_tasks_counter_ << endl;
             }
-            cout << "Boss Out There left tasks:" << left_tasks_counter_ << endl;
             is_break = is_break_;
             is_break_ = false;
             if (is_break)
