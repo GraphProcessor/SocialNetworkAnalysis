@@ -67,10 +67,10 @@ namespace yche {
         void WaitForBreakOrTerminate(bool &is_break) {
             auto lock = make_unique_lock(boss_wait_mutex_);
             while (left_tasks_counter_ != 0) {
-                if (left_tasks_counter_ < 0) {
-                    left_tasks_counter_ = 0;
-                    break;
-                }
+//                if (left_tasks_counter_ < 0) {
+//                    left_tasks_counter_ = 0;
+//                    break;
+//                }
                 boss_wait_cond_var_.wait(lock);
             }
             is_break = is_break_;

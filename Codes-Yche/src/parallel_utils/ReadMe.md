@@ -25,6 +25,7 @@ not awake again...
 - after several bulk-sync-phase, dead-lock(but sharp change of left_task_counter_ is only executed after the is_break_ flag set true)
 - bug in next_ta   sk() function call
 - also bug in is_break, there is possibility that a thread is going to issue is_break signal
+- still bug in thread_pool_base, not successful one time
 
 ###Thinking
 - the necessity of the atomic_int left_tasks_counter_, puzzling???

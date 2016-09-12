@@ -54,10 +54,6 @@ namespace yche {
             return resource_function_object;
         }
 
-        void WaitAll() {
-            auto lock = make_unique_lock(boss_wait_mutex_);
-            boss_wait_cond_var_.wait(lock, [this]() { return left_tasks_counter_ == 0; });
-        }
 
         void JoinAll() {
             if (!is_finished_) {
@@ -80,6 +76,18 @@ namespace yche {
             JoinAll();
         }
 
+        virtual void AddTask(std::function<ResultType(void)> task) {
+            auto lock = make_unique_lock(task_queue_mutex_);
+            task_queue_.emplace_back(task);
+            ++left_tasks_counter_;
+            task_available_cond_var_.notify_one();
+        }
+
+        void WaitAll() {
+            auto lock = make_unique_lock(boss_wait_mutex_);
+            boss_wait_cond_var_.wait(lock, [this]() { return left_tasks_counter_ == 0; });
+        }
+
         size_t Size() const {
             return thread_list_.size();
         }
@@ -87,13 +95,6 @@ namespace yche {
         size_t TasksRemaining() {
             auto lock = make_unique_lock(task_queue_mutex_);
             return task_queue_.size();
-        }
-
-        virtual void AddTask(std::function<ResultType(void)> task) {
-            auto lock = make_unique_lock(task_queue_mutex_);
-            task_queue_.emplace_back(task);
-            ++left_tasks_counter_;
-            task_available_cond_var_.notify_one();
         }
     };
 }
