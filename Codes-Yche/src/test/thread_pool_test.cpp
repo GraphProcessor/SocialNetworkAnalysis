@@ -16,6 +16,7 @@ int main() {
         for (int i = 0; i < 5000; ++i) {
             std::function<int(void)> task_function = [i]() {
                 return i * i;
+
             };
             pool.AddTask(task_function);
         }
