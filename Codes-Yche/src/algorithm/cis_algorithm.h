@@ -181,23 +181,21 @@ namespace yche {
 
         unique_ptr<CommunityInfo> SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMemberSet> &community_ptr);
 
-        void UpdateMembersNeighborsCommunityInfo(const unique_ptr<Graph> &graph_ptr, const Vertex &mutate_vertex,
+        void UpdateMembersNeighborsCommunityInfo(const Vertex &mutate_vertex,
                                                  unique_ptr<CommunityInfo> &community_info_ptr,
                                                  MemberInfoMap &members,
                                                  MemberInfoMap &neighbors, const MutationType &mutation_type,
                                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                                  property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        void UpdateMembersNeighborsCommunityInfoForAddNeighbor(const unique_ptr<Graph> &graph_ptr,
-                                                               const Vertex &mutate_vertex,
+        void UpdateMembersNeighborsCommunityInfoForAddNeighbor(const Vertex &mutate_vertex,
                                                                unique_ptr<CommunityInfo> &community_info_ptr,
                                                                MemberInfoMap &members,
                                                                MemberInfoMap &neighbors,
                                                                property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                                                property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        void UpdateMembersNeighborsCommunityInfoForRemoveMember(const unique_ptr<Graph> &graph_ptr,
-                                                                const Vertex &mutate_vertex,
+        void UpdateMembersNeighborsCommunityInfoForRemoveMember(const Vertex &mutate_vertex,
                                                                 unique_ptr<CommunityInfo> &community_info_ptr,
                                                                 MemberInfoMap &members,
                                                                 MemberInfoMap &neighbors,
