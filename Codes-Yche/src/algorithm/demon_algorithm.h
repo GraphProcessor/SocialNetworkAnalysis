@@ -37,8 +37,7 @@ namespace yche {
     public:
         //Graph Representation Related Types
         using IndexType = unsigned long;
-        using VertexProperties = property<vertex_weight_t, double,
-                property<vertex_index_t, IndexType >>;
+        using VertexProperties = property<vertex_weight_t, double, property<vertex_index_t, IndexType >>;
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
 
@@ -109,8 +108,8 @@ namespace yche {
             };
 
             //Start Implementation Interfaces For Fine-Grained-Merge-Scheduler Traits
-            PairMergeComputation = [this](ElementReferenceType& left_element_ptr,
-                                          ElementReferenceType& right_element_ptr) -> bool {
+            PairMergeComputation = [this](ElementReferenceType &left_element_ptr,
+                                          ElementReferenceType &right_element_ptr) -> bool {
                 return GetTwoCommunitiesCoverRate(left_element_ptr, right_element_ptr) > this->epsilon_;
             };
 
@@ -120,7 +119,6 @@ namespace yche {
 
             FailAction = [this](ElementReferenceType left_element_ptr, unique_ptr<ReduceDataType> &reduce_data_ptr) {
                 if (left_element_ptr->size() > this->min_community_size_) {
-//                    cout << "left_element_size:" << left_element_ptr->size() << endl;
                     reduce_data_ptr->push_back(std::move(left_element_ptr));
                 }
             };

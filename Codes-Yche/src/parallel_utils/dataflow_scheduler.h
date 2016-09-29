@@ -12,7 +12,9 @@
 #include "fine_grained_merge_scheduler.h"
 
 #else
+
 #include "reduce_scheduler.h"
+
 #endif
 
 namespace yche {
@@ -26,25 +28,21 @@ namespace yche {
             unsigned long thread_id_;
         };
 
-        unsigned long thread_count_;
-        unsigned long idle_count_;
-
         using BasicDataType = typename AlgorithmType::BasicDataType;
         using MergeDataType = typename AlgorithmType::MergeDataType;
         using ReduceDataType = typename AlgorithmType::ReduceDataType;
 
         unique_ptr<vector<unique_ptr<BasicDataType>>> global_computation_task_vec_ptr_;
         vector<pair<unsigned long, unsigned long>> local_computation_range_index_vec_;
-
-        vector<vector<unique_ptr<MergeDataType>>> merge_task_vectors_;
         vector<vector<unique_ptr<ReduceDataType>>> reduce_task_vectors_;
 
+        unsigned long thread_count_;
+        unsigned long idle_count_;
         pthread_t *thread_handles;
         pthread_mutex_t counter_mutex_lock_;
         pthread_barrier_t timestamp_barrier;
 
         vector<bool> is_rec_mail_empty_;
-
         bool is_end_of_local_computation;
 
         void RingCommTaskRequestThreadFunction(unsigned long thread_id);
@@ -72,7 +70,6 @@ namespace yche {
             is_rec_mail_empty_.resize(thread_count_, true);
             is_end_of_local_computation = false;
             local_computation_range_index_vec_.resize(thread_count);
-            merge_task_vectors_.resize(thread_count_);
             reduce_task_vectors_.resize(thread_count_);
             idle_count_ = 0;
         }
@@ -89,15 +86,15 @@ namespace yche {
         struct timespec begin, end;
         double elapsed;
         clock_gettime(CLOCK_MONOTONIC, &begin);
-
         InitTasks();
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = end.tv_sec - begin.tv_sec;
         elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
         cout << "Task Init Cost :" << elapsed << endl;
         cout << "Finish Init" << endl;
-        vector<BundleInput *> input_bundle_vec(thread_count_);
         cout << "Thread_count:" << thread_count_ << endl;
+
+        vector<BundleInput *> input_bundle_vec(thread_count_);
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
             input_bundle_vec[thread_id]->parallelizer_ptr_ = this;
@@ -115,6 +112,7 @@ namespace yche {
         for (auto i = 0; i < thread_count_; ++i) {
             delete input_bundle_vec[i];
         }
+
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = end.tv_sec - begin.tv_sec;
         elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
@@ -162,8 +160,7 @@ namespace yche {
                     is_end_of_local_computation = true;
                     cout << "Thread Finish!!!  " << thread_index << endl;
                     break;
-                }
-                else {
+                } else {
                     pthread_mutex_lock(&counter_mutex_lock_);
                     //Deal With All Finish and Enter into Idle State
                     if (idle_count_ == thread_count_ - 1)
@@ -188,8 +185,7 @@ namespace yche {
                     idle_count_--;
                     pthread_mutex_unlock(&counter_mutex_lock_);
                 }
-            }
-            else {
+            } else {
                 if (local_computation_task_size > 1) {
                     //Check Flag
                     auto &neighbor_computation_range_pair = local_computation_range_index_vec_[src_index];

@@ -74,8 +74,7 @@ namespace yche {
             auto my_iterator = label_weight_map.find(neighbor_vertex_label);
             if (my_iterator == label_weight_map.end()) {
                 label_weight_map.insert(make_pair(neighbor_vertex_label, neighbor_vertex_weight));
-            }
-            else {
+            } else {
                 label_weight_map[neighbor_vertex_label] += neighbor_vertex_weight;
             }
         }
@@ -86,8 +85,7 @@ namespace yche {
         auto current_vertex = sub_graph_Vertex;
         if (label_weight_map.size() == 0) {
             sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
-        }
-        else {
+        } else {
             for (auto label_to_weight_pair:label_weight_map) {
                 auto label_weight = label_to_weight_pair.second;
                 if (label_weight > max_val) {
@@ -218,7 +216,6 @@ namespace yche {
         union_set.resize(iter_end - union_set.begin());
         left_community = make_unique<vector<IndexType>>(std::move(union_set));
 #ifdef  DEBUG_DEMON
-
         cout << "DEBUG_DEMON-Merge:";
         for (auto integer:*left_community) {
             cout << integer << ",";
@@ -235,8 +232,7 @@ namespace yche {
                 if ((*iter_inner)->size() > min_community_size_)
                     community_collection->push_back(std::move(*iter_inner));
             }
-        }
-        else {
+        } else {
             for (auto iter_inner = result->begin(); iter_inner != result->end(); ++iter_inner) {
                 bool first_access_flag = false;
                 for (auto iter = community_collection->begin(); iter != community_collection->end(); ++iter) {
@@ -244,8 +240,7 @@ namespace yche {
                     if (cover_rate_result > epsilon_) {
                         MergeTwoCommunitiesToLeftOne(*iter, *iter_inner);
                         break;
-                    }
-                    else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
+                    } else if ((*iter_inner)->size() > min_community_size_ && !first_access_flag) {
 
                         first_access_flag = true;
                     }

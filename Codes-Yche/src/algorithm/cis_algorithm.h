@@ -40,6 +40,10 @@ namespace yche {
 
     //Cache the Previous Computation Results for a Single Vertex
     struct MemberInfo {
+        IndexType member_index_;
+        double w_in_;
+        double w_out_;
+
         MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) {}
 
         MemberInfo(const MemberInfo &member_info) {
@@ -47,21 +51,17 @@ namespace yche {
             this->w_in_ = member_info.w_in_;
             this->w_out_ = member_info.w_out_;
         }
-
-        IndexType member_index_;
-        double w_in_;
-        double w_out_;
     };
 
     //Cache the Previous Computation Results for a Community
     struct CommunityInfo {
-        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) {}
-
         unique_ptr<CommunityMemberSet> members_;
         double w_in_;
         double w_out_;
 
-        inline void UpdateInfoForMutation(const MemberInfo &member_info, MutationType mutation_type) {
+        CommunityInfo(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) {}
+
+        void UpdateInfoForMutation(const MemberInfo &member_info, MutationType mutation_type) {
             if (mutation_type == MutationType::add_neighbor) {
                 this->w_in_ += member_info.w_in_;
                 this->w_out_ += member_info.w_out_;
@@ -141,9 +141,8 @@ namespace yche {
                 return (*iter1)->size() > (*iter2)->size();
             };
 
-            ReduceComputation = [this](
-                    unique_ptr<ReduceDataType> &left_data_ptr,
-                    unique_ptr<ReduceDataType> &right_data_ptr) -> unique_ptr<ReduceDataType> {
+            ReduceComputation = [this](unique_ptr<ReduceDataType> &left_data_ptr,
+                                       unique_ptr<ReduceDataType> &right_data_ptr) -> unique_ptr<ReduceDataType> {
                 for (auto &right_merge_data:*right_data_ptr) {
                     MergeToCommunityCollection(left_data_ptr, right_merge_data);
                 }
@@ -189,21 +188,21 @@ namespace yche {
                                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                                  property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        inline void UpdateMembersNeighborsCommunityInfoForAddNeighbor(const unique_ptr<Graph> &graph_ptr,
-                                                                      const Vertex &mutate_vertex,
-                                                                      unique_ptr<CommunityInfo> &community_info_ptr,
-                                                                      MemberInfoMap &members,
-                                                                      MemberInfoMap &neighbors,
-                                                                      property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                                                      property_map<Graph, edge_weight_t>::type &edge_weight_map);
+        void UpdateMembersNeighborsCommunityInfoForAddNeighbor(const unique_ptr<Graph> &graph_ptr,
+                                                               const Vertex &mutate_vertex,
+                                                               unique_ptr<CommunityInfo> &community_info_ptr,
+                                                               MemberInfoMap &members,
+                                                               MemberInfoMap &neighbors,
+                                                               property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                               property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        inline void UpdateMembersNeighborsCommunityInfoForRemoveMember(const unique_ptr<Graph> &graph_ptr,
-                                                                       const Vertex &mutate_vertex,
-                                                                       unique_ptr<CommunityInfo> &community_info_ptr,
-                                                                       MemberInfoMap &members,
-                                                                       MemberInfoMap &neighbors,
-                                                                       property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                                                       property_map<Graph, edge_weight_t>::type &edge_weight_map);
+        void UpdateMembersNeighborsCommunityInfoForRemoveMember(const unique_ptr<Graph> &graph_ptr,
+                                                                const Vertex &mutate_vertex,
+                                                                unique_ptr<CommunityInfo> &community_info_ptr,
+                                                                MemberInfoMap &members,
+                                                                MemberInfoMap &neighbors,
+                                                                property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                                                property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
 
         void InitializationForSeedExpansion(const unique_ptr<CommunityMemberSet> &seed_member_ptr,

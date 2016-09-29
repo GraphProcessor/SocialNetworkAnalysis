@@ -8,8 +8,8 @@
 #include <boost/range.hpp>
 #include <memory>
 #include <vector>
-#include "semaphore.h"
 #include <iostream>
+#include <semaphore.h>
 #include <pthread.h>
 
 #include "parallel_configuration.h"

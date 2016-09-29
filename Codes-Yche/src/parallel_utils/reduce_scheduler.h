@@ -5,7 +5,7 @@
 #ifndef CODES_YCHE_REDUCER_H
 #define CODES_YCHE_REDUCER_H
 
-#include "semaphore.h"
+#include <semaphore.h>
 #include <pthread.h>
 #include <ctime>
 #include <iostream>
