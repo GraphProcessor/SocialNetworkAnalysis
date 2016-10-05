@@ -16,6 +16,50 @@ namespace yche {
     using namespace std;
 
     template<typename VertexIndexType>
+    struct EdgeInfo {
+        VertexIndexType src_index_;
+        VertexIndexType dst_index_;
+        double edge_weight_;
+
+        EdgeInfo(VertexIndexType src_index_, VertexIndexType dst_index_,
+                 double edge_weight_) : src_index_(src_index_), dst_index_(dst_index_), edge_weight_(edge_weight_) {}
+    };
+
+    template<typename VertexIndexType>
+    void ReadEdgeListWithWeightInToEdgeVector(char *const &file_name_ptr,
+                                              vector<EdgeInfo<VertexIndexType>> &edges_vec) {
+        ifstream fin(file_name_ptr);
+        string s;
+        if (!fin) {
+            cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
+            exit(-1);
+        }
+
+        int i = 0;
+        while (getline(fin, s)) {
+            using namespace boost;
+            boost::regex pat("$#.*edge_weight");
+            boost::smatch matches;
+            cout << s<<endl;
+            if (boost::regex_match(s, matches, pat))
+                continue;
+
+            VertexIndexType first_vertex_name = -1;
+            VertexIndexType second_vertex_name = -1;
+            double edge_weight = -1;
+            stringstream string_stream;
+            string_stream.clear();
+            string_stream.str(s);
+            string_stream >> first_vertex_name;
+            string_stream >> second_vertex_name;
+            string_stream >> edge_weight;
+            cout <<"src:"<<first_vertex_name<<",dst:"<<second_vertex_name<<",edge_weight:"<<edge_weight<<endl;
+            edges_vec.push_back(EdgeInfo<VertexIndexType>(first_vertex_name,second_vertex_name,edge_weight));
+            i++;
+        }
+    }
+
+    template<typename VertexIndexType>
     void ReadEdgeListInToEdgeVector(char *const &file_name_ptr,
                                     vector<pair<VertexIndexType, VertexIndexType>> &edges_vec) {
         ifstream fin(file_name_ptr);
@@ -51,7 +95,7 @@ namespace yche {
                                           map<VertexIndexType, VertexIndexType> &index_name_map) {
 
         cout << "Reduce Enabled" << endl;
-        DataFlowScheduler <Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
+        DataFlowScheduler<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
         parallelizer.ParallelExecute();
         algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
 
