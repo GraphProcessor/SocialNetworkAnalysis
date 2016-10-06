@@ -8,10 +8,6 @@
 python get_statistics.py ../demo_output_files/  facebook
 python get_statistics.py ../demo_output_files/  facebook_with_reduce_
 ```
-#Pending Work
-- Reimplement Algorithm *GCE*
-- Performance Evaluation Indices  
-
 #Build Environment
 - Build with Cmake 3.3, Gcc 5.3, std = C++ 14
 - Dependencies : Boost, Pthreads
@@ -39,28 +35,6 @@ cd util/
 python get_statistics.py ../demo_output_files/  your_prefix
 python get_statistics.py ../demo_output_files/  your_prefix_with_reduce
 ```
-
-#Environment(CPU Checking)
-- Physical    
-
-  ```zsh
-  cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l  
-  ```
-- Logical    
-
-  ```zsh
-  cat /proc/cpuinfo |grep "processor"|wc -l
-  ```
-- Core   
-
-  ```zsh
-  cat /proc/cpuinfo |grep "cores"|uniq
-  ```
-
-#Experiment
-- Merge operation just sequentially execute  
-- Overlap some merge with Local computation, not significant  
-
 ##Collaboration 20 thousand edges
 Laptop(2-core) | Desktop(4-core)
 -------------- | ---------------
@@ -102,7 +76,3 @@ Laptop(2-core)-NoReduce | Laptop(2-core)-Reduce
 ------------------------ | ----------------------
 ![CisExpV1](./images/facebook_cis_v1.png) | ![CisExpV2](./images/facebook_cis_v2.png)
 ![DemonExpV1](./images/facebook_demon_v1.png) | ![DemonExpV2](./images/facebook_demon_v2.png)
-
-#Attention Please/Advice For Pthread Programming
-- Pthread_Create, void * have to make the input arguments existing until they are joined
-- Pay attention to dead lock
