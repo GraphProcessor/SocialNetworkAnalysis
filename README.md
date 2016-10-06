@@ -2,6 +2,10 @@
 ##Codes On Parallelization for Overlapping Community Detection
 - [Local-Based Overlapping-Community-Detection-Codes](./Codes-Yche)
 
+##Related Overlapping Community Detection Codes Summary
+- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)  
+	Codes for overlapping community detection.
+
 ##Related Overlapping Community Detection Codes
 - [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)   
 - [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
@@ -17,7 +21,7 @@
 - [BFS ms-bfs by mtodat](https://github.com/mtodat/ms-bfs)       
 - [ldbc_snb_datagen by ldbc](https://github.com/ldbc/ldbc_snb_datagen)    
 
-##Survey on Social Network Analysis
+##My Survey on Social Network Analysis
 - [Conference Papers About Graph](./Survey/Conference-Papers-About-Graph)  
 	- [VLDB.md](./Survey/Conference-Papers-About-Graph/VLDB.md) (VLDB 2013, 2014)  
 
@@ -29,9 +33,6 @@
 
 - [Community Detection New Findings](./Survey/Community-Detection-New-Findings.md)    
 	New findings from statistical viewpoint.  
-
-- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)  
-	Codes for overlapping community detection.
 
 - [Community Search Survey](./Survey/Community-Search-Survey.md)  
 	Community search algorithms overview, including k-truss, k-core, dense-graph detection, etc.  
