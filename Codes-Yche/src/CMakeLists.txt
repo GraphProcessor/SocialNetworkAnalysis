@@ -25,5 +25,5 @@ target_link_libraries(CISTest ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(CISTest ${Boost_LIBRARIES})
 
 add_subdirectory(test)
-
+add_subdirectory(evaluation_metrics)
 add_subdirectory(demo)
