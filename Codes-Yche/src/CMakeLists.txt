@@ -15,7 +15,6 @@ set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_demon.cpp algorithm/demon_algorithm.cpp algorithm/demon_algorithm.h)
 set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h)
-set(GCEFiles test_gce.cpp algorithm/gce_algorithm.cpp algorithm/gce_algorithm.h)
 
 add_executable(Demon_Test ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
 target_link_libraries(Demon_Test ${CMAKE_THREAD_LIBS_INIT})
