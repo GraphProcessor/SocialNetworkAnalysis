@@ -1,3 +1,20 @@
+###Environment(CPU Checking)
+- Physical    
+
+  ```zsh
+  cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l  
+  ```
+- Logical    
+
+  ```zsh
+  cat /proc/cpuinfo |grep "processor"|wc -l
+  ```
+- Core   
+
+  ```zsh
+  cat /proc/cpuinfo |grep "cores"|uniq
+  ```
+
 ###CPU-Logical-Core
 - Cluster 15 : 20 cores
 - Cluster 16 : 20 cores

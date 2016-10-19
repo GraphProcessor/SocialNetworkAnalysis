@@ -1,13 +1,12 @@
 # SocialNetworkAnalysis
-##My Own Codes On Opt For Overlapping Community Detection
+##Codes On Parallelization for Overlapping Community Detection
 - [Local-Based Overlapping-Community-Detection-Codes](./Codes-Yche)
 
-##Benchmark Related Repositories    
-- [network-community-benchmark by conradlee](https://github.com/conradlee/network-community-benchmark)    
-- [BFS ms-bfs by mtodat](https://github.com/mtodat/ms-bfs)       
-- [ldbc_snb_datagen by ldbc](https://github.com/ldbc/ldbc_snb_datagen)    
+##Related Overlapping Community Detection Codes Summary
+- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)  
+	Codes for overlapping community detection.
 
-##Overlapping Community Detection Codes
+##Related Overlapping Community Detection Codes
 - [2009 CIS](./Overlapping-Community-Detection/2009-Connected-Iterative-Scan)   
 - [2009 EAGLE](./Overlapping-Community-Detection/2009-EAGLE)  
 - [2010 iLCD](./Overlapping-Community-Detection/2010-iLCD)  
@@ -17,7 +16,12 @@
 - [2013 Seed Set Expansion](./Overlapping-Community-Detection/2013-Seed-Set-Expansion)  
 - [2014 Hea Kernel](./Overlapping-Community-Detection/2014-Heat-Kernel)  
 
-##Survey
+##Benchmark Related Repositories    
+- [network-community-benchmark by conradlee](https://github.com/conradlee/network-community-benchmark)    
+- [BFS ms-bfs by mtodat](https://github.com/mtodat/ms-bfs)       
+- [ldbc_snb_datagen by ldbc](https://github.com/ldbc/ldbc_snb_datagen)    
+
+##My Survey on Social Network Analysis
 - [Conference Papers About Graph](./Survey/Conference-Papers-About-Graph)  
 	- [VLDB.md](./Survey/Conference-Papers-About-Graph/VLDB.md) (VLDB 2013, 2014)  
 
@@ -30,34 +34,14 @@
 - [Community Detection New Findings](./Survey/Community-Detection-New-Findings.md)    
 	New findings from statistical viewpoint.  
 
-- [Overlapping Community Detection Codes](./Survey/Overlapping-Community-Detection-Codes.md)  
-	Codes for overlapping community detection.
-
 - [Community Search Survey](./Survey/Community-Search-Survey.md)  
 	Community search algorithms overview, including k-truss, k-core, dense-graph detection, etc.  
 
 - [Social Medium Recommendation Survey](./Survey/Social-Media-Recommendation.md)  
 	Social network recommendation overview, including sina case study.  
 
-##Survey-Codes
-Need to update and use git submodule...
-
 ##Datasets
 - [Social-Network Related](./Dataset/social_network)    
   Datasets from SNAP, target at social network data.  
 - [Topic/Semantic Analylis Related](./Dataset/TopicOrSemanticAnalylis)    
 	Datasets related to those with user or product profile information.  
-
-##Todo List
-- Reimplement normalized mutual information, omega index, modularity and other related quality metrics.  
-
-- Integrate benchmark graphs respectively from real-world and synthetic datasets and design test cases for different kinds of algorithms.  
-
-- Reimplement five different types of overlapping community detection algorithms mentioned in [Overlapping community detection in networks: The State-of-the Art and Comparative Study](http://dl.acm.org/citation.cfm?id=2501657).  
-
-- Reimplement new metrics and algorithms after 2013 and think of designing domain specific language(Need to implement interpreter-like thing) to make them easy to fit into quality and evaluation framework.  
-
-- Implement automatic parallel engine and analysis engine.  
-
-##Question&Answer
-Any questions, please contact me yche@cse.ust.hk, :)
