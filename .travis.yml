@@ -26,6 +26,7 @@ before_install:
   - sudo apt-get install libboost-dev
 
 script:
+  - cd Codes-Yche
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ../src && make
