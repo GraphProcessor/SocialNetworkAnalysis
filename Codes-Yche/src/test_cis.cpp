@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     map<VertexIndexType, VertexIndexType> index_name_map;
     ConstructGraphWithEdgeVecForCIS<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
 
-    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0, index_name_map);
+    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0);
     ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
 
     return 0;

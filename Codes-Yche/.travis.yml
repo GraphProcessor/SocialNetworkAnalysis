@@ -1,0 +1,35 @@
+# Use new trusty images, should yield newer compilers and packages
+sudo: required
+dist: precise
+language: cpp
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+
+before_install:
+  - sudo apt-get install libboost-dev
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ../src && make
+  - ./CISAlgo 1 ../demo_input_files/collaboration_edges_input.csv
+  - ./CISAlgo 8 ../demo_input_files/collaboration_edges_input.csv
+  - ./DemonAlgo 1 ../demo_input_files/collaboration_edges_input.csv
+  - ./DemonAlgo 8 ../demo_input_files/collaboration_edges_input.csv

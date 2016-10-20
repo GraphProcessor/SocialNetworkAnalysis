@@ -113,9 +113,7 @@ namespace yche {
         [[deprecated("Replaced With Parallel Execution")]]
         unique_ptr<OverlappingCommunityVec> ExecuteCis();
 
-        Cis(unique_ptr<Graph> graph_ptr, double lambda, map<int, int> &vertex_name_map) :
-                lambda_(lambda), vertex_name_map_(vertex_name_map) {
-            graph_ptr_ = std::move(graph_ptr);
+        Cis(unique_ptr<Graph> graph_ptr, double lambda) : lambda_(lambda), graph_ptr_(std::move(graph_ptr)) {
             vertices_.clear();
             //Init Vertices
             property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
@@ -160,7 +158,6 @@ namespace yche {
 
     private:
 
-        map<int, int> vertex_name_map_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
 

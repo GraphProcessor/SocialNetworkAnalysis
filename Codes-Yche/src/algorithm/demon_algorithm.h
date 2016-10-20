@@ -83,9 +83,8 @@ namespace yche {
         void ExecuteDaemon();
 
         Demon(double epsilon, int min_community_size, unique_ptr<Graph> graph_ptr, int max_iteration) :
-                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration) {
-            ;
-            graph_ptr_ = std::move(graph_ptr);
+                epsilon_(epsilon), min_community_size_(min_community_size), max_iteration_num_(max_iteration),
+                graph_ptr_(std::move(graph_ptr)) {
             overlap_community_vec_ = make_unique<vector<CommunityPtr>>();
 
             CmpReduceData = [](unique_ptr<ReduceDataType> &left, unique_ptr<ReduceDataType> &right) -> bool {
@@ -122,7 +121,6 @@ namespace yche {
 
     private:
         unique_ptr<Graph> graph_ptr_;
-
         double epsilon_;
         int min_community_size_;
         int max_iteration_num_;
