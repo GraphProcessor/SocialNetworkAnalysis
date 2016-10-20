@@ -22,19 +22,15 @@ using namespace boost;
 namespace yche {
     constexpr double DOUBLE_ACCURACY = 0.00001;
 
-    //Iterative Scan Related Types
     using IndexType = unsigned long;
-    //Now Replace the Map with Unordered Map to Improve Memory Access Efficiency
     using CommunityMemberSet = std::unordered_set<IndexType>;
     using CommunityMemberVec = std::vector<IndexType>;
 
-    //Two Mutation Types in Iterative Scan
     enum class MutationType {
         add_neighbor,
         remove_member
     };
 
-    //Now Replace the Map with Unordered Map to Improve Memory Access Efficiency
     struct MemberInfo;
     using MemberInfoMap = std::unordered_map<IndexType, unique_ptr<MemberInfo>>;
 
@@ -76,14 +72,12 @@ namespace yche {
 
     class Cis {
     public:
-        //Graph Representation Related Types
         using EdgeProperties = property<edge_weight_t, double>;
         using VertexProperties = property<vertex_index_t, IndexType>;
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
 
-        //Overlapping Community Results Related Types
         using OverlappingCommunityVec=vector<unique_ptr<CommunityMemberVec>>;
 
         //Start Implementation Interfaces For DataFlowScheduler Traits

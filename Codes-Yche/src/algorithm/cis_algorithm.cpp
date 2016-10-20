@@ -32,9 +32,7 @@ namespace yche {
 
     }
 
-    //Now Replace the set(RBTree) with unordered_set(HashTable) to improve the memory access efficiency
     unique_ptr<CommunityInfo> Cis::SplitAndChooseBestConnectedComponent(unique_ptr<CommunityMemberSet> &community_ptr) {
-        cout << "Split" << endl;
         queue<IndexType> frontier;
         std::unordered_set<IndexType> mark_set;
         vector<unique_ptr<CommunityInfo>> community_info_ptr_vec;
@@ -156,8 +154,7 @@ namespace yche {
 
     void Cis::UpdateMembersNeighborsCommunityInfoForAddNeighbor(const Cis::Vertex &mutate_vertex,
                                                                 unique_ptr<CommunityInfo> &community_info_ptr,
-                                                                MemberInfoMap &members,
-                                                                MemberInfoMap &neighbors,
+                                                                MemberInfoMap &members, MemberInfoMap &neighbors,
                                                                 property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                                                 property_map<Graph, edge_weight_t>::type &edge_weight_map) {
         //Update Member and Neighbor List
@@ -197,8 +194,7 @@ namespace yche {
 
     void Cis::UpdateMembersNeighborsCommunityInfoForRemoveMember(const Cis::Vertex &mutate_vertex,
                                                                  unique_ptr<CommunityInfo> &community_info_ptr,
-                                                                 MemberInfoMap &members,
-                                                                 MemberInfoMap &neighbors,
+                                                                 MemberInfoMap &members, MemberInfoMap &neighbors,
                                                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                                                  property_map<Graph, edge_weight_t>::type &edge_weight_map) {
         //Update Member and Neighbor List

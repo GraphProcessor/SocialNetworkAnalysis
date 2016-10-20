@@ -35,24 +35,20 @@ namespace boost {
 namespace yche {
     class Demon {
     public:
-        //Graph Representation Related Types
         using IndexType = unsigned long;
         using VertexProperties = property<vertex_weight_t, double, property<vertex_index_t, IndexType >>;
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
 
-        //Label Propagation Related Types
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, IndexType,
                         property<vertex_label_t, array<IndexType, 2>>>>;
         using SubGraph = adjacency_list<hash_setS, vecS, undirectedS, SubGraphVertexProperties>;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
 
-        //Overlapping Community Results Related Types
         using CommunityPtr = unique_ptr<vector<IndexType>>;
         using CommunityVecPtr = unique_ptr<vector<CommunityPtr>>;
 
-        //Start Implementation Interfaces For DataFlowScheduler Traits
         CommunityVecPtr overlap_community_vec_;
         using BasicDataType = Vertex;
         using MergeDataType = vector<CommunityPtr>;

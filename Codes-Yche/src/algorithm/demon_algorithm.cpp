@@ -107,8 +107,6 @@ namespace yche {
         }
     }
 
-    //To be optimized Part since the cache-unfriendly access of set(RB_Tree)
-    //Now Implementation : Replace the set with vector to guarantee better cache-locality
     Demon::CommunityVecPtr Demon::GetCommunitiesBasedOnLabelPropagationResult(
             unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, const int &curr_index_indicator) {
         property_map<SubGraph, vertex_label_t>::type sub_vertex_label_map =
@@ -184,7 +182,7 @@ namespace yche {
     }
 
     double Demon::GetTwoCommunitiesCoverRate(CommunityPtr &left_community, CommunityPtr &right_community) {
-        //Sort Merge Semi-Join
+        //Sort Merge Join
         //Please Sort Before Call This Function
         vector<IndexType> intersect_set(left_community->size() + right_community->size());
         auto iter_end = set_intersection(left_community->begin(), left_community->end(), right_community->begin(),
@@ -197,31 +195,11 @@ namespace yche {
 
     void Demon::MergeTwoCommunitiesToLeftOne(CommunityPtr &left_community, CommunityPtr &right_community) {
         //Executed After GetTwoCommunitiesCoverRate with Sorted left_community & right_community
-#ifdef DEBUG_DEMON
-        cout << "DEBUG_DEMON-Left:";
-        for (auto integer:*left_community) {
-            cout << integer << ",";
-        }
-        cout << endl;
-        cout << "DEBUG_DEMON-Right:";
-        for (auto integer:*left_community) {
-            cout << integer << ",";
-        }
-        cout << endl;
-#endif
-
         vector<IndexType> union_set(left_community->size() + right_community->size());
         auto iter_end = set_union(left_community->begin(), left_community->end(), right_community->begin(),
                                   right_community->end(), union_set.begin());
         union_set.resize(iter_end - union_set.begin());
         left_community = make_unique<vector<IndexType>>(std::move(union_set));
-#ifdef  DEBUG_DEMON
-        cout << "DEBUG_DEMON-Merge:";
-        for (auto integer:*left_community) {
-            cout << integer << ",";
-        }
-        cout << endl;
-#endif
     }
 
     void Demon::MergeToCommunityCollection(decltype(overlap_community_vec_) &community_collection,
