@@ -72,7 +72,7 @@ namespace yche {
                 s = boost::regex_replace(s, re, " ");
                 str_stream.clear();
                 str_stream.str(s);
-//                cout <<s<<endl;
+
                 auto community_ptr = make_unique<vector<VertexIndexType>>();
                 VertexIndexType tmp;
                 while (true) {

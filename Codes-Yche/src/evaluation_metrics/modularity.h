@@ -133,14 +133,8 @@ namespace yche {
                             f_value_matrix[i][j] = overlap_coefficient_calc_func_(
                                     community_belongings_count_reverse_vec_[start_index],
                                     community_belongings_count_reverse_vec_[end_index]);
-                            if (f_value_matrix[i][j] > 1) {
-                                cout << "shit:" << f_value_matrix[i][j] << endl;
-                            }
                             f_sum_out_arr[i] += f_value_matrix[i][j];
                             f_sum_in_arr[j] += f_value_matrix[i][j];
-                            if (f_value_matrix[i][j] > 1) {
-                                cout << "shit:!!!" << f_value_matrix[i][j] << endl;
-                            }
                         }
                     }
                 }
@@ -196,7 +190,6 @@ namespace yche {
             if (community_belongings_count_vec_[i] != 0) {
                 community_belongings_count_reverse_vec_[i] = 1.0 / community_belongings_count_vec_[i];
                 sum += community_belongings_count_vec_[i];
-//                cout << "node " << i << ":" << community_belongings_count_reverse_vec_[i] << endl;
             }
         }
         cout << "sum" << sum << endl;

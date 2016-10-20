@@ -2,9 +2,9 @@
 // Created by cheyulin on 10/5/16.
 //
 
-#include "../algorithm/cis_algorithm.h"
-#include "../parallel_utils/dataflow_scheduler.h"
-#include "../input_output_handler.h"
+#include "algorithm/cis_algorithm.h"
+#include "parallel_utils/dataflow_scheduler.h"
+#include "input_output_handler.h"
 
 using namespace yche;
 
@@ -29,7 +29,7 @@ void ConstructGraphWithEdgeVecForCIS(unique_ptr<Cis::Graph> &graph_ptr,
         bool flag;
         tie(edge, flag) = add_edge(name_vertex_map[iter->src_index_], name_vertex_map[iter->dst_index_], *graph_ptr);
         edge_weight_map[edge] = iter->edge_weight_;
-        cout << " src:"<<iter->src_index_<<",dst:"<<iter->dst_index_<<",weight:"<<iter->edge_weight_<<endl;
+        cout << " src:" << iter->src_index_ << ",dst:" << iter->dst_index_ << ",weight:" << iter->edge_weight_ << endl;
     }
 
     property_map<Cis::Graph, vertex_index_t>::type vertex_index_map = get(vertex_index, *graph_ptr);

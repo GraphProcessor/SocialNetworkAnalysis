@@ -2,12 +2,16 @@ cmake_minimum_required(VERSION 3.4)
 project(Codes_Yche)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3 -g")
 
+
 find_package(Boost REQUIRED COMPONENTS regex thread)
 message(${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIRS})
+
 find_package(Threads)
 message(${Boost_INCLUDE_DIRS})
 message(${CMAKE_THREAD_LIBS_INIT})
+
+include_directories(".")
 
 set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h
         parallel_utils/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
