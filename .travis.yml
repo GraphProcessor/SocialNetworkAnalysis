@@ -1,7 +1,7 @@
 # Use new trusty images, should yield newer compilers and packages
+language: cpp
 sudo: required
 dist: precise
-language: cpp
 
 matrix:
   include:
@@ -29,7 +29,8 @@ script:
   - cd Codes-Yche
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ../src && make
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ../src
+  - make
   - ./CISAlgo 1 ../demo_input_files/collaboration_edges_input.csv
   - ./CISAlgo 8 ../demo_input_files/collaboration_edges_input.csv
   - ./DemonAlgo 1 ../demo_input_files/collaboration_edges_input.csv
