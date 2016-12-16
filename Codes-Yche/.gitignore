@@ -1,3 +1,4 @@
+
 #no jetbrain ide dir
 .idea
 
@@ -12,3 +13,4 @@ OCD
 
 #no build target dir
 build
+cmake-build-debug
